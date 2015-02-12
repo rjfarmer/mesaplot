@@ -148,24 +148,45 @@ class MESA():
 			self._readProfile(filename)
 			return
 			
-	def loadMod(self,f=None):
+	def loadMod(self,filename=None):
 		"""
 		Fails to read a MESA .mod file.
 		"""
-		if f is None:
-			raise ValurError("Error need a filename")
-		#Mod files are missing a column name for a number in first column:
-		#try:
-		#	tmp=np.genfromtxt(f,skip_header=12,skip_footer=7,names=True,invalid_raise=False)
-		#except:
-		#	pass
-			
-		#names="num"
-		#for i in tmp.dtype.names:
-		#	names=names+", "+i
-		#print(names)
-		self.mod_dat=np.genfromtxt(f,skip_header=12,skip_footer=7,names=True)
+		count=0
+		with open(filename,'r') as f:
+			for l in f:
+				count=count+1
+				if '!' not in l:
+					break
+			self.mod_head=[]
+			self.mod_head_names=[]
+			self.mod_head.append(int(l.split()[0]))
+			self.mod_head_names.append('self.mod_version')
+			#Blank line
+			f.readline()
+			count=count+1
+			#Gap between header and main data
+			for l in f:
+				count=count+1
+				if l=='\n':
+					break
+				self.mod_head.append(l.split()[1])
+				self.mod_head_names.append(l.split()[0])
+			self.mod_dat_names=[]
+			l=f.readline()
+			count=count+1
+			self.mod_dat_names.append('zone')
+			self.mod_dat_names.extend(l.split())
+			self.mod_dat=np.genfromtxt(filename,skip_header=count,names=self.mod_dat_names,skip_footer=8,dtype=None)
+			#Genfromtxt fails in converting 1d1 to 1.0
+			for i in range(np.size(self.mod_dat)):
+				for j in range(1,len(self.mod_dat_names)):
+					self.mod_dat[i][j]=float(str(self.mod_dat[i][j]).replace('D','E').replace('b','').replace('\'',''))
 
+			newDtype=np.dtype([(name,'float') for name in self.mod_dat_names])
+			self.mod_dat=self.mod_dat.astype(newDtype)
+
+		
 	def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1):
 		if len(f)==0:
 			if len(self.log_fold)==0:
