@@ -303,6 +303,12 @@ class plot():
 					except:
 						pass
 
+						
+		ax.yaxis.set_major_locator(MaxNLocator(4))
+		ax.xaxis.set_major_locator(MaxNLocator(4))
+		
+		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
+		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
 		#ax.legend(loc=0,fontsize=20)
 		ax.set_xlabel(xaxis)
 		ax.set_ylabel(r'$\log_{10}$ Abundance')
@@ -312,7 +318,7 @@ class plot():
 		if show:
 			plt.show()
 
-	def plotDynamo(self,m,model=1,show=True,ax=None,xmin=None,xmax=None):
+	def plotDynamo(self,m,model=None,show=True,ax=None,xmin=None,xmax=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -343,11 +349,11 @@ class plot():
 		#ax.set_ylim(0.0,10.0)
 		
 		ax.set_xlim(xrngL)
-		ax.set_title("Dynamo Model= "+str(int(m.prof_head["model_number"]))+" Target= "+str(int(model)))
+		ax.set_title("Dynamo Model")
 		if show:
 			plt.show()
 
-	def plotAngMom(self,m,model=1,show=True,ax=None,xmin=None,xmax=None):
+	def plotAngMom(self,m,model=None,show=True,ax=None,xmin=None,xmax=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -380,7 +386,7 @@ class plot():
 			pass
 
 		ax.set_xlim(xrngL)
-		ax.set_title("Ang Mom Model= "+str(int(m.prof_head["model_number"]))+" Target= "+str(int(model)))
+		ax.set_title("Ang Mom Model")
 		if show:
 			plt.show()
 
@@ -409,7 +415,7 @@ class plot():
 					ax.plot(m.prof_dat[x][mInd],np.log10(m.prof_dat[y1][mInd]),c=y1col,linewidth=2)
 				else:
 					ax.plot(m.prof_dat[x][mInd],m.prof_dat[y1][mInd],c=y1col,linewidth=2)
-				ax.set_ylabel(y1, color=y1col)
+				ax.set_ylabel(y1.replace('_',' '), color=y1col)
 			except:
 				pass
 
@@ -420,12 +426,23 @@ class plot():
 					ax.plot(m.prof_dat[x][mInd],np.log10(m.prof_dat[y2][mInd]),c=y2col,linewidth=2)
 				else:
 					ax.plot(m.prof_dat[x][mInd],m.prof_dat[y2][mInd],c=y2col,linewidth=2)
-				ax2.set_ylabel(y2, color=y2col)
+				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
+				ax2.yaxis.set_major_locator(MaxNLocator(4))
+				ax2.yaxis.set_minor_locator(AutoMinorLocator(3))
 			except:
 				pass
 
+		ax.yaxis.set_major_locator(MaxNLocator(4))
+		ax.xaxis.set_major_locator(MaxNLocator(4))
+		
+		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
+		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
+		
+				
 		ax.set_xlim(xrngL)
-		ax.set_title("Profile Model= "+str(int(m.prof_head["model_number"]))+" Target= "+str(int(model)))
+		ax.set_xlabel(x.replace('_',' '))
+		if show:
+			plt.show()
 		if show:
 			plt.show()
 			
@@ -583,12 +600,11 @@ class plot():
 		if show:
 			plt.show()
 		
-	def plotTRho(self,m,model=1,show=True,ax=None,massrng=[-1,-1],l=False):
+	def plotTRho(self,m,model=None,show=True,ax=None,massrng=[-1,-1],l=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
 
-		m.loadProfile(num=int(model))
 		if massrng[0] >0:
 			ind=(m.prof_dat["mass"]>=massrng[0])&(m.prof_dat["mass"]<=massrng[1])
 		else:
@@ -600,14 +616,20 @@ class plot():
 			lab=str(int(m.prof_head["model_number"]))
 		ax.plot(np.log10(m.prof_dat["temperature"][ind]),m.prof_dat['logRho'][ind],c='r',label=lab)
 
+		ax.yaxis.set_major_locator(MaxNLocator(4))
+		ax.xaxis.set_major_locator(MaxNLocator(4))
+		
+		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
+		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
+		
+		
 		#ax.legend(loc=0)
-		ax.set_title("Profile Model= "+str(int(m.prof_head["model_number"]))+"Target= "+str(int(model)))
 		ax.set_xlabel('Log T')
 		ax.set_ylabel('Log Rho')
 
 		ax.set_xlim(np.log10(m.prof_dat["temperature"][ind].min()),np.log10(m.prof_dat["temperature"][ind].max()))
 		ax.set_ylim(m.prof_dat['logRho'][ind].min(),m.prof_dat['logRho'][ind].max())
-		ax.set_title("Temp-Rho Model= "+str(int(m.prof_head["model_number"]))+"Target= "+str(int(model)))
+		ax.set_title("Temp-Rho Model")
 
 		if show==True:
 			plt.show()
