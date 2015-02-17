@@ -706,6 +706,23 @@ class plot():
 		return matplotlib.colors.LinearSegmentedColormap('colormap',cdict,1024)
 		
 
+	def plotGrid2(self,m,show=True):
+		"""Why not grid1? trying to copy mesa's grids and grid2 is easier for now"""
+		fig=plt.figure()
+		fig.subplots_adjust(wspace=.5)
+		fig.subplots_adjust(hspace=.5)
+		ax=plt.subplot(2,2,1)
+		self.plotTRho(m,ax=ax,show=False)
 		
-
+		ax=plt.subplot(2,4,5)
+		self.plotHistory(m,ax=ax,show=False,x='log_Teff',y1='log_L',y1L='linear',maxMod=m.prof_head['model_number'])
+		
+		ax=plt.subplot(2,4,6)
+		self.plotHistory(m,ax=ax,show=False,x='log_center_T',y1='log_center_Rho',y1L='linear',maxMod=m.prof_head['model_number'])
+		
+		ax=plt.subplot(1,2,2)
+		self.plotAbun(m,ax=ax,show=False)
+		
+		if show==True:
+			plt.show()
 	    
