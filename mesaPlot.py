@@ -256,7 +256,30 @@ class MESA():
 
 
 class plot():
-	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],cmap=plt.cm.gist_ncar,num_labels=3):
+	def labels(self,label,log=False,center=False):
+		l=''
+		if log:
+			l=r'$\log_{10}\;$'
+	
+		if label=='mass':
+			l=l+r"$\rm{Mass}\; [M_{\odot}]$"
+		if label=='model':
+			l=l+r"$\rm{Model\; number}$"
+		if label=='teff':
+			if center:
+				l=l+r"$T_{eff,c}\; [K]$"
+			else:
+				l=l+r"$T_{eff}\; [K]$"
+		if label=='rho':
+			if center:
+				l=l+r"$\rho_{c}\; [K]$"
+			else:
+				l=l+r"$\rho\; [K]$"
+		if label=='lum':
+			l=l+r'$L\; [L_{\odot}]$'
+		return l
+	
+	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -310,7 +333,10 @@ class plot():
 		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
 		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
 		#ax.legend(loc=0,fontsize=20)
-		ax.set_xlabel(xaxis)
+		if xlabel is not None:
+			ax.set_xlabel(xlabel)
+		else:
+			ax.set_xlabel(xaxis.replace('_',' '))
 		ax.set_ylabel(r'$\log_{10}$ Abundance')
 		ax.set_ylim(yrng)
 		ax.set_xlim(xrngL)
@@ -318,7 +344,7 @@ class plot():
 		if show:
 			plt.show()
 
-	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None):
+	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -345,14 +371,17 @@ class plot():
 			ax.legend(loc=0)
 		except:
 			pass
-		#ax.set_ylim(0.0,10.0)
+		if xlabel is not None:
+			ax.set_xlabel(xlabel)
+		else:
+			ax.set_xlabel(xaxis.replace('_',' '))
 		
 		ax.set_xlim(xrngL)
 		ax.set_title("Dynamo Model")
 		if show:
 			plt.show()
 
-	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None):
+	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -384,13 +413,17 @@ class plot():
 		except:
 			pass
 
-		ax.set_xlim(xrngL)
+		if xlabel is not None:
+			ax.set_xlabel(xlabel)
+		else:
+			ax.set_xlabel(xaxis.replace('_',' '))
 		ax.set_title("Ang Mom Model")
 		if show:
 			plt.show()
 
 
-	def plotProfile(self,m,model=None,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,y1L='log',y2L='log',y1col='b',y2col='r',xrev=False,y1rev=False,y2rev=False):
+	def plotProfile(self,m,model=None,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='log',y2L='log',y1col='b',
+							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -407,6 +440,9 @@ class plot():
 		if xmax is not None:
 			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
 			xrngL[1]=xmax
+
+		if xL=='log':
+			xrngL=np.log10(xrngL)
 			
 		if xrev:
 			ax.set_xlim(xrngL[1],xrngL[0])
@@ -416,9 +452,17 @@ class plot():
 		if len(y1)>0:
 			try:
 				if y1L=='log':
-					ax.plot(m.prof_dat[xaxis][mInd],np.log10(m.prof_dat[y1][mInd]),c=y1col,linewidth=2)
+					y=np.log10(m.prof_dat[y1][mInd])
 				else:
-					ax.plot(m.prof_dat[xaxis][mInd],m.prof_dat[y1][mInd],c=y1col,linewidth=2)
+					y=m.prof_dat[y1][mInd]
+				if xL=='log':
+					x=np.log10(m.prof_dat[xaxis][mInd])
+				else:
+					x=m.prof_dat[xaxis][mInd]
+				ax.plot(x,y,c=y1col,linewidth=2)
+				if points:
+					ax.scatter(x,y,c=y1col)
+				
 				ax.set_ylabel(y1.replace('_',' '), color=y1col)
 				ylim=ax.get_ylim()
 				if y1rev:
@@ -430,9 +474,17 @@ class plot():
 			try:
 				ax2 = ax.twinx()
 				if y2L=='log':
-					ax.plot(m.prof_dat[xaxis][mInd],np.log10(m.prof_dat[y2][mInd]),c=y2col,linewidth=2)
+					y=np.log10(m.prof_dat[y2][mInd])
 				else:
-					ax.plot(m.prof_dat[xaxis][mInd],m.prof_dat[y2][mInd],c=y2col,linewidth=2)
+					y=m.prof_dat[y1][mInd]
+				if xL=='log':
+					x=np.log10(m.prof_dat[xaxis][mInd])
+				else:
+					x=m.prof_dat[xaxis][mInd]
+				ax2.plot(x,y,c=y2col,linewidth=2)
+				if points:
+					ax2.scatter(x,y,c=y2col)
+				
 				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
 				ax2.yaxis.set_major_locator(MaxNLocator(4))
 				ax2.yaxis.set_minor_locator(AutoMinorLocator(3))
@@ -449,11 +501,26 @@ class plot():
 		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
 		
 
-		ax.set_xlabel(xaxis.replace('_',' '))
+		if xlabel is not None:
+			ax.set_xlabel(xlabel)
+		else:
+			ax.set_xlabel(xaxis.replace('_',' '))
+			
+		if y1label is not None:
+			ax.set_ylabel(y1label)
+		else:
+			ax.set_ylabel(y1.replace('_',' '), color=y1col)
+			
+		if len(y2)>0:
+			if y2label is not None:
+				ax2.set_ylabel(y2label)
+			else:
+				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
 		if show:
 			plt.show()
 
-	def plotHistory(self,m,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,y1L='log',y2L='log',y1col='b',y2col='r',minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False):
+	def plotHistory(self,m,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='log',y2L='log',y1col='b',y2col='r',
+							minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -469,6 +536,9 @@ class plot():
 			mInd=mInd&(m.hist_dat[xaxis][minMod:maxMod]<=xmax)
 			xrngL[1]=xmax
 
+		if xL=='log':
+			xrngL=np.log10(xrngL)
+			
 		if xrev:
 			ax.set_xlim(xrngL[1],xrngL[0])
 		else:
@@ -476,11 +546,18 @@ class plot():
 			
 		if len(y1)>0:
 			try:
+				
 				if y1L=='log':
-					ax.plot(m.hist_dat[xaxis][minMod:maxMod][mInd],np.log10(m.hist_dat[y1][minMod:maxMod][mInd]),c=y1col,linewidth=2)
+					y=np.log10(m.hist_dat[y1][minMod:maxMod][mInd])
 				else:
-					ax.plot(m.hist_dat[xaxis][minMod:maxMod][mInd],m.hist_dat[y1][minMod:maxMod][mInd],c=y1col,linewidth=2)
-				ax.set_ylabel(y1.replace('_',' '), color=y1col)
+					y=m.hist_dat[y1][minMod:maxMod][mInd]
+				if xL=='log':
+					x=np.log10(m.hist_dat[xaxis][minMod:maxMod][mInd])
+				else:
+					x=m.hist_dat[xaxis][minMod:maxMod][mInd]
+				ax.plot(x,y,c=y1col,linewidth=2)
+				if points:
+					ax.scatter(x,y,c=y1col)
 				ylim=ax.get_ylim()
 				if y1rev:
 					ax.set_ylim(ylim[1],ylim[0])
@@ -491,10 +568,16 @@ class plot():
 			try:
 				ax2 = ax.twinx()
 				if y2L=='log':
-					ax.plot(m.hist_dat[xaxis][minMod:maxMod][mInd],np.log10(m.hist_dat[y2][minMod:maxMod][mInd]),c=y2col,linewidth=2)
+					y=np.log10(m.hist_dat[y2][minMod:maxMod][mInd])
 				else:
-					ax.plot(m.hist_dat[xaxis][minMod:maxMod][mInd],m.hist_dat[y2][minMod:maxMod][mInd],c=y2col,linewidth=2)
-				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
+					y=m.hist_dat[y2][minMod:maxMod][mInd]
+				if xL=='log':
+					x=np.log10(m.hist_dat[xaxis][minMod:maxMod][mInd])
+				else:
+					x=m.hist_dat[xaxis][minMod:maxMod][mInd]
+				ax2.plot(x,y,c=y2col,linewidth=2)
+				if points:
+					ax2.scatter(x,y,c=y2col)
 				ax2.yaxis.set_major_locator(MaxNLocator(4))
 				ax2.yaxis.set_minor_locator(AutoMinorLocator(3))
 				ylim=ax2.get_ylim()
@@ -509,8 +592,22 @@ class plot():
 		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
 		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
 
-
-		ax.set_xlabel(xaxis.replace('_',' '))
+		if xlabel is not None:
+			ax.set_xlabel(xlabel)
+		else:
+			ax.set_xlabel(xaxis.replace('_',' '))
+			
+		if y1label is not None:
+			ax.set_ylabel(y1label)
+		else:
+			ax.set_ylabel(y1.replace('_',' '), color=y1col)
+			
+		if len(y2)>0:
+			if y2label is not None:
+				ax2.set_ylabel(y2label)
+			else:
+				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
+		
 		if show:
 			plt.show()
 
@@ -668,10 +765,13 @@ class plot():
 			plt.show()
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None):
-		self.plotProfile(m,xaxis='logT',y1='logRho',y1L='linear',model=model,show=show,xmin=xmin,xmax=xmax,ax=ax,y1col='k')
+		self.plotProfile(m,xaxis='logT',y1='logRho',y1L='linear',model=model,show=show,
+								xmin=xmin,xmax=xmax,ax=ax,y1col='k',xlabel=self.labels('teff',log=True),y1label=self.labels('rho',log=True))
 
 	def plotHR(self,m,minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None):
-		self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1L='linear',minMod=minMod,maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=True,ax=ax,y1col='k')
+		self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1L='linear',minMod=minMod,
+								maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=True,ax=ax,y1col='k',
+								xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True))
 		
 	def mergeCmaps(self,cmaps,rng=[[0.0,0.5],[0.5,1.0]]):
 		"""
@@ -709,10 +809,12 @@ class plot():
 		self.plotHR(m,ax=ax,maxMod=m.prof_head['model_number'],show=False)
 		
 		ax=plt.subplot(2,4,6)
-		self.plotHistory(m,ax=ax,show=False,xaxis='log_center_T',y1='log_center_Rho',y1L='linear',maxMod=m.prof_head['model_number'],y1col='k')
+		self.plotHistory(m,ax=ax,show=False,xaxis='log_center_T',y1='log_center_Rho',y1L='linear',
+								maxMod=m.prof_head['model_number'],y1col='k',
+								xlabel=self.labels('teff',log=True,center=True),y1label=self.labels('rho',log=True,center=True))
 		
 		ax=plt.subplot(1,2,2)
-		self.plotAbun(m,ax=ax,show=False)
+		self.plotAbun(m,ax=ax,show=False,xlabel=self.labels('mass'))
 		
 		if show==True:
 			plt.show()
