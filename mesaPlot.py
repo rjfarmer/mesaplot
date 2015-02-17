@@ -443,9 +443,57 @@ class plot():
 		ax.set_xlabel(x.replace('_',' '))
 		if show:
 			plt.show()
+
+	def plotHistory(self,m,x='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,y1L='log',y2L='log',y1col='b',y2col='r',minMod=0,maxMod=-1):
+		if ax ==None:
+			fig=plt.figure()
+			ax=fig.add_subplot(111)
+		
+		mInd=np.zeros(np.size(m.hist_dat[x][minMod:maxMod]),dtype='bool')
+		mInd[:]=True
+		xrngL=[m.hist_dat[x][minMod:maxMod].min(),m.hist_dat[x][minMod:maxMod].max()]
+		if xmin is not None:
+			mInd=(m.hist_dat[x][minMod:maxMod]>=xmin)
+			xrngL[0]=xmin
+
+		if xmax is not None:
+			mInd=mInd&(m.hist_dat[x][minMod:maxMod]<=xmax)
+			xrngL[1]=xmax
+
+		if len(y1)>0:
+			try:
+				if y1L=='log':
+					ax.plot(m.hist_dat[x][minMod:maxMod][mInd],np.log10(m.hist_dat[y1][minMod:maxMod][mInd]),c=y1col,linewidth=2)
+				else:
+					ax.plot(m.hist_dat[x][minMod:maxMod][mInd],m.hist_dat[y1][minMod:maxMod][mInd],c=y1col,linewidth=2)
+				ax.set_ylabel(y1.replace('_',' '), color=y1col)
+			except:
+				pass
+
+		if len(y2)>0:
+			try:
+				ax2 = ax.twinx()
+				if y2L=='log':
+					ax.plot(m.hist_dat[x][minMod:maxMod][mInd],np.log10(m.hist_dat[y2][minMod:maxMod][mInd]),c=y2col,linewidth=2)
+				else:
+					ax.plot(m.hist_dat[x][minMod:maxMod][mInd],m.hist_dat[y2][minMod:maxMod][mInd],c=y2col,linewidth=2)
+				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
+				ax2.yaxis.set_major_locator(MaxNLocator(4))
+				ax2.yaxis.set_minor_locator(AutoMinorLocator(3))
+			except:
+				pass
+
+		ax.yaxis.set_major_locator(MaxNLocator(4))
+		ax.xaxis.set_major_locator(MaxNLocator(4))
+		
+		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
+		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
+		
+				
+		ax.set_xlim(xrngL)
+		ax.set_xlabel(x.replace('_',' '))
 		if show:
 			plt.show()
-			
 
 	def kip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,cmin=None,cmax=None):
 		if ax ==None:
