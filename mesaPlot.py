@@ -152,6 +152,10 @@ class MESA():
 		"""
 		Fails to read a MESA .mod file.
 		"""
+		try:
+			from StringIO import StringIO
+		except ImportError:
+			from io import StringIO
 		count=0
 		with open(filename,'r') as f:
 			for l in f:
@@ -161,7 +165,7 @@ class MESA():
 			self.mod_head=[]
 			self.mod_head_names=[]
 			self.mod_head.append(int(l.split()[0]))
-			self.mod_head_names.append('self.mod_version')
+			self.mod_head_names.append('mod_version')
 			#Blank line
 			f.readline()
 			count=count+1
@@ -252,7 +256,7 @@ class MESA():
 
 
 class plot():
-	def plotAbun(self,m,model=1,show=True,ax=None,xmin=None,xmax=None,yrng=[-3.0,1.0]):
+	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],cmap=plt.cm.gist_ncar,num_labels=3):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -260,30 +264,51 @@ class plot():
 		
 		if model is not None:
 			m.loadProfile(num=int(model))
-		mInd=np.zeros(np.size(m.prof_dat["mass"]),dtype='bool')
+		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
 		mInd[:]=True
-		xrngL=[m.prof_dat["mass"].min(),m.prof_dat["mass"].max()]
+		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
 		if xmin is not None:
-			mInd=(m.prof_dat[x]>=xmin)
+			mInd=(m.prof_dat[xaxis]>=xmin)
 			xrngL[0]=xmin
 
 		if xmax is not None:
-			mInd=mInd&(m.prof_dat[x]<=xmax)
-			xrngL[1]=xmax	
+			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
+			xrngL[1]=xmax
+
+		num_plots=0
+		for i in m.prof_dat.dtype.names:
+			if len(i)<=4 and len(i)>=2:
+				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i):
+					if np.count_nonzero((np.log10(m.prof_dat[i][mInd])>=yrng[0])&(np.log10(m.prof_dat[i][mInd])<=yrng[1])):
+						num_plots=num_plots+1
+			
+		try:
+			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		except:
+			pass
 		
 		for i in m.prof_dat.dtype.names:
 			if len(i)<=4 and len(i)>=2:
 				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i):
 					try:
 						if np.count_nonzero((np.log10(m.prof_dat[i][mInd])>=yrng[0])&(np.log10(m.prof_dat[i][mInd])<=yrng[1])):
-							ax.plot(m.prof_dat["mass"][mInd],np.log10(m.prof_dat[i][mInd]),label=i,linewidth=2)
+							line, =ax.plot(m.prof_dat[xaxis][mInd],np.log10(m.prof_dat[i][mInd]),label=i,linewidth=2)
+							
+							for ii in range(1,num_labels+1):
+								f = interpolate.interp1d(m.prof_dat[xaxis][mInd],np.log10(m.prof_dat[i][mInd]))
+								xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
+								yp1=f(xp1)
+								ax.annotate(i, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
+					
 					except:
 						pass
 
-		ax.legend(loc=0)
+		#ax.legend(loc=0,fontsize=20)
+		ax.set_xlabel(xaxis)
+		ax.set_ylabel(r'$\log_{10}$ Abundance')
 		ax.set_ylim(yrng)
 		ax.set_xlim(xrngL)
-		ax.set_title("Abundance Model= "+str(int(m.prof_head["model_number"]))+" Target= "+str(int(model)))
+		ax.set_title("Abundance")
 		if show:
 			plt.show()
 
