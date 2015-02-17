@@ -318,29 +318,28 @@ class plot():
 		if show:
 			plt.show()
 
-	def plotDynamo(self,m,model=None,show=True,ax=None,xmin=None,xmax=None):
+	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
 	
-		m.loadProfile(num=int(model))
 		if model is not None:
 			m.loadProfile(num=int(model))
-		mInd=np.zeros(np.size(m.prof_dat["mass"]),dtype='bool')
+		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
 		mInd[:]=True
-		xrngL=[m.prof_dat["mass"].min(),m.prof_dat["mass"].max()]
+		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
 		if xmin is not None:
-			mInd=(m.prof_dat[x]>=xmin)
+			mInd=(m.prof_dat[xaxis]>=xmin)
 			xrngL[0]=xmin
 
 		if xmax is not None:
-			mInd=mInd&(m.prof_dat[x]<=xmax)
+			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
 			xrngL[1]=xmax
 		
 		ind=mInd&(m.prof_dat['dynamo_log_B_r']>-90)
-		ax.plot(m.prof_dat["mass"][ind],m.prof_dat['dynamo_log_B_r'][ind],label='B_r',linewidth=2)
+		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_r'][ind],label='B_r',linewidth=2)
 		ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax.plot(m.prof_dat["mass"][ind],m.prof_dat['dynamo_log_B_phi'][ind],label='B_phi',linewidth=2)
+		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_phi'][ind],label='B_phi',linewidth=2)
 
 		try:
 			ax.legend(loc=0)
@@ -353,22 +352,22 @@ class plot():
 		if show:
 			plt.show()
 
-	def plotAngMom(self,m,model=None,show=True,ax=None,xmin=None,xmax=None):
+	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
 			m.loadProfile(num=int(model))
-		mInd=np.zeros(np.size(m.prof_dat["mass"]),dtype='bool')
+		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
 		mInd[:]=True
-		xrngL=[m.prof_dat["mass"].min(),m.prof_dat["mass"].max()]
+		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
 		if xmin is not None:
-			mInd=(m.prof_dat[x]>=xmin)
+			mInd=(m.prof_dat[xaxis]>=xmin)
 			xrngL[0]=xmin
 
 		if xmax is not None:
-			mInd=mInd&(m.prof_dat[x]<=xmax)
+			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
 			xrngL[1]=xmax
 
 
@@ -376,7 +375,7 @@ class plot():
 			if "am_log" in i:
 				try:
 					ind=mInd&m.prof_dat[i]>-90.0
-					ax.plot(m.prof_dat["mass"][ind],m.prof_dat[i][ind],label=i)
+					ax.plot(m.prof_dat[xaxis][ind],m.prof_dat[i][ind],label=i)
 				except:
 					pass
 
@@ -391,31 +390,39 @@ class plot():
 			plt.show()
 
 
-	def plotProfile(self,m,model=None,x='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,y1L='log',y2L='log',y1col='b',y2col='r'):
+	def plotProfile(self,m,model=None,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,y1L='log',y2L='log',y1col='b',y2col='r',xrev=False,y1rev=False,y2rev=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
 			m.loadProfile(num=int(model))
-		mInd=np.zeros(np.size(m.prof_dat["mass"]),dtype='bool')
+		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
 		mInd[:]=True
-		xrngL=[m.prof_dat[x].min(),m.prof_dat[x].max()]
+		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
 		if xmin is not None:
-			mInd=(m.prof_dat[x]>=xmin)
+			mInd=(m.prof_dat[xaxis]>=xmin)
 			xrngL[0]=xmin
 
 		if xmax is not None:
-			mInd=mInd&(m.prof_dat[x]<=xmax)
+			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
 			xrngL[1]=xmax
+			
+		if xrev:
+			ax.set_xlim(xrngL[1],xrngL[0])
+		else:
+			ax.set_xlim(xrngL)
 
 		if len(y1)>0:
 			try:
 				if y1L=='log':
-					ax.plot(m.prof_dat[x][mInd],np.log10(m.prof_dat[y1][mInd]),c=y1col,linewidth=2)
+					ax.plot(m.prof_dat[xaxis][mInd],np.log10(m.prof_dat[y1][mInd]),c=y1col,linewidth=2)
 				else:
-					ax.plot(m.prof_dat[x][mInd],m.prof_dat[y1][mInd],c=y1col,linewidth=2)
+					ax.plot(m.prof_dat[xaxis][mInd],m.prof_dat[y1][mInd],c=y1col,linewidth=2)
 				ax.set_ylabel(y1.replace('_',' '), color=y1col)
+				ylim=ax.get_ylim()
+				if y1rev:
+					ax.set_ylim(ylim[1],ylim[0])
 			except:
 				pass
 
@@ -423,12 +430,15 @@ class plot():
 			try:
 				ax2 = ax.twinx()
 				if y2L=='log':
-					ax.plot(m.prof_dat[x][mInd],np.log10(m.prof_dat[y2][mInd]),c=y2col,linewidth=2)
+					ax.plot(m.prof_dat[xaxis][mInd],np.log10(m.prof_dat[y2][mInd]),c=y2col,linewidth=2)
 				else:
-					ax.plot(m.prof_dat[x][mInd],m.prof_dat[y2][mInd],c=y2col,linewidth=2)
+					ax.plot(m.prof_dat[xaxis][mInd],m.prof_dat[y2][mInd],c=y2col,linewidth=2)
 				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
 				ax2.yaxis.set_major_locator(MaxNLocator(4))
 				ax2.yaxis.set_minor_locator(AutoMinorLocator(3))
+				ylim=ax2.get_ylim()
+				if y2rev:
+					ax2.set_ylim(ylim[1],ylim[0])
 			except:
 				pass
 
@@ -438,35 +448,42 @@ class plot():
 		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
 		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
 		
-				
-		ax.set_xlim(xrngL)
-		ax.set_xlabel(x.replace('_',' '))
+
+		ax.set_xlabel(xaxis.replace('_',' '))
 		if show:
 			plt.show()
 
-	def plotHistory(self,m,x='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,y1L='log',y2L='log',y1col='b',y2col='r',minMod=0,maxMod=-1):
+	def plotHistory(self,m,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,y1L='log',y2L='log',y1col='b',y2col='r',minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
 		
-		mInd=np.zeros(np.size(m.hist_dat[x][minMod:maxMod]),dtype='bool')
+		mInd=np.zeros(np.size(m.hist_dat[xaxis][minMod:maxMod]),dtype='bool')
 		mInd[:]=True
-		xrngL=[m.hist_dat[x][minMod:maxMod].min(),m.hist_dat[x][minMod:maxMod].max()]
+		xrngL=[m.hist_dat[xaxis][minMod:maxMod].min(),m.hist_dat[xaxis][minMod:maxMod].max()]
 		if xmin is not None:
-			mInd=(m.hist_dat[x][minMod:maxMod]>=xmin)
+			mInd=(m.hist_dat[xaxis][minMod:maxMod]>=xmin)
 			xrngL[0]=xmin
 
 		if xmax is not None:
-			mInd=mInd&(m.hist_dat[x][minMod:maxMod]<=xmax)
+			mInd=mInd&(m.hist_dat[xaxis][minMod:maxMod]<=xmax)
 			xrngL[1]=xmax
 
+		if xrev:
+			ax.set_xlim(xrngL[1],xrngL[0])
+		else:
+			ax.set_xlim(xrngL)
+			
 		if len(y1)>0:
 			try:
 				if y1L=='log':
-					ax.plot(m.hist_dat[x][minMod:maxMod][mInd],np.log10(m.hist_dat[y1][minMod:maxMod][mInd]),c=y1col,linewidth=2)
+					ax.plot(m.hist_dat[xaxis][minMod:maxMod][mInd],np.log10(m.hist_dat[y1][minMod:maxMod][mInd]),c=y1col,linewidth=2)
 				else:
-					ax.plot(m.hist_dat[x][minMod:maxMod][mInd],m.hist_dat[y1][minMod:maxMod][mInd],c=y1col,linewidth=2)
+					ax.plot(m.hist_dat[xaxis][minMod:maxMod][mInd],m.hist_dat[y1][minMod:maxMod][mInd],c=y1col,linewidth=2)
 				ax.set_ylabel(y1.replace('_',' '), color=y1col)
+				ylim=ax.get_ylim()
+				if y1rev:
+					ax.set_ylim(ylim[1],ylim[0])
 			except:
 				pass
 
@@ -474,12 +491,15 @@ class plot():
 			try:
 				ax2 = ax.twinx()
 				if y2L=='log':
-					ax.plot(m.hist_dat[x][minMod:maxMod][mInd],np.log10(m.hist_dat[y2][minMod:maxMod][mInd]),c=y2col,linewidth=2)
+					ax.plot(m.hist_dat[xaxis][minMod:maxMod][mInd],np.log10(m.hist_dat[y2][minMod:maxMod][mInd]),c=y2col,linewidth=2)
 				else:
-					ax.plot(m.hist_dat[x][minMod:maxMod][mInd],m.hist_dat[y2][minMod:maxMod][mInd],c=y2col,linewidth=2)
+					ax.plot(m.hist_dat[xaxis][minMod:maxMod][mInd],m.hist_dat[y2][minMod:maxMod][mInd],c=y2col,linewidth=2)
 				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
 				ax2.yaxis.set_major_locator(MaxNLocator(4))
 				ax2.yaxis.set_minor_locator(AutoMinorLocator(3))
+				ylim=ax2.get_ylim()
+				if y2rev:
+					ax2.set_ylim(ylim[1],ylim[0])
 			except:
 				pass
 
@@ -488,10 +508,9 @@ class plot():
 		
 		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
 		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
-		
-				
-		ax.set_xlim(xrngL)
-		ax.set_xlabel(x.replace('_',' '))
+
+
+		ax.set_xlabel(xaxis.replace('_',' '))
 		if show:
 			plt.show()
 
@@ -648,40 +667,12 @@ class plot():
 		if show:
 			plt.show()
 		
-	def plotTRho(self,m,model=None,show=True,ax=None,massrng=[-1,-1],l=False):
-		if ax ==None:
-			fig=plt.figure()
-			ax=fig.add_subplot(111)
+	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None):
+		self.plotProfile(m,xaxis='logT',y1='logRho',y1L='linear',model=model,show=show,xmin=xmin,xmax=xmax,ax=ax,y1col='k')
 
-		if massrng[0] >0:
-			ind=(m.prof_dat["mass"]>=massrng[0])&(m.prof_dat["mass"]<=massrng[1])
-		else:
-			ind=np.zeros(np.size(m.prof_dat["mass"]),dtype='bool')
-			ind[:]=True
-
-		lab=''
-		if l==True:
-			lab=str(int(m.prof_head["model_number"]))
-		ax.plot(np.log10(m.prof_dat["temperature"][ind]),m.prof_dat['logRho'][ind],c='r',label=lab)
-
-		ax.yaxis.set_major_locator(MaxNLocator(4))
-		ax.xaxis.set_major_locator(MaxNLocator(4))
+	def plotHR(self,m,minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None):
+		self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1L='linear',minMod=minMod,maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=True,ax=ax,y1col='k')
 		
-		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
-		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
-		
-		
-		#ax.legend(loc=0)
-		ax.set_xlabel('Log T')
-		ax.set_ylabel('Log Rho')
-
-		ax.set_xlim(np.log10(m.prof_dat["temperature"][ind].min()),np.log10(m.prof_dat["temperature"][ind].max()))
-		ax.set_ylim(m.prof_dat['logRho'][ind].min(),m.prof_dat['logRho'][ind].max())
-		ax.set_title("Temp-Rho Model")
-
-		if show==True:
-			plt.show()
-
 	def mergeCmaps(self,cmaps,rng=[[0.0,0.5],[0.5,1.0]]):
 		"""
 		Creates a diverging colomap
@@ -715,10 +706,10 @@ class plot():
 		self.plotTRho(m,ax=ax,show=False)
 		
 		ax=plt.subplot(2,4,5)
-		self.plotHistory(m,ax=ax,show=False,x='log_Teff',y1='log_L',y1L='linear',maxMod=m.prof_head['model_number'])
+		self.plotHR(m,ax=ax,maxMod=m.prof_head['model_number'],show=False)
 		
 		ax=plt.subplot(2,4,6)
-		self.plotHistory(m,ax=ax,show=False,x='log_center_T',y1='log_center_Rho',y1L='linear',maxMod=m.prof_head['model_number'])
+		self.plotHistory(m,ax=ax,show=False,xaxis='log_center_T',y1='log_center_Rho',y1L='linear',maxMod=m.prof_head['model_number'],y1col='k')
 		
 		ax=plt.subplot(1,2,2)
 		self.plotAbun(m,ax=ax,show=False)
