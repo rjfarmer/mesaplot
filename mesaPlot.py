@@ -258,7 +258,7 @@ class MESA():
 class plot():
 	def labels(self,label,log=False,center=False):
 		l=''
-		if log:
+		if log or 'log' in label:
 			l=r'$\log_{10}\;$'
 	
 		if label=='mass':
@@ -277,6 +277,10 @@ class plot():
 				l=l+r"$\rho\; [K]$"
 		if label=='lum':
 			l=l+r'$L\; [L_{\odot}]$'
+		
+		if len(l)==0:
+			l=None
+			
 		return l
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None):
@@ -336,7 +340,11 @@ class plot():
 		if xlabel is not None:
 			ax.set_xlabel(xlabel)
 		else:
-			ax.set_xlabel(xaxis.replace('_',' '))
+			l=self.labels(xaxis)
+			if l is not None:
+				ax.set_xlabel(l)
+			else:
+				ax.set_xlabel(xaxis.replace('_',' '))
 		ax.set_ylabel(r'$\log_{10}$ Abundance')
 		ax.set_ylim(yrng)
 		ax.set_xlim(xrngL)
@@ -374,7 +382,11 @@ class plot():
 		if xlabel is not None:
 			ax.set_xlabel(xlabel)
 		else:
-			ax.set_xlabel(xaxis.replace('_',' '))
+			l=self.labels(xaxis)
+			if l is not None:
+				ax.set_xlabel(l)
+			else:
+				ax.set_xlabel(xaxis.replace('_',' '))
 		
 		ax.set_xlim(xrngL)
 		ax.set_title("Dynamo Model")
@@ -416,7 +428,11 @@ class plot():
 		if xlabel is not None:
 			ax.set_xlabel(xlabel)
 		else:
-			ax.set_xlabel(xaxis.replace('_',' '))
+			l=self.labels(xaxis)
+			if l is not None:
+				ax.set_xlabel(l)
+			else:
+				ax.set_xlabel(xaxis.replace('_',' '))
 		ax.set_title("Ang Mom Model")
 		if show:
 			plt.show()
@@ -502,7 +518,11 @@ class plot():
 		if xlabel is not None:
 			ax.set_xlabel(xlabel)
 		else:
-			ax.set_xlabel(xaxis.replace('_',' '))
+			l=self.labels(xaxis)
+			if l is not None:
+				ax.set_xlabel(l)
+			else:
+				ax.set_xlabel(xaxis.replace('_',' '))
 			
 		if y1label is not None:
 			ax.set_ylabel(y1label)
@@ -589,7 +609,11 @@ class plot():
 		if xlabel is not None:
 			ax.set_xlabel(xlabel)
 		else:
-			ax.set_xlabel(xaxis.replace('_',' '))
+			l=self.labels(xaxis)
+			if l is not None:
+				ax.set_xlabel(l)
+			else:
+				ax.set_xlabel(xaxis.replace('_',' '))
 			
 		if y1label is not None:
 			ax.set_ylabel(y1label)
@@ -817,11 +841,9 @@ class plot():
 				y1label=empty*len(y1)
 			if not y2label:
 				y2label=empty*len(y1)
-		
-		if fig ==None:
-			fig=plt.figure()
 			
-		fig, axis = plt.subplots(num, sharex=True)
+		f, axis = plt.subplots(num, sharex=True)
+		f.subplots_adjust(hspace=0)
 		
 		for i in range(num):
 			if typ=="profile":
@@ -834,10 +856,10 @@ class plot():
 									xrev=xrev,y1rev=y1rev[i],y2rev=y2rev[i],points=points,
 									y1=y1[i],y2=y2[i],y1L=y1L[i],y2L=y2L[i],y1col=y1col[i],
 									y2col=y2col[i],y1label=y1label[i],y2label=y2label[i],minMod=minMod,maxMod=maxMod)
-									
-		fig.subplots_adjust(hspace=0)
+		
 		if show:
 			plt.show()
+
 			
 	def plotGrid2(self,m,show=True):
 		"""Why not grid1? trying to copy mesa's grids and grid2 is easier for now"""
