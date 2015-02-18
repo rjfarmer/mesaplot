@@ -373,9 +373,9 @@ class plot():
 			xrngL[1]=xmax
 		
 		ind=mInd&(m.prof_dat['dynamo_log_B_r']>-90)
-		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_r'][ind],label='B_r',linewidth=2)
+		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_r'][ind],label=r'$B_r$',linewidth=2)
 		ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_phi'][ind],label='B_phi',linewidth=2)
+		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_phi'][ind],label=r'$B_{\phi}$',linewidth=2)
 
 		try:
 			ax.legend(loc=0)
@@ -413,14 +413,11 @@ class plot():
 			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
 			xrngL[1]=xmax
 
-
 		for i in m.prof_dat.dtype.names:
-			if "am_log" in i:
-				try:
-					ind=mInd&m.prof_dat[i]>-90.0
-					ax.plot(m.prof_dat[xaxis][ind],m.prof_dat[i][ind],label=i)
-				except:
-					pass
+			if "am_log_D" in i:
+				ind=mInd&(m.prof_dat[i]>-90.0)
+				ax.plot(m.prof_dat[xaxis][ind],m.prof_dat[i][ind],label=r"$D_{"+i.split('_')[3]+"}$")
+
 
 		try:
 			ax.legend(loc=0)
