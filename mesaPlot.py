@@ -542,16 +542,18 @@ class plot():
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
+			
+		modelIndex=(m.hist_dat["model_number"]>=minMod)&(m.hist_dat["model_number"]<=maxMod)
 		
-		mInd=np.zeros(np.size(m.hist_dat[xaxis][minMod:maxMod]),dtype='bool')
+		mInd=np.zeros(np.size(m.hist_dat[xaxis][modelIndex]),dtype='bool')
 		mInd[:]=True
-		xrngL=[m.hist_dat[xaxis][minMod:maxMod].min(),m.hist_dat[xaxis][minMod:maxMod].max()]
+		xrngL=[m.hist_dat[xaxis][modelIndex].min(),m.hist_dat[xaxis][modelIndex].max()]
 		if xmin is not None:
-			mInd=(m.hist_dat[xaxis][minMod:maxMod]>=xmin)
+			mInd=(m.hist_dat[xaxis][modelIndex]>=xmin)
 			xrngL[0]=xmin
 
 		if xmax is not None:
-			mInd=mInd&(m.hist_dat[xaxis][minMod:maxMod]<=xmax)
+			mInd=mInd&(m.hist_dat[xaxis][modelIndex]<=xmax)
 			xrngL[1]=xmax
 
 		if xL=='log':
@@ -563,13 +565,13 @@ class plot():
 			ax.set_xlim(xrngL)
 			
 		if y1L=='log':
-			y=np.log10(m.hist_dat[y1][minMod:maxMod][mInd])
+			y=np.log10(m.hist_dat[y1][modelIndex][mInd])
 		else:
-			y=m.hist_dat[y1][minMod:maxMod][mInd]
+			y=m.hist_dat[y1][modelIndex][mInd]
 		if xL=='log':
-			x=np.log10(m.hist_dat[xaxis][minMod:maxMod][mInd])
+			x=np.log10(m.hist_dat[xaxis][modelIndex][mInd])
 		else:
-			x=m.hist_dat[xaxis][minMod:maxMod][mInd]
+			x=m.hist_dat[xaxis][modelIndex][mInd]
 		ax.plot(x,y,c=y1col,linewidth=2)
 		if points:
 			ax.scatter(x,y,c=y1col)
@@ -582,13 +584,13 @@ class plot():
 			try:
 				ax2 = ax.twinx()
 				if y2L=='log':
-					y=np.log10(m.hist_dat[y2][minMod:maxMod][mInd])
+					y=np.log10(m.hist_dat[y2][modelIndex][mInd])
 				else:
-					y=m.hist_dat[y2][minMod:maxMod][mInd]
+					y=m.hist_dat[y2][modelIndex][mInd]
 				if xL=='log':
-					x=np.log10(m.hist_dat[xaxis][minMod:maxMod][mInd])
+					x=np.log10(m.hist_dat[xaxis][modelIndex][mInd])
 				else:
-					x=m.hist_dat[xaxis][minMod:maxMod][mInd]
+					x=m.hist_dat[xaxis][modelIndex][mInd]
 				ax2.plot(x,y,c=y2col,linewidth=2)
 				if points:
 					ax2.scatter(x,y,c=y2col)
@@ -790,7 +792,7 @@ class plot():
 		self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1L='linear',minMod=minMod,
 								maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=True,ax=ax,y1col='k',
 								xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True))
-		
+	
 	def mergeCmaps(self,cmaps,rng=[[0.0,0.5],[0.5,1.0]]):
 		"""
 		Creates a diverging colomap
@@ -874,7 +876,7 @@ class plot():
 		
 		ax=plt.subplot(2,4,6)
 		self.plotHistory(m,ax=ax,show=False,xaxis='log_center_T',y1='log_center_Rho',y1L='linear',
-								maxMod=m.prof_head['model_number'],y1col='k',
+								minMod=0,maxMod=m.prof_head['model_number'],y1col='k',
 								xlabel=self.labels('teff',log=True,center=True),y1label=self.labels('rho',log=True,center=True))
 		
 		ax=plt.subplot(1,2,2)
