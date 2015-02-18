@@ -319,10 +319,12 @@ class plot():
 				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i):
 					try:
 						if np.count_nonzero((np.log10(m.prof_dat[i][mInd])>=yrng[0])&(np.log10(m.prof_dat[i][mInd])<=yrng[1])):
-							line, =ax.plot(m.prof_dat[xaxis][mInd],np.log10(m.prof_dat[i][mInd]),label=i,linewidth=2)
+							y=np.log10(m.prof_dat[i][mInd])
+							y[np.isnan(y)]=yrng[0]-(yrng[1]-yrng[0])
+							line, =ax.plot(m.prof_dat[xaxis][mInd],y,label=i,linewidth=2)
 							
 							for ii in range(1,num_labels+1):
-								f = interpolate.interp1d(m.prof_dat[xaxis][mInd],np.log10(m.prof_dat[i][mInd]))
+								f = interpolate.interp1d(m.prof_dat[xaxis][mInd],y)
 								xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
 								yp1=f(xp1)
 								ax.annotate(i, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
