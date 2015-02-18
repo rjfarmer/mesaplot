@@ -436,6 +436,71 @@ class plot():
 		ax.set_title("Ang Mom Model")
 		if show:
 			plt.show()
+			
+	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
+					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7):
+		if ax ==None:
+			fig=plt.figure()
+			ax=fig.add_subplot(111)
+			
+		if model is not None:
+			m.loadProfile(num=int(model))
+		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
+		mInd[:]=True
+		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
+		if xmin is not None:
+			mInd=(m.prof_dat[xaxis]>=xmin)
+			xrngL[0]=xmin
+
+		if xmax is not None:
+			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
+			xrngL[1]=xmax
+
+		numPlots=0
+		extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
+		for i in m.prof_dat.dtype.names:
+			if "burn_" in i or i in extraBurn:
+				numPlots=numPlots+1
+				
+		try:
+			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		except:
+			pass
+			
+		for i in m.prof_dat.dtype.names:
+			if "burn_" in i or i in extraBurn:
+				ind=mInd
+				y=np.log10(m.prof_dat[i][ind])
+				y[np.isnan(y)]=yrng[0]-(yrng[1]-yrng[0])
+				line, =ax.plot(m.prof_dat[xaxis][ind],y,label=i.replace('_',' '))
+				for ii in range(1,num_labels+1):
+					f = interpolate.interp1d(m.prof_dat[xaxis][mInd],y)
+					xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
+					yp1=f(xp1)
+					ax.annotate(i.replace('_',' ').split()[-1], xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
+		#try:
+			#ax.legend(loc=0)
+		#except:
+			#pass
+		
+		ax.yaxis.set_major_locator(MaxNLocator(4))
+		ax.xaxis.set_major_locator(MaxNLocator(4))
+		
+		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
+		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
+		ax.set_ylim(yrng)
+		if xlabel is not None:
+			ax.set_xlabel(xlabel)
+		else:
+			l=self.labels(xaxis)
+			if l is not None:
+				ax.set_xlabel(l)
+			else:
+				ax.set_xlabel(xaxis.replace('_',' '))
+		ax.set_title("Burning")
+		if show:
+			plt.show()
+
 
 
 	def plotProfile(self,m,model=None,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='log',y2L='log',y1col='b',
