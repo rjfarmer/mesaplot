@@ -449,34 +449,32 @@ class plot():
 		else:
 			ax.set_xlim(xrngL)
 
-		if len(y1)>0:
-			try:
-				if y1L=='log':
-					y=np.log10(m.prof_dat[y1][mInd])
-				else:
-					y=m.prof_dat[y1][mInd]
-				if xL=='log':
-					x=np.log10(m.prof_dat[xaxis][mInd])
-				else:
-					x=m.prof_dat[xaxis][mInd]
-				ax.plot(x,y,c=y1col,linewidth=2)
-				if points:
-					ax.scatter(x,y,c=y1col)
-				
-				ax.set_ylabel(y1.replace('_',' '), color=y1col)
-				ylim=ax.get_ylim()
-				if y1rev:
-					ax.set_ylim(ylim[1],ylim[0])
-			except:
-				pass
 
-		if len(y2)>0:
+		if y1L=='log':
+			y=np.log10(m.prof_dat[y1][mInd])
+		else:
+			y=m.prof_dat[y1][mInd]
+		if xL=='log':
+			x=np.log10(m.prof_dat[xaxis][mInd])
+		else:
+			x=m.prof_dat[xaxis][mInd]
+		ax.plot(x,y,c=y1col,linewidth=2)
+		if points:
+			ax.scatter(x,y,c=y1col)
+		
+		ax.set_ylabel(y1.replace('_',' '), color=y1col)
+		ylim=ax.get_ylim()
+		if y1rev:
+			ax.set_ylim(ylim[1],ylim[0])
+
+
+		if y2 is not None:
 			try:
 				ax2 = ax.twinx()
 				if y2L=='log':
 					y=np.log10(m.prof_dat[y2][mInd])
 				else:
-					y=m.prof_dat[y1][mInd]
+					y=m.prof_dat[y2][mInd]
 				if xL=='log':
 					x=np.log10(m.prof_dat[xaxis][mInd])
 				else:
@@ -511,7 +509,7 @@ class plot():
 		else:
 			ax.set_ylabel(y1.replace('_',' '), color=y1col)
 			
-		if len(y2)>0:
+		if y2 is not None:
 			if y2label is not None:
 				ax2.set_ylabel(y2label)
 			else:
@@ -544,27 +542,23 @@ class plot():
 		else:
 			ax.set_xlim(xrngL)
 			
-		if len(y1)>0:
-			try:
-				
-				if y1L=='log':
-					y=np.log10(m.hist_dat[y1][minMod:maxMod][mInd])
-				else:
-					y=m.hist_dat[y1][minMod:maxMod][mInd]
-				if xL=='log':
-					x=np.log10(m.hist_dat[xaxis][minMod:maxMod][mInd])
-				else:
-					x=m.hist_dat[xaxis][minMod:maxMod][mInd]
-				ax.plot(x,y,c=y1col,linewidth=2)
-				if points:
-					ax.scatter(x,y,c=y1col)
-				ylim=ax.get_ylim()
-				if y1rev:
-					ax.set_ylim(ylim[1],ylim[0])
-			except:
-				pass
+		if y1L=='log':
+			y=np.log10(m.hist_dat[y1][minMod:maxMod][mInd])
+		else:
+			y=m.hist_dat[y1][minMod:maxMod][mInd]
+		if xL=='log':
+			x=np.log10(m.hist_dat[xaxis][minMod:maxMod][mInd])
+		else:
+			x=m.hist_dat[xaxis][minMod:maxMod][mInd]
+		ax.plot(x,y,c=y1col,linewidth=2)
+		if points:
+			ax.scatter(x,y,c=y1col)
+		ylim=ax.get_ylim()
+		if y1rev:
+			ax.set_ylim(ylim[1],ylim[0])
 
-		if len(y2)>0:
+
+		if y2 is not None:
 			try:
 				ax2 = ax.twinx()
 				if y2L=='log':
@@ -602,7 +596,7 @@ class plot():
 		else:
 			ax.set_ylabel(y1.replace('_',' '), color=y1col)
 			
-		if len(y2)>0:
+		if y2 is not None:
 			if y2label is not None:
 				ax2.set_ylabel(y2label)
 			else:
@@ -796,7 +790,55 @@ class plot():
 
 		return matplotlib.colors.LinearSegmentedColormap('colormap',cdict,1024)
 		
-
+	def stackedPlots(self,m,typ='profile',num=1,model=None,xaxis='mass',show=True,fig=None,ax=None,xmin=None,xmax=None,xL='linear',xlabel=None,
+								xrev=False,y1rev=[],y2rev=[],points=False,minMod=0,maxMod=-1,
+								y1=[],y2=[],y1L=[],y2L=[],y1col=[],
+								y2col=[],y1label=[],y2label=[]):
+		if num<2:
+			raise(ValueError,'num must be >=2')
+		
+		empty=[None]*len(y1)
+		if len(y1)>0:
+			if not y2:
+				y2=empty
+			if not y1L:
+				y1L=empty
+			if not y2L:
+				y2L=empty
+			if not y1rev:
+				y1rev=empty
+			if not y2rev:
+				y2rev=empty
+			if not y1col:
+				y1col=['r']*len(y1)
+			if not y2col:
+				y2col=['b']*len(y1)
+			if not y1label:
+				y1label=empty*len(y1)
+			if not y2label:
+				y2label=empty*len(y1)
+		
+		if fig ==None:
+			fig=plt.figure()
+			
+		fig, axis = plt.subplots(num, sharex=True)
+		
+		for i in range(num):
+			if typ=="profile":
+				self.plotProfile(m=m,model=model,xaxis=xaxis,show=False,ax=axis[i],xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
+									xrev=xrev,y1rev=y1rev[i],y2rev=y2rev[i],points=points,
+									y1=y1[i],y2=y2[i],y1L=y1L[i],y2L=y2L[i],y1col=y1col[i],
+									y2col=y2col[i],y1label=y1label[i],y2label=y2label[i])
+			else:
+				self.plotHistory(m=m,xaxis=xaxis,show=False,ax=axis[i],xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
+									xrev=xrev,y1rev=y1rev[i],y2rev=y2rev[i],points=points,
+									y1=y1[i],y2=y2[i],y1L=y1L[i],y2L=y2L[i],y1col=y1col[i],
+									y2col=y2col[i],y1label=y1label[i],y2label=y2label[i],minMod=minMod,maxMod=maxMod)
+									
+		fig.subplots_adjust(hspace=0)
+		if show:
+			plt.show()
+			
 	def plotGrid2(self,m,show=True):
 		"""Why not grid1? trying to copy mesa's grids and grid2 is easier for now"""
 		fig=plt.figure()
