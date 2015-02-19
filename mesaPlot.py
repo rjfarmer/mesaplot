@@ -502,7 +502,7 @@ class plot():
 
 
 
-	def plotProfile(self,m,model=None,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='log',y2L='log',y1col='b',
+	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',
 							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None):
 		if ax ==None:
 			fig=plt.figure()
@@ -601,7 +601,7 @@ class plot():
 		if show:
 			plt.show()
 
-	def plotHistory(self,m,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='log',y2L='log',y1col='b',y2col='r',
+	def plotHistory(self,m,xaxis='model_number',y1='star_mass',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',y2col='r',
 							minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None):
 		if ax ==None:
 			fig=plt.figure()
@@ -926,6 +926,34 @@ class plot():
 		if show:
 			plt.show()
 
+	def plotMultiProfiles(self,m,mods=None,index=None,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',cmap=plt.cm.gist_ncar,
+							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None):
+		"""Plots mulitple profiles either given as a list of mod numbers or an index over the history data"""
+
+		if ax ==None:
+			fig=plt.figure()
+			ax=fig.add_subplot(111)
+		
+		if mods is not None:
+			cm=[cmap(i) for i in np.linspace(0.0,0.9,len(mods))]
+			for i in range(len(mods)):
+				model=mods[i]
+				self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
+									xrev=xrev,y1rev=y1rev,points=points,
+									y1=y1,y1L=y1L,y1col=cm[i],
+									y1label=y1label)
+		elif index is not None:
+			cm=[cmap(i) for i in np.linspace(0.0,0.9,len(mods))]
+			for i in m.hist_dat["model_nnumber"][index]:
+				model=m.hist_dat["model_nnumber"][index][i]
+				self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
+									xrev=xrev,y1rev=y1rev,points=points,
+									y1=y1,y1L=y1L,y1col=cm[i],
+									y1label=y1label)
+		
+		if show:
+			plt.show()
+			
 			
 	def plotGrid2(self,m,show=True):
 		"""Why not grid1? trying to copy mesa's grids and grid2 is easier for now"""
