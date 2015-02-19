@@ -4,7 +4,7 @@ Library of python routines to read MESA ouput files and plot MESA quantites
 
 How to use:
 
-____Reading data:
+Reading data:
 
 ````python
 import mesaPlot as mp
@@ -53,4 +53,4 @@ m.loadProfile(num=MODEL_NUMBER,mode='first|lower|upper|nearest')
 ````
 This is for when the model you want isn't in the data. Either we load the first model, the model just before the one you, the model just after the one you want or the nearest (above or below) the model you want.
 
-____Plotting
+Plotting
