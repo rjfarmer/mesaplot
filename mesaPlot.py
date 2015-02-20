@@ -27,6 +27,7 @@ import matplotlib as mat
 from matplotlib import rc
 import matplotlib.cm as cm
 import matplotlib
+from matplotlib.widgets import Button
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
 #rc('font',**{'family':'serif','serif':['Palatino']})
@@ -283,7 +284,7 @@ class plot():
 			
 		return l
 	
-	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None):
+	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -291,23 +292,23 @@ class plot():
 		
 		if model is not None:
 			m.loadProfile(num=int(model))
-		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
-		mInd[:]=True
-		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
+			
+		xrngL=[0,0]
 		if xmin is not None:
-			mInd=(m.prof_dat[xaxis]>=xmin)
 			xrngL[0]=xmin
+		else:
+			xrngL[0]=np.min(m.prof_dat[xaxis])
 
 		if xmax is not None:
-			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
 			xrngL[1]=xmax
+		else:
+			xrngL[1]=np.max(m.prof_dat[xaxis])
 
 		num_plots=0
 		for i in m.prof_dat.dtype.names:
 			if len(i)<=4 and len(i)>=2:
 				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i):
-					if np.count_nonzero((np.log10(m.prof_dat[i][mInd])>=yrng[0])&(np.log10(m.prof_dat[i][mInd])<=yrng[1])):
-						num_plots=num_plots+1
+					num_plots=num_plots+1
 			
 		try:
 			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
@@ -317,20 +318,18 @@ class plot():
 		for i in m.prof_dat.dtype.names:
 			if len(i)<=4 and len(i)>=2:
 				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i):
-					try:
-						if np.count_nonzero((np.log10(m.prof_dat[i][mInd])>=yrng[0])&(np.log10(m.prof_dat[i][mInd])<=yrng[1])):
-							y=np.log10(m.prof_dat[i][mInd])
-							y[np.isnan(y)]=yrng[0]-(yrng[1]-yrng[0])
-							line, =ax.plot(m.prof_dat[xaxis][mInd],y,label=i,linewidth=2)
-							
-							for ii in range(1,num_labels+1):
-								f = interpolate.interp1d(m.prof_dat[xaxis][mInd],y)
-								xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
-								yp1=f(xp1)
-								ax.annotate(i, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
+					y=np.log10(m.prof_dat[i])
+					y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
+					line, =ax.plot(m.prof_dat[xaxis],y,label=i,linewidth=2)
+					if points:
+						ax.scatter(m.prof_dat[xaxis],y)
 					
-					except:
-						pass
+					for ii in range(1,num_labels+1):
+						ind=(m.prof_dat[xaxis]>=xrngL[0])&(m.prof_dat[xaxis]<=xrngL[1])
+						f = interpolate.interp1d(m.prof_dat[xaxis][ind],y[ind])
+						xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
+						yp1=f(xp1)
+						ax.annotate(i, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
 
 						
 		ax.yaxis.set_major_locator(MaxNLocator(4))
@@ -353,29 +352,31 @@ class plot():
 		ax.set_title("Abundance")
 		if show:
 			plt.show()
+			
 
-	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None):
+	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0]):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
 	
 		if model is not None:
 			m.loadProfile(num=int(model))
-		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
-		mInd[:]=True
-		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
+			
+		xrngL=[0,0]
 		if xmin is not None:
-			mInd=(m.prof_dat[xaxis]>=xmin)
 			xrngL[0]=xmin
+		else:
+			xrngL[0]=np.min(m.prof_dat[xaxis])
 
 		if xmax is not None:
-			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
 			xrngL[1]=xmax
+		else:
+			xrngL[1]=np.max(m.prof_dat[xaxis])
 		
-		ind=mInd&(m.prof_dat['dynamo_log_B_r']>-90)
-		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_r'][ind],label=r'$B_r$',linewidth=2)
-		ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_phi'][ind],label=r'$B_{\phi}$',linewidth=2)
+		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
+		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
+		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
+		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
 
 		try:
 			ax.legend(loc=0)
@@ -391,31 +392,32 @@ class plot():
 				ax.set_xlabel(xaxis.replace('_',' '))
 		
 		ax.set_xlim(xrngL)
+		ax.set_ylim(yrng)
 		ax.set_title("Dynamo Model")
 		if show:
 			plt.show()
 
-	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None):
+	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0]):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
 			m.loadProfile(num=int(model))
-		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
-		mInd[:]=True
-		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
+		xrngL=[0,0]
 		if xmin is not None:
-			mInd=(m.prof_dat[xaxis]>=xmin)
 			xrngL[0]=xmin
+		else:
+			xrngL[0]=np.min(m.prof_dat[xaxis])
 
 		if xmax is not None:
-			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
 			xrngL[1]=xmax
+		else:
+			xrngL[1]=np.max(m.prof_dat[xaxis])
 
 		for i in m.prof_dat.dtype.names:
 			if "am_log_D" in i:
-				ind=mInd&(m.prof_dat[i]>-90.0)
+				#ind=mInd&(m.prof_dat[i]>-90.0)
 				ax.plot(m.prof_dat[xaxis][ind],m.prof_dat[i][ind],label=r"$D_{"+i.split('_')[3]+"}$")
 
 
@@ -433,6 +435,10 @@ class plot():
 			else:
 				ax.set_xlabel(xaxis.replace('_',' '))
 		ax.set_title("Ang Mom Model")
+		
+		ax.set_xlim(xrngL)
+		ax.set_ylim(yrng)
+		
 		if show:
 			plt.show()
 			
@@ -444,16 +450,17 @@ class plot():
 			
 		if model is not None:
 			m.loadProfile(num=int(model))
-		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
-		mInd[:]=True
-		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
+		xrngL=[0,0]
 		if xmin is not None:
-			mInd=(m.prof_dat[xaxis]>=xmin)
 			xrngL[0]=xmin
+		else:
+			xrngL[0]=np.min(m.prof_dat[xaxis])
 
 		if xmax is not None:
-			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
 			xrngL[1]=xmax
+		else:
+			xrngL[1]=np.max(m.prof_dat[xaxis])
+
 
 		numPlots=0
 		extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
@@ -468,12 +475,11 @@ class plot():
 			
 		for i in m.prof_dat.dtype.names:
 			if "burn_" in i or i in extraBurn:
-				ind=mInd
-				y=np.log10(m.prof_dat[i][ind])
-				y[np.isnan(y)]=yrng[0]-(yrng[1]-yrng[0])
-				line, =ax.plot(m.prof_dat[xaxis][ind],y,label=i.replace('_',' '))
+				y=np.log10(m.prof_dat[i])
+				y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
+				line, =ax.plot(m.prof_dat[xaxis],y,label=i.replace('_',' '))
 				for ii in range(1,num_labels+1):
-					f = interpolate.interp1d(m.prof_dat[xaxis][mInd],y)
+					f = interpolate.interp1d(m.prof_dat[xaxis],y)
 					xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
 					yp1=f(xp1)
 					ax.annotate(i.replace('_',' ').split()[-1], xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
@@ -488,6 +494,7 @@ class plot():
 		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
 		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
 		ax.set_ylim(yrng)
+		ax.set_xlim(xrngL)
 		if xlabel is not None:
 			ax.set_xlabel(xlabel)
 		else:
