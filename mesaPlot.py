@@ -279,7 +279,7 @@ class plot():
 		if label=='lum':
 			l=l+r'$L\; [L_{\odot}]$'
 		if label=='log_column_depth':
-			l=l+r'$y\; [g cm^{-2}]$'
+			l=l+r'$y\; [\rm{g}\; \rm{cm}^{-2}]$'
 		if 'star_age' in label:
 			l=l+r'T$\;$'
 			if 'sec' in label:
