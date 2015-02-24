@@ -625,7 +625,9 @@ class plot():
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
-			
+		
+		if maxMod<0:
+			maxMod=m.hist_dat["model_number"][-1]
 		modelIndex=(m.hist_dat["model_number"]>=minMod)&(m.hist_dat["model_number"]<=maxMod)
 		
 		mInd=np.zeros(np.size(m.hist_dat[xaxis][modelIndex]),dtype='bool')
