@@ -28,6 +28,8 @@ from matplotlib import rc
 import matplotlib.cm as cm
 import matplotlib
 from matplotlib.widgets import Button
+import random
+
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
 #rc('font',**{'family':'serif','serif':['Palatino']})
@@ -296,7 +298,8 @@ class plot():
 			
 		return l
 	
-	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False):
+	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
+						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -317,31 +320,40 @@ class plot():
 			xrngL[1]=np.max(m.prof_dat[xaxis])
 
 		num_plots=0
-		for i in m.prof_dat.dtype.names:
-			if len(i)<=4 and len(i)>=2:
-				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i):
-					num_plots=num_plots+1
+		
+		abun_list=[]
+		if abun is None:
+			for i in m.prof_dat.dtype.names:
+				if len(i)<=4 and len(i)>=2:
+					if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i):
+						num_plots=num_plots+1
+						abun_list.append(i)
+		else:
+			num_plots=len(abun)
+			abun_list=abun
 			
+		#Helps when we have many elements not on the plot that stretch the colormap
+		if abun_random:
+			random.shuffle(abun_list)
+
 		try:
 			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 		except:
 			pass
 		
-		for i in m.prof_dat.dtype.names:
-			if len(i)<=4 and len(i)>=2:
-				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i):
-					y=np.log10(m.prof_dat[i])
-					y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
-					line, =ax.plot(m.prof_dat[xaxis],y,label=i,linewidth=2)
-					if points:
-						ax.scatter(m.prof_dat[xaxis],y)
-					
-					for ii in range(1,num_labels+1):
-						ind=(m.prof_dat[xaxis]>=xrngL[0])&(m.prof_dat[xaxis]<=xrngL[1])
-						f = interpolate.interp1d(m.prof_dat[xaxis][ind],y[ind])
-						xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
-						yp1=f(xp1)
-						ax.annotate(i, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
+		for i in abun_list:
+			y=np.log10(m.prof_dat[i])
+			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
+			line, =ax.plot(m.prof_dat[xaxis],y,label=i,linewidth=2)
+			if points:
+				ax.scatter(m.prof_dat[xaxis],y)
+			
+			for ii in range(1,num_labels+1):
+				ind=(m.prof_dat[xaxis]>=xrngL[0])&(m.prof_dat[xaxis]<=xrngL[1])
+				f = interpolate.interp1d(m.prof_dat[xaxis][ind],y[ind])
+				xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
+				yp1=f(xp1)
+				ax.annotate(i, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
 
 						
 		ax.yaxis.set_major_locator(MaxNLocator(4))
