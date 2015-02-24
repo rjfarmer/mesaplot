@@ -278,6 +278,18 @@ class plot():
 				l=l+r"$\rho\; [K]$"
 		if label=='lum':
 			l=l+r'$L\; [L_{\odot}]$'
+		if label=='log_column_depth':
+			l=l+r'$y\; [g cm^{-2}]$'
+		if 'star_age' in label:
+			l=l+r'T$\;$'
+			if 'sec' in label:
+				l=l+'[s]'
+			if 'hr' in label:
+				l=l+'[hr]'
+			if 'day' in label:
+				l=l+'[day]'
+			if 'yr' in label:
+				l=l+'[yr]'
 		
 		if len(l)==0:
 			l=None
