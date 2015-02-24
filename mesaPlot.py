@@ -186,7 +186,7 @@ class MESA():
 			#Genfromtxt fails in converting 1d1 to 1.0
 			for i in range(np.size(self.mod_dat)):
 				for j in range(1,len(self.mod_dat_names)):
-					self.mod_dat[i][j]=str(self.mod_dat[i][j]).replace('D','E'))
+					self.mod_dat[i][j]=str(self.mod_dat[i][j]).replace('D','E')
 
 			newDtype=np.dtype([(name,'float') for name in self.mod_dat_names])
 			self.mod_dat=self.mod_dat.astype(newDtype)
