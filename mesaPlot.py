@@ -146,7 +146,7 @@ class MESA():
 				else:
 					filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
 			else:
-				raise "Invalid mode"
+				raise(ValueError,"Invalid mode")
 			print(filename)
 			self._readProfile(filename)
 			return
