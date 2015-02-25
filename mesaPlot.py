@@ -324,14 +324,16 @@ class plot():
 		abun_list=[]
 		if abun is None:
 			for i in m.prof_dat.dtype.names:
-				if len(i)<=4 and len(i)>=2:
-					if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i):
-						num_plots=num_plots+1
-						abun_list.append(i)
+				if len(i)<=5 and len(i)>=2:
+					if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
+						if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
+							num_plots=num_plots+1
+							abun_list.append(i)
 		else:
 			num_plots=len(abun)
 			abun_list=abun
 			
+		print(abun_list)
 		#Helps when we have many elements not on the plot that stretch the colormap
 		if abun_random:
 			random.shuffle(abun_list)
