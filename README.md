@@ -69,7 +69,7 @@ Depending on the function some of these may not apply:
 xaxis='model_number' #Column name from history|profile file
 y1='star_mass' #Column name from history|profile file
 y2=None #Column name from history|profile file, adds line to right hand axis
-show=True #I we should imeditaly show the plot or wait
+show=True #Should we immediately show the plot or wait
 ax=None #A axis instance, useful for grid plotting, see later on
 xmin=None #min x value to show
 xmax=None #max x value to show
@@ -99,7 +99,7 @@ Plots the abunances from a profile file:
 ````python
 num_labels=3 #Number of labels to show on the line
 abun=None #A lits of isotopes to show, if None shows all avaibale in the profile file
-abun_random=False #Randomises the colourmap, so isotopes that are near each other in the profile file, dont end up with similair colours
+abun_random=False #Randomizes the colourmap, so isotopes that are near each other in the profile file, dont end up with similair colours
 ````
 
 ````python
@@ -115,7 +115,7 @@ Plots the am_log_D_* terms from a profile file:
 ````python
 plotBurn()
 ````
-Plots the energy generated per reaction (burn_ fields plus "pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other" terms) from a profile file:
+Plots the energy generated per reaction (burn_ fields plus "pp","cno","tri_alfa","c12_c12","c12_o16","o16_o16","pnhe4","photo","other" terms) from a profile file:
 ````python
 num_labels=3 #Number of labels to show on the line
 ````
@@ -168,7 +168,7 @@ y2L=[]
 y1col=[]
 y2col=[]
 y1label=[]
-y2label=[] #same as for plotProfile and plotHistory, except as a list, startying from the top plot downwards. If not left empty, must specify for ech plot (even if you just insert a None)
+y2label=[] #same as for plotProfile and plotHistory, except as a list, starting from the top plot downwards. If not left empty, must specify for ech plot (even if you just insert a None)
 ````
 
 ````python
