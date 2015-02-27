@@ -1,8 +1,8 @@
-# mesaplot
+﻿# mesaplot
 Library of python routines to read MESA ouput files and plot MESA quantites
 
 Installation instructions:
-Simply git clone the repo then add tthe folder to your PYTHONPATH
+Simply git clone the repo then add the folder to your PYTHONPATH
 ````bash
 export PYTHONPATH=$PYTHONPATH:/path/to/mesaplot/folder
 ````
@@ -16,7 +16,7 @@ import mesaPlot as mp
 m=mp.MESA()
 ````
 
-Now m contains all the usefull stuff
+Now m contains all the useful stuff
 
 ````python
 m.loadHistory()
@@ -35,16 +35,16 @@ Note this will automatically clean the history data of retries, backups and rest
 ````python
 m.scrubHistory()
 ````
-Which will create a file "LOGS/history.data.scrubbed" if you dont want that then:
+Which will create a file "LOGS/history.data.scrubbed" if you don't want that then:
 ````python
 m.scrubHistory(fileOut='newFile')
 ````
 
-To load aa profile file then its:
+To load a profile file then its:
 ````python
 m.loadProfile()
 ````
-Again you change the LOGS folder eeither with log_fold or f=.
+Again you change the LOGS folder either with log_fold or f=.
 To choose which file to load, either:
 ````python
 m.loadProfile(num=MODEL_NUMBER)
@@ -78,9 +78,9 @@ show=True #Should we immediately show the plot or wait
 ax=None #A axis instance, useful for grid plotting, see later on
 xmin=None #min x value to show
 xmax=None #max x value to show
-xL='linear' #Whether axis should be linear or log10 (if the xis is allready a loq quantity then leave as linear)
-y1L='linear' #Whether axis should be linear or log10 (if the xis is allready a loq quantity then leave as linear)
-y2L='linear' #Whether axis should be linear or log10 (if the xis is allready a loq quantity then leave as linear)
+xL='linear' #Whether axis should be linear or log10 (if the xis is already a log quantity then leave as linear)
+y1L='linear' #Whether axis should be linear or log10 (if the xis is already a log quantity then leave as linear)
+y2L='linear' #Whether axis should be linear or log10 (if the xis is already a log quantity then leave as linear)
 y1col='b' #Colour of line (as well as the axis label)
 y2col='r' #Colour of line (as well as the axis label)
 minMod=0 #For history plots minimum model number to show
@@ -89,9 +89,9 @@ xrev=False #Whether to reverse the axis
 y1rev=False #Whether to reverse the axis
 y2rev=False #Whether to reverse the axis
 points=False #Whether to add a coloured dot at each data point
-xlabel=None # axis label, if None we attempt to get guess from the xaxis (see the labels function) otherwsie we show the name of xaxis
-y1label=None # axis label, if None we attempt to get guess from the y1 (see the labels function) otherwsie we show the name of y1
-y2label=None # axis label, if None we attempt to get guess from the y2 (see the labels function) otherwsie we show the name of y2
+xlabel=None # axis label, if None we attempt to get guess from the xaxis (see the labels function) other wsie we show the name of xaxis
+y1label=None # axis label, if None we attempt to get guess from the y1 (see the labels function) other wsie we show the name of y1
+y2label=None # axis label, if None we attempt to get guess from the y2 (see the labels function) other wsie we show the name of y2
 cmap=plt.cm.gist_ncar #when plotting mutplie lines what colourmap should we cycle through
 yrng=[0.0,10.0] # Min and max vlues of the y axis
 ````
@@ -103,8 +103,8 @@ plotAbun()
 Plots the abunances from a profile file:
 ````python
 num_labels=3 #Number of labels to show on the line
-abun=None #A lits of isotopes to show, if None shows all avaibale in the profile file
-abun_random=False #Randomizes the colourmap, so isotopes that are near each other in the profile file, dont end up with similair colours
+abun=None #A lits of isotopes to show, if None shows all available in the profile file
+abun_random=False #Randomizes the colourmap, so isotopes that are near each other in the profile file, dont end up with similar colours
 ````
 
 ````python
@@ -134,7 +134,7 @@ General plotting routines for profile|history data
 ````python
 plotKip()
 ````
-Plots a Kippehan diagram for the star from the history data, requires the history data has mixing_regions and burn_regions. Mixing regions shown with
+Plots a Kippenhan diagram for the star from the history data, requires the history data has mixing_regions and burn_regions. Mixing regions shown with
 same colours as MESA.
 ````python
 reloadHistory=False #Whether to reload the history file
@@ -160,7 +160,7 @@ Plots HR diagram
 ````python
 stackedPlots()
 ````
-Plots mutliple profile|history plots with same xaxis, and removes the gap between the plots
+Plots multiple profile|history plots with same xaxis, and removes the gap between the plots
 ````python
 typ='profile' #History or profile data
 num=1 #Number of plots to show num>=2
@@ -189,7 +189,7 @@ index=None # A index on the history data, ie ind=(m.hist_dat["logT"]>3.5)&(m.his
 ````python
 plotGrid2()
 ````
-Plots the plotTRho, plotHR, history plot and abunancde plot on one plot, demonstartes how to make a your own grid plot.
+Plots the plotTRho, plotHR, history plot and abundance plots on one plot. Demonstrates how to make  your own grid plots.
 
 
 	
