@@ -130,23 +130,26 @@ class MESA():
 			return
 		else:
 			self._loadProfileIndex(f) #Assume f is a folder
-			#Find profile with mode 'nearest','upper','lower','first','last'
-			pos = bisect.bisect_left(self.prof_ind["model"], num)
-			if pos == 0 or mode=='first':
+			if np.count_nonzero(self.prof_ind)==1:
 				filename=f+"/profile"+str(int(self.prof_ind["profile"][0]))+".data"
-			elif pos == np.size(self.prof_ind["profile"]) or mode=='last':
-				filename=f+"/profile"+str(int(self.prof_ind["profile"][-1]))+".data"
-			elif mode=='lower':
-				filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
-			elif mode=='upper':
-				filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
-			elif mode=='nearest':
-				if self.prof_ind["model"][pos]-num < num-self.prof_ind["model"][pos-1]:
-					filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
-				else:
-					filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
 			else:
-				raise(ValueError,"Invalid mode")
+				#Find profile with mode 'nearest','upper','lower','first','last'
+				pos = bisect.bisect_left(self.prof_ind["model"], num)
+				if pos == 0 or mode=='first':
+					filename=f+"/profile"+str(int(self.prof_ind["profile"][0]))+".data"
+				elif pos == np.size(self.prof_ind["profile"]) or mode=='last':
+					filename=f+"/profile"+str(int(self.prof_ind["profile"][-1]))+".data"
+				elif mode=='lower':
+					filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
+				elif mode=='upper':
+					filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
+				elif mode=='nearest':
+					if self.prof_ind["model"][pos]-num < num-self.prof_ind["model"][pos-1]:
+						filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
+					else:
+						filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
+				else:
+					raise(ValueError,"Invalid mode")
 			print(filename)
 			self._readProfile(filename)
 			return
