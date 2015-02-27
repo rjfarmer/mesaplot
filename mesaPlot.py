@@ -333,7 +333,6 @@ class plot():
 			num_plots=len(abun)
 			abun_list=abun
 			
-		print(abun_list)
 		#Helps when we have many elements not on the plot that stretch the colormap
 		if abun_random:
 			random.shuffle(abun_list)
@@ -730,7 +729,7 @@ class plot():
 		if show:
 			plt.show()
 
-	def kip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,cmin=None,cmax=None):
+	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,cmin=None,cmax=None,burnMap=[cm.Purples_r,cm.hot_r]):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -820,7 +819,7 @@ class plot():
 		b2[b2>0.0]=np.nan
 
 		
-		newCm=self.mergeCmaps([cm.Purples_r,cm.hot_r],[[0.0,0.5],[0.5,1.0]])
+		newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
 		
 		#im2=ax.imshow(b2,cmap=plt.get_cmap('Purples_r'),extent=extent,interpolation='nearest',origin='lower',aspect='auto')
 		if cmin is None:
@@ -979,8 +978,8 @@ class plot():
 									y1label=y1label)
 		elif index is not None:
 			cm=[cmap(i) for i in np.linspace(0.0,0.9,len(mods))]
-			for i in m.hist_dat["model_nnumber"][index]:
-				model=m.hist_dat["model_nnumber"][index][i]
+			for i in m.hist_dat["model_number"][index]:
+				model=m.hist_dat["model_number"][index][i]
 				self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
 									xrev=xrev,y1rev=y1rev,points=points,
 									y1=y1,y1L=y1L,y1col=cm[i],
