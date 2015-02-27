@@ -1,6 +1,11 @@
 # mesaplot
 Library of python routines to read MESA ouput files and plot MESA quantites
 
+Installation instructions:
+Simply git clone the repo then add tthe folder to your PYTHONPATH
+````bash
+export PYTHONPATH=$PYTHONPATH:/path/to/mesaplot/folder
+````
 
 How to use:
 
