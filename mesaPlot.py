@@ -494,7 +494,7 @@ class plot():
 			plt.show()
 			
 	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
-					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7):
+					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=True):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
