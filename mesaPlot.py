@@ -352,6 +352,23 @@ class plot():
 		
 		ax.set_ylim(ylim)
 		
+		
+	def _plotMixRegions(self,m,ax,x,y,show_x,show_line):
+		ylim=ax.get_ylim()
+		
+		if show_x:
+			yy=np.zeros(np.size(x))
+			yy[:]=ylim[0]
+			size=90
+		if show_line:
+			yy=y
+			size=60
+	
+		cmap,norm=self._setMixRegionsCol()
+		ax.scatter(x,y,c=m.prof_dat['mixing_type'],s=size,cmap=cmap,norm=norm,linewidths=0)
+	
+		ax.set_ylim(ylim)
+	
 	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text,line):
 		for ii in range(1,num_labels+1):
 			ind=(x>=xmin)&(x<=xmax)
@@ -575,7 +592,8 @@ class plot():
 
 	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',
 							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
-							show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False):
+							show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
+							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -625,7 +643,10 @@ class plot():
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,y,show_line=show_burn_line,show_x=show_burn_x)
-			
+
+		if show_mix:
+			self._plotMixRegions(m,ax,x,y,show_line=show_mix_line,show_x=show_mix_x)
+	
 		if y2 is not None:
 			try:
 				ax2 = ax.twinx()
@@ -649,6 +670,8 @@ class plot():
 					ax2.set_ylim(ylim[1],ylim[0])
 				if show_burn_2:
 					self._plotBurnRegions(m,ax2,x,y,show_line=show_burn_line,show_x=show_burn_x)
+				if show_mix_2:
+					self._plotMixRegions(m,ax2,x,y,show_line=show_mix_line,show_x=show_mix_x)
 			except:
 				pass
 
