@@ -310,6 +310,18 @@ class plot():
 						abun_list.append(i)
 		return abun_list
 	
+	def _setMixRegionsCol():
+		cmap = mpl.colors.ListedColormap([[0.18, 0.545, 0.34], [0.53, 0.808, 0.98],
+			[0.96, 0.96, 0.864], [0.44, 0.5, 0.565],[0.8, 0.6, 1.0],
+			[0.0, 0.4, 1.0],[1.0, 0.498, 0.312],[0.824, 0.705, 0.55]])
+
+		cmap.set_over((1., 1., 1.))
+		cmap.set_under((0., 0., 0.))
+		#bounds = [-0.01,0.99,1.99,2.99,3.99,4.99,5.99,6.99,7.99,8.99]
+		bounds=[-1,0,1,2,3,4,5,6,7,8,9]
+		norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+		return cmap,norm
+	
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False):
@@ -738,16 +750,6 @@ class plot():
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
-		
-		cmap = mpl.colors.ListedColormap([[0.18, 0.545, 0.34], [0.53, 0.808, 0.98],
-			[0.96, 0.96, 0.864], [0.44, 0.5, 0.565],[0.8, 0.6, 1.0],
-			[0.0, 0.4, 1.0],[1.0, 0.498, 0.312],[0.824, 0.705, 0.55]])
-
-		cmap.set_over((1., 1., 1.))
-		cmap.set_under((0., 0., 0.))
-		#bounds = [-0.01,0.99,1.99,2.99,3.99,4.99,5.99,6.99,7.99,8.99]
-		bounds=[-1,0,1,2,3,4,5,6,7,8,9]
-		norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 
 		if reloadHistory:
 			m.loadHistory()
@@ -867,7 +869,10 @@ class plot():
 				k=k+1					
 					
 		mixZones[mixZones==0]=-np.nan
-		ax.imshow(mixZones.T,cmap=cmap,norm=norm,extent=extent,interpolation='nearest',origin='lower',aspect='auto')
+		
+		mixCmap,mixNorm=self._setMixRegionsCol()
+		
+		ax.imshow(mixZones.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto')
 		#ax.contourf(XX,YY,mixZones.T,cmap=cmap,norm=norm,origin='lower')
 		mixZones=0
 		plt.xlabel(r"$\rm{Model\; number}$")
