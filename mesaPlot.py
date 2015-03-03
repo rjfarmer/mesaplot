@@ -301,7 +301,7 @@ class plot():
 			
 		return l
 		
-	def _listAbun(m):
+	def _listAbun(self,m):
 		abun_list=[]
 		for i in m.prof_dat.dtype.names:
 			if len(i)<=5 and len(i)>=2:
@@ -310,7 +310,7 @@ class plot():
 						abun_list.append(i)
 		return abun_list
 		
-	def _listBurn(m):
+	def _listBurn(self,m):
 		burnList=[]
 		extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
 		for i in m.prof_dat.dtype.names:
@@ -331,6 +331,7 @@ class plot():
 		return cmap,norm
 	
 	def _annotateLine(m,ax,x,y,num_labels,xmin,xmax,text):
+	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text):
 		for ii in range(1,num_labels+1):
 			ind=(x>=xmin)&(x<=xmax)
 			f = interpolate.interp1d(x[ind],y[ind])
