@@ -94,6 +94,14 @@ y1label=None # axis label, if None we attempt to get guess from the y1 (see the 
 y2label=None # axis label, if None we attempt to get guess from the y2 (see the labels function) other wsie we show the name of y2
 cmap=plt.cm.gist_ncar #when plotting mutplie lines what colourmap should we cycle through
 yrng=[0.0,10.0] # Min and max vlues of the y axis
+show_burn=False #Show regions of nuclear burning
+show_burn_x=False
+show_burn_line=False #Whether to show burn regions on the line or at the bottom aslong the xaxis
+show_burn_2=False #Show regions of nuclear burning on the second yaxis
+show_mix=False #Show regions of  mixing
+show_mix_x=False
+show_mix_line=False #Whether to show mix regions on the line or at the bottom aslong the xaxis
+show_mix_2=False #Show regions of  mixing on the second yaxis
 ````
 
 Now some remarks about each plot:
