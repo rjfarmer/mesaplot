@@ -309,6 +309,14 @@ class plot():
 					if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
 						abun_list.append(i)
 		return abun_list
+		
+	def _listBurn(m):
+		burnList=[]
+		extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
+		for i in m.prof_dat.dtype.names:
+			if "burn_" in i or i in extraBurn:
+				burnList.append(i)
+		return burnList
 	
 	def _setMixRegionsCol():
 		cmap = mpl.colors.ListedColormap([[0.18, 0.545, 0.34], [0.53, 0.808, 0.98],
@@ -322,6 +330,13 @@ class plot():
 		norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 		return cmap,norm
 	
+	def _annotateLine(m,ax,x,y,num_labels,xmin,xmax,text):
+		for ii in range(1,num_labels+1):
+			ind=(x>=xmin)&(x<=xmax)
+			f = interpolate.interp1d(x[ind],y[ind])
+			xp1=((xmax-xmin)*(ii/(num_labels+1.0)))+xmin
+			yp1=f(xp1)
+			ax.annotate(i, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False):
@@ -365,14 +380,8 @@ class plot():
 			line, =ax.plot(m.prof_dat[xaxis],y,label=i,linewidth=2)
 			if points:
 				ax.scatter(m.prof_dat[xaxis],y)
-			
-			for ii in range(1,num_labels+1):
-				ind=(m.prof_dat[xaxis]>=xrngL[0])&(m.prof_dat[xaxis]<=xrngL[1])
-				f = interpolate.interp1d(m.prof_dat[xaxis][ind],y[ind])
-				xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
-				yp1=f(xp1)
-				ax.annotate(i, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
-
+				
+			self._annotateLine(m,ax,m.prof_dat[xaxis],y,xrngL[0],xrngL[1],i)
 						
 		ax.yaxis.set_major_locator(MaxNLocator(4))
 		ax.xaxis.set_major_locator(MaxNLocator(4))
@@ -504,31 +513,25 @@ class plot():
 			xrngL[1]=np.max(m.prof_dat[xaxis])
 
 
-		numPlots=0
-		extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
-		for i in m.prof_dat.dtype.names:
-			if "burn_" in i or i in extraBurn:
-				numPlots=numPlots+1
+
+		burnList=self._listBurn(m)
+		numPlots=len(burnList)
+		
+		if burn_random:
+			random.shuffle(burn_list)
 				
 		try:
 			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 		except:
 			pass
 			
-		for i in m.prof_dat.dtype.names:
-			if "burn_" in i or i in extraBurn:
-				y=np.log10(m.prof_dat[i])
-				y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
-				line, =ax.plot(m.prof_dat[xaxis],y,label=i.replace('_',' '))
-				for ii in range(1,num_labels+1):
-					f = interpolate.interp1d(m.prof_dat[xaxis],y)
-					xp1=((xrngL[1]-xrngL[0])*(ii/(num_labels+1.0)))+xrngL[0]
-					yp1=f(xp1)
-					ax.annotate(i.replace('_',' ').split()[-1], xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
-		#try:
-			#ax.legend(loc=0)
-		#except:
-			#pass
+		for i in burn_list:
+			y=np.log10(m.prof_dat[i])
+			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
+			line, =ax.plot(m.prof_dat[xaxis],y,label=i.replace('_',' '))
+			if points:
+				ax.scatter(m.prof_dat[xaxis],y)
+			self._annotateLine(m,ax,m.prof_dat[xaxis],y,xrngL[0],xrngL[1],i)
 		
 		ax.yaxis.set_major_locator(MaxNLocator(4))
 		ax.xaxis.set_major_locator(MaxNLocator(4))
