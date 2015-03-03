@@ -337,10 +337,10 @@ class plot():
 		if show_x:
 			yy=np.zeros(np.size(x))
 			yy[:]=ylim[0]
-			size=100
+			size=240
 		if show_line:
 			yy=y
-			size=70
+			size=180
 		
 		ind=(m.prof_dat['net_nuclear_energy']>=1.0)&(m.prof_dat['net_nuclear_energy']<=4.0)
 				
@@ -365,7 +365,7 @@ class plot():
 			size=60
 	
 		cmap,norm=self._setMixRegionsCol()
-		ax.scatter(x,y,c=m.prof_dat['mixing_type'],s=size,cmap=cmap,norm=norm,linewidths=0)
+		ax.scatter(x,yy,c=m.prof_dat['mixing_type'],s=size,cmap=cmap,norm=norm,linewidths=0)
 	
 		ax.set_ylim(ylim)
 	
