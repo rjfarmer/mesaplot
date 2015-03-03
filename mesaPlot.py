@@ -370,10 +370,7 @@ class plot():
 		if abun_random:
 			random.shuffle(abun_list)
 
-		try:
-			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
-		except:
-			pass
+		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 		
 		for i in abun_list:
 			y=np.log10(m.prof_dat[i])
@@ -521,10 +518,7 @@ class plot():
 		if burn_random:
 			random.shuffle(burn_list)
 				
-		try:
-			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
-		except:
-			pass
+		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 			
 		for i in burn_list:
 			y=np.log10(m.prof_dat[i])
