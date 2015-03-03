@@ -378,7 +378,9 @@ class plot():
 			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
-						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False):
+						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
+					show_burn=False,show_burn_x=False,
+					show_mix=False,show_mix_x=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -418,7 +420,13 @@ class plot():
 				ax.scatter(m.prof_dat[xaxis],y)
 				
 			self._annotateLine(m,ax,m.prof_dat[xaxis],y,num_labels,xrngL[0],xrngL[1],i,line)
-						
+
+		if show_burn:
+			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=show_burn_x)
+
+		if show_mix:
+			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=show_mix_x)
+			
 		ax.yaxis.set_major_locator(MaxNLocator(4))
 		ax.xaxis.set_major_locator(MaxNLocator(4))
 		
@@ -441,7 +449,9 @@ class plot():
 			plt.show()
 			
 
-	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0]):
+	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
+					show_burn=False,show_burn_x=False,
+					show_mix=False,show_mix_x=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -465,6 +475,12 @@ class plot():
 		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
 		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
 
+		if show_burn:
+			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=show_burn_x)
+
+		if show_mix:
+			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=show_mix_x)
+		
 		try:
 			ax.legend(loc=0)
 		except:
@@ -484,7 +500,9 @@ class plot():
 		if show:
 			plt.show()
 
-	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0]):
+	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
+					show_burn=False,show_burn_x=False,
+					show_mix=False,show_mix_x=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -507,6 +525,11 @@ class plot():
 				#ind=mInd&(m.prof_dat[i]>-90.0)
 				ax.plot(m.prof_dat[xaxis][ind],m.prof_dat[i][ind],label=r"$D_{"+i.split('_')[3]+"}$")
 
+		if show_burn:
+			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=show_burn_x)
+
+		if show_mix:
+			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=show_mix_x)
 
 		try:
 			ax.legend(loc=0)
@@ -530,7 +553,9 @@ class plot():
 			plt.show()
 			
 	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
-					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=True):
+					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=True,
+					show_burn=False,show_burn_x=False,
+					show_mix=False,show_mix_x=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -568,6 +593,12 @@ class plot():
 				self._annotateLine(m,ax,m.prof_dat[xaxis],y,num_labels,xrngL[0],xrngL[1],i,line)
 			except:
 				pass
+		
+		if show_burn:
+			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=show_burn_x)
+
+		if show_mix:
+			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=show_mix_x)
 		
 		ax.yaxis.set_major_locator(MaxNLocator(4))
 		ax.xaxis.set_major_locator(MaxNLocator(4))
@@ -811,6 +842,7 @@ class plot():
 
 		if reloadHistory:
 			m.loadHistory()
+			
 		
 		if xrng[0]>=0:
 			modInd=(m.hist_dat["model_number"]>=xrng[0])&(m.hist_dat["model_number"]<=xrng[1])
