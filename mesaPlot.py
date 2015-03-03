@@ -756,6 +756,9 @@ class plot():
 			modInd=np.zeros(np.size(m.hist_dat["model_number"]),dtype='bool')
 			modInd[:]=True
 			
+		if np.all(np.diff(m.hist_dat["model_number"][modInd])) !=1:
+			raise(ValueError,"model_number must be monotomically increasing, ie set history_interval=1"
+			
 		try:
 			q=np.linspace(0.0,m.hist_head["initial_mass"],1*np.max(m.hist_dat["num_zones"][modInd]))
 		except:
