@@ -332,12 +332,13 @@ class plot():
 	
 	def _annotateLine(m,ax,x,y,num_labels,xmin,xmax,text):
 	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text):
+	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text,line):
 		for ii in range(1,num_labels+1):
 			ind=(x>=xmin)&(x<=xmax)
 			f = interpolate.interp1d(x[ind],y[ind])
 			xp1=((xmax-xmin)*(ii/(num_labels+1.0)))+xmin
 			yp1=f(xp1)
-			ax.annotate(i, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
+			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False):
@@ -379,7 +380,7 @@ class plot():
 			if points:
 				ax.scatter(m.prof_dat[xaxis],y)
 				
-			self._annotateLine(m,ax,m.prof_dat[xaxis],y,xrngL[0],xrngL[1],i)
+			self._annotateLine(m,ax,m.prof_dat[xaxis],y,num_labels,xrngL[0],xrngL[1],i,line)
 						
 		ax.yaxis.set_major_locator(MaxNLocator(4))
 		ax.xaxis.set_major_locator(MaxNLocator(4))
@@ -512,8 +513,8 @@ class plot():
 
 
 
-		burnList=self._listBurn(m)
-		numPlots=len(burnList)
+		burn_list=self._listBurn(m)
+		num_plots=len(burn_list)
 		
 		if burn_random:
 			random.shuffle(burn_list)
@@ -521,12 +522,15 @@ class plot():
 		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 			
 		for i in burn_list:
-			y=np.log10(m.prof_dat[i])
-			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
-			line, =ax.plot(m.prof_dat[xaxis],y,label=i.replace('_',' '))
-			if points:
-				ax.scatter(m.prof_dat[xaxis],y)
-			self._annotateLine(m,ax,m.prof_dat[xaxis],y,xrngL[0],xrngL[1],i)
+			try:
+				y=np.log10(m.prof_dat[i])
+				y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
+				line, =ax.plot(m.prof_dat[xaxis],y,label=i.replace('_',' '))
+				if points:
+					ax.scatter(m.prof_dat[xaxis],y)
+				self._annotateLine(m,ax,m.prof_dat[xaxis],y,num_labels,xrngL[0],xrngL[1],i,line)
+			except:
+				pass
 		
 		ax.yaxis.set_major_locator(MaxNLocator(4))
 		ax.xaxis.set_major_locator(MaxNLocator(4))
