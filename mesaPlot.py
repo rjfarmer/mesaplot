@@ -300,6 +300,16 @@ class plot():
 			l=None
 			
 		return l
+		
+	def _listAbun(m):
+		abun_list=[]
+		for i in m.prof_dat.dtype.names:
+			if len(i)<=5 and len(i)>=2:
+				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
+					if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
+						abun_list.append(i)
+		return abun_list
+	
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False):
@@ -322,20 +332,12 @@ class plot():
 		else:
 			xrngL[1]=np.max(m.prof_dat[xaxis])
 
-		num_plots=0
-		
-		abun_list=[]
 		if abun is None:
-			for i in m.prof_dat.dtype.names:
-				if len(i)<=5 and len(i)>=2:
-					if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
-						if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
-							num_plots=num_plots+1
-							abun_list.append(i)
+			abun_list=self._listAbun(m)
 		else:
-			num_plots=len(abun)
 			abun_list=abun
 			
+		num_plots=len(abun)
 		#Helps when we have many elements not on the plot that stretch the colormap
 		if abun_random:
 			random.shuffle(abun_list)
