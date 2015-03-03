@@ -317,8 +317,8 @@ class plot():
 			if "burn_" in i or i in extraBurn:
 				burnList.append(i)
 		return burnList
-	
-	def _setMixRegionsCol():
+
+	def _setMixRegionsCol(self):
 		cmap = mpl.colors.ListedColormap([[0.18, 0.545, 0.34], [0.53, 0.808, 0.98],
 			[0.96, 0.96, 0.864], [0.44, 0.5, 0.565],[0.8, 0.6, 1.0],
 			[0.0, 0.4, 1.0],[1.0, 0.498, 0.312],[0.824, 0.705, 0.55]])
@@ -330,8 +330,28 @@ class plot():
 		norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 		return cmap,norm
 	
-	def _annotateLine(m,ax,x,y,num_labels,xmin,xmax,text):
-	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text):
+	def _plotBurnRegions(self,m,ax,x,y,show_x,show_line):
+		# non 0.0, yellow 1, ornage 10**4, red 10**7
+		ylim=ax.get_ylim()
+		
+		if show_x:
+			yy=np.zeros(np.size(x))
+			yy[:]=ylim[0]
+			size=100
+		if show_line:
+			yy=y
+			size=70
+		
+		ind=(m.prof_dat['net_nuclear_energy']>=1.0)&(m.prof_dat['net_nuclear_energy']<=4.0)
+				
+		ax.scatter(x[ind],yy[ind],c='yellow',s=size,linewidths=0,alpha=1.0)
+		ind=(m.prof_dat['net_nuclear_energy']>=4.0)&(m.prof_dat['net_nuclear_energy']<=7.0)
+		ax.scatter(x[ind],yy[ind],c='orange',s=size,linewidths=0,alpha=1.0)
+		ind=(m.prof_dat['net_nuclear_energy']>=7.0)
+		ax.scatter(x[ind],yy[ind],c='red',s=size,edgecolor='none',alpha=1.0)
+		
+		ax.set_ylim(ylim)
+		
 	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text,line):
 		for ii in range(1,num_labels+1):
 			ind=(x>=xmin)&(x<=xmax)
@@ -554,7 +574,8 @@ class plot():
 
 
 	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',
-							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None):
+							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
+							show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -592,13 +613,15 @@ class plot():
 		ax.plot(x,y,c=y1col,linewidth=2)
 		if points:
 			ax.scatter(x,y,c=y1col)
-		
+			
 		ax.set_ylabel(y1.replace('_',' '), color=y1col)
 		ylim=ax.get_ylim()
 		if y1rev:
 			ax.set_ylim(ylim[1],ylim[0])
 
-
+		if show_burn:
+			self._plotBurnRegions(m,ax,x,y,show_line=show_burn_line,show_x=show_burn_x)
+			
 		if y2 is not None:
 			try:
 				ax2 = ax.twinx()
@@ -620,6 +643,8 @@ class plot():
 				ylim=ax2.get_ylim()
 				if y2rev:
 					ax2.set_ylim(ylim[1],ylim[0])
+				if show_burn_2:
+					self._plotBurnRegions(m,ax2,x,y,show_line=show_burn_line,show_x=show_burn_x)
 			except:
 				pass
 
