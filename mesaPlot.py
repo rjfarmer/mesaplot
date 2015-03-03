@@ -131,7 +131,7 @@ class MESA():
 		else:
 			self._loadProfileIndex(f) #Assume f is a folder
 			if np.count_nonzero(self.prof_ind)==1:
-				filename=f+"/profile"+str(int(self.prof_ind["profile"][0]))+".data"
+				filename=f+"/profile"+str(int(np.atleast_1d(self.prof_ind["profile"])[0]))+".data"
 			else:
 				#Find profile with mode 'nearest','upper','lower','first','last'
 				pos = bisect.bisect_left(self.prof_ind["model"], num)
