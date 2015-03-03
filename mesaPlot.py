@@ -613,8 +613,12 @@ class plot():
 		ax.plot(x,y,c=y1col,linewidth=2)
 		if points:
 			ax.scatter(x,y,c=y1col)
-			
-		ax.set_ylabel(y1.replace('_',' '), color=y1col)
+		
+		if y2 is None:
+			y1textcol='k'
+		else:
+			y1textcol=y1col
+		ax.set_ylabel(y1.replace('_',' '), color=y1textcol)
 		ylim=ax.get_ylim()
 		if y1rev:
 			ax.set_ylim(ylim[1],ylim[0])
@@ -762,7 +766,11 @@ class plot():
 		if y1label is not None:
 			ax.set_ylabel(y1label)
 		else:
-			ax.set_ylabel(y1.replace('_',' '), color=y1col)
+			if y2 is None:
+				y1textcol='k'
+			else:
+				y1textcol=y1col
+			ax.set_ylabel(y1.replace('_',' '), color=y1textcol)
 			
 		if y2 is not None:
 			if y2label is not None:
