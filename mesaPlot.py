@@ -381,6 +381,12 @@ class plot():
 		bounds=[-1,0,1,2,3,4,5,6,7,8,9]
 		norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 		return cmap,norm
+		
+	def _setTicks(self,ax):
+		ax.yaxis.set_major_locator(MaxNLocator(4))
+		ax.xaxis.set_major_locator(MaxNLocator(4))
+		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
+		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
 	
 	def _plotBurnRegions(self,m,ax,x,y,show_x,show_line):
 		# non 0.0, yellow 1, ornage 10**4, red 10**7
@@ -394,8 +400,7 @@ class plot():
 			yy=y
 			size=180
 		
-		ind=(m.prof_dat['net_nuclear_energy']>=1.0)&(m.prof_dat['net_nuclear_energy']<=4.0)
-				
+		ind=(m.prof_dat['net_nuclear_energy']>=1.0)&(m.prof_dat['net_nuclear_energy']<=4.0)	
 		ax.scatter(x[ind],yy[ind],c='yellow',s=size,linewidths=0,alpha=1.0)
 		ind=(m.prof_dat['net_nuclear_energy']>=4.0)&(m.prof_dat['net_nuclear_energy']<=7.0)
 		ax.scatter(x[ind],yy[ind],c='orange',s=size,linewidths=0,alpha=1.0)
@@ -427,7 +432,7 @@ class plot():
 			f = interpolate.interp1d(x[ind],y[ind])
 			xp1=((xmax-xmin)*(ii/(num_labels+1.0)))+xmin
 			yp1=f(xp1)
-			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=12)
+			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=mat.rcParams['font.size']-4)
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
@@ -478,20 +483,10 @@ class plot():
 		if show_mix:
 			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
 			
-		ax.yaxis.set_major_locator(MaxNLocator(4))
-		ax.xaxis.set_major_locator(MaxNLocator(4))
-		
-		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
-		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
+		self._setTicks(ax)
 		#ax.legend(loc=0,fontsize=20)
-		if xlabel is not None:
-			ax.set_xlabel(xlabel)
-		else:
-			l=self.labels(xaxis)
-			if l is not None:
-				ax.set_xlabel(l)
-			else:
-				ax.set_xlabel(xaxis.replace('_',' '))
+		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+
 		ax.set_ylabel(r'$\log_{10}$ Abundance')
 		ax.set_ylim(yrng)
 		ax.set_xlim(xrngL)
@@ -535,15 +530,8 @@ class plot():
 			ax.legend(loc=0)
 		except:
 			pass
-		if xlabel is not None:
-			ax.set_xlabel(xlabel)
-		else:
-			l=self.labels(xaxis)
-			if l is not None:
-				ax.set_xlabel(l)
-			else:
-				ax.set_xlabel(xaxis.replace('_',' '))
-		
+		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self._setTicks(ax)
 		ax.set_xlim(xrngL)
 		ax.set_ylim(yrng)
 		ax.set_title("Dynamo Model")
@@ -585,16 +573,9 @@ class plot():
 		except:
 			pass
 
-		if xlabel is not None:
-			ax.set_xlabel(xlabel)
-		else:
-			l=self.labels(xaxis)
-			if l is not None:
-				ax.set_xlabel(l)
-			else:
-				ax.set_xlabel(xaxis.replace('_',' '))
+		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		ax.set_title("Ang Mom Model")
-		
+		self._setTicks(ax)
 		ax.set_xlim(xrngL)
 		ax.set_ylim(yrng)
 		
@@ -602,7 +583,7 @@ class plot():
 			plt.show()
 			
 	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
-					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=True,
+					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
 					show_burn=False,show_mix=False):
 		if ax ==None:
 			fig=plt.figure()
@@ -632,15 +613,13 @@ class plot():
 		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 			
 		for i in burn_list:
-			try:
-				y=np.log10(m.prof_dat[i])
-				y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
-				line, =ax.plot(m.prof_dat[xaxis],y,label=i.replace('_',' '))
-				if points:
-					ax.scatter(m.prof_dat[xaxis],y)
-				self._annotateLine(m,ax,m.prof_dat[xaxis],y,num_labels,xrngL[0],xrngL[1],i,line)
-			except:
-				pass
+			y=np.log10(m.prof_dat[i])
+			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
+			line, =ax.plot(m.prof_dat[xaxis],y,label=i.replace('_',' '))
+			if points:
+				ax.scatter(m.prof_dat[xaxis],y)
+			self._annotateLine(m,ax,m.prof_dat[xaxis],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
+
 		
 		if show_burn:
 			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
@@ -648,21 +627,10 @@ class plot():
 		if show_mix:
 			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
 		
-		ax.yaxis.set_major_locator(MaxNLocator(4))
-		ax.xaxis.set_major_locator(MaxNLocator(4))
-		
-		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
-		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
+		self._setTicks(ax)
 		ax.set_ylim(yrng)
 		ax.set_xlim(xrngL)
-		if xlabel is not None:
-			ax.set_xlabel(xlabel)
-		else:
-			l=self.labels(xaxis)
-			if l is not None:
-				ax.set_xlabel(l)
-			else:
-				ax.set_xlabel(xaxis.replace('_',' '))
+		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		ax.set_title("Burning")
 		if show:
 			plt.show()
@@ -754,11 +722,7 @@ class plot():
 			except:
 				pass
 
-		ax.yaxis.set_major_locator(MaxNLocator(4))
-		ax.xaxis.set_major_locator(MaxNLocator(4))
-		
-		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
-		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
+		self._setTicks(ax)
 		
 
 		if xlabel is not None:
@@ -850,11 +814,7 @@ class plot():
 			except:
 				pass
 
-		ax.yaxis.set_major_locator(MaxNLocator(4))
-		ax.xaxis.set_major_locator(MaxNLocator(4))
-		
-		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
-		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
+		self._setTicks(ax)
 
 		if xlabel is not None:
 			ax.set_xlabel(xlabel)
@@ -1023,11 +983,7 @@ class plot():
 		fig.set_size_inches(12,9.45)
 		
 		#ax.locator_params(nbins=6)
-		ax.yaxis.set_major_locator(MaxNLocator(6))
-		ax.xaxis.set_major_locator(MaxNLocator(6))
-		
-		ax.yaxis.set_minor_locator(AutoMinorLocator(5))
-		ax.xaxis.set_minor_locator(AutoMinorLocator(5))
+		self._setTicks(ax)
 		#ax.set_tick_params(axis='both',which='both')
 		
 		if show:
