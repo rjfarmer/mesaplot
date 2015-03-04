@@ -635,6 +635,123 @@ class plot():
 		if show:
 			plt.show()
 
+	def plotBurnSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
+					cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
+					show_burn=False,show_mix=False):
+						
+		if ax ==None:
+			fig=plt.figure()
+			ax=fig.add_subplot(111)
+			
+		if maxMod<0:
+			maxMod=m.hist_dat["model_number"][-1]
+		modelIndex=(m.hist_dat["model_number"]>=minMod)&(m.hist_dat["model_number"]<=maxMod)
+		
+		mInd=np.zeros(np.size(m.hist_dat[xaxis][modelIndex]),dtype='bool')
+		mInd[:]=True
+		xrngL=[m.hist_dat[xaxis][modelIndex].min(),m.hist_dat[xaxis][modelIndex].max()]
+		if xmin is not None:
+			mInd=(m.hist_dat[xaxis][modelIndex]>=xmin)
+			xrngL[0]=xmin
+
+		if xmax is not None:
+			mInd=mInd&(m.hist_dat[xaxis][modelIndex]<=xmax)
+			xrngL[1]=xmax
+
+			
+		burn_list=self._listBurnHistory(m)
+		num_plots=len(burn_list)
+		
+		if burn_random:
+			random.shuffle(burn_list)
+				
+		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+			
+		for i in burn_list:
+			y=m.hist_dat[i]
+			
+			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
+			line, =ax.plot(m.hist_dat[xaxis][mInd],y)
+			if points:
+				ax.scatter(m.hist_dat[xaxis][mInd],y)
+			self._annotateLine(m,ax,m.hist_dat[xaxis][mInd],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
+
+		if show_burn:
+			self._plotBurnRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
+
+		if show_mix:
+			self._plotMixRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
+		
+		self._setTicks(ax)
+		if yrng is not None:
+			ax.set_ylim(yrng)
+		ax.set_xlim(xrngL)
+		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		ax.set_ylabel(self.labels('log_lum'))
+
+		if show:
+			plt.show()
+
+	def plotAbunSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
+					cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,abun_random=False,points=False,
+					show_burn=False,show_mix=False,abun=None):
+						
+		if ax ==None:
+			fig=plt.figure()
+			ax=fig.add_subplot(111)
+			
+		if maxMod<0:
+			maxMod=m.hist_dat["model_number"][-1]
+		modelIndex=(m.hist_dat["model_number"]>=minMod)&(m.hist_dat["model_number"]<=maxMod)
+		
+		mInd=np.zeros(np.size(m.hist_dat[xaxis][modelIndex]),dtype='bool')
+		mInd[:]=True
+		xrngL=[m.hist_dat[xaxis][modelIndex].min(),m.hist_dat[xaxis][modelIndex].max()]
+		if xmin is not None:
+			mInd=(m.hist_dat[xaxis][modelIndex]>=xmin)
+			xrngL[0]=xmin
+
+		if xmax is not None:
+			mInd=mInd&(m.hist_dat[xaxis][modelIndex]<=xmax)
+			xrngL[1]=xmax
+
+			
+		if abun is None:
+			abun_list=self._listAbunHistory(m)
+		else:
+			abun_list=abun
+			
+		num_plots=len(abun_list)
+		#Helps when we have many elements not on the plot that stretch the colormap
+		if abun_random:
+			random.shuffle(abun_list)
+				
+		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+			
+		for i in abun_list:
+			y=m.hist_dat["log_total_mass_"+i]
+			
+			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
+			line, =ax.plot(m.hist_dat[xaxis][mInd],y)
+			if points:
+				ax.scatter(m.hist_dat[xaxis][mInd],y)
+			self._annotateLine(m,ax,m.hist_dat[xaxis][mInd],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
+
+		if show_burn:
+			self._plotBurnRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
+
+		if show_mix:
+			self._plotMixRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
+		
+		self._setTicks(ax)
+		if yrng is not None:
+			ax.set_ylim(yrng)
+		ax.set_xlim(xrngL)
+		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		ax.set_ylabel(self.labels('log_abundance'))
+
+		if show:
+			plt.show()
 
 
 	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',
