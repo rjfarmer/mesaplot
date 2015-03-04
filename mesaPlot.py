@@ -343,6 +343,16 @@ class plot():
 						abun_list.append(i)
 		return abun_list
 		
+	def _listAbunHistory(self,m):
+		abun_list=[]
+		for j in m.hist_dat.dtype.names:
+			i=j.split('_')[-1]
+			if len(i)<=5 and len(i)>=2:
+				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
+					if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
+						abun_list.append(i)
+		return abun_list
+		
 	def _listBurn(self,m):
 		burnList=[]
 		extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
@@ -350,6 +360,15 @@ class plot():
 			if "burn_" in i or i in extraBurn:
 				burnList.append(i)
 		return burnList
+		
+	def _listBurnHistory(self,m):
+		burnList=[]
+		extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
+		for i in m.hist_dat.dtype.names:
+			if "burn_" in i or i in extraBurn:
+				burnList.append(i)
+		return burnList
+
 
 	def _setMixRegionsCol(self):
 		cmap = mpl.colors.ListedColormap([[0.18, 0.545, 0.34], [0.53, 0.808, 0.98],
