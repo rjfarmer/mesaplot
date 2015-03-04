@@ -271,7 +271,7 @@ class plot():
 			l=l+r"$\rm{Mass}\; [M_{\odot}]$"
 		if label=='model':
 			l=l+r"$\rm{Model\; number}$"
-		if label=='teff':
+		if 'teff' in label or label=='logT':
 			if center:
 				l=l+r"$T_{eff,c}\; [K]$"
 			else:
@@ -281,7 +281,7 @@ class plot():
 				l=l+r"$\rho_{c}\; [K]$"
 			else:
 				l=l+r"$\rho\; [K]$"
-		if label=='lum':
+		if 'lum' in label:
 			l=l+r'$L\; [L_{\odot}]$'
 		if label=='log_column_depth':
 			l=l+r'$y\; [\rm{g}\; \rm{cm}^{-2}]$'
@@ -295,12 +295,45 @@ class plot():
 				l=l+'[day]'
 			if 'yr' in label:
 				l=l+'[yr]'
-		
+		if 'burn' in label:
+			l=l+r'$\epsilon_{'+label.split('_')[1].capitalize()+r"}$"
+		if label=='pp':
+			l=l+r'$\epsilon_{pp}$'
+		if label=='tri_alfa':
+			l=l+r'$\epsilon_{3\alpha}$'
+		if label=='c12_c12':
+			l=l+r'$\epsilon_{c12,c12}$'
+		if label=='c12_o16':
+			l=l+r'$\epsilon_{c12,o16}$'
+		if label=='cno':
+			l=l+r'$\epsilon_{cno}$'
+		if label=='o16_o16':
+			l=l+r'$\epsilon_{o16,o16}$'
+		if label=='pnhe4':
+			l=l+r'$\epsilon_{pnhe4}$'
+		if label=='photo':
+			l=l+r'$\epsilon_{\gamaa}$'
+		if label=='other':
+			l=l+r'$\epsilon_{other}$'
+		if 'abundance' in label:
+			l=l+r'$\chi\; [M_{\odot}]$'
+				
 		if len(l)==0:
 			l=None
 			
 		return l
 		
+	def safeLabel(self,label,axis):
+		outLabel=''
+		if label is not None:
+			outLabel=label
+		else:
+			outLabel=self.labels(axis)
+			if outLabel is not None:
+				outLabel=outLabel
+			else:
+				outLabel=axis.replace('_',' ')
+		return outLabel
 	def _listAbun(self,m):
 		abun_list=[]
 		for i in m.prof_dat.dtype.names:
