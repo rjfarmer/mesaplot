@@ -259,7 +259,7 @@ class MESA():
 			lines += 1
 		f.close()
 		return lines
-
+		
 
 class plot():
 	def labels(self,label,log=False,center=False):
@@ -281,10 +281,10 @@ class plot():
 				l=l+r"$\rho_{c}\; [K]$"
 			else:
 				l=l+r"$\rho\; [K]$"
-		if 'lum' in label:
-			l=l+r'$L\; [L_{\odot}]$'
-		if label=='log_column_depth':
+		if 'column_depth'  in label:
 			l=l+r'$y\; [\rm{g}\; \rm{cm}^{-2}]$'
+		elif 'lum' in label:
+			l=l+r'$L\; [L_{\odot}]$'
 		if 'star_age' in label:
 			l=l+r'T$\;$'
 			if 'sec' in label:
@@ -312,7 +312,7 @@ class plot():
 		if label=='pnhe4':
 			l=l+r'$\epsilon_{pnhe4}$'
 		if label=='photo':
-			l=l+r'$\epsilon_{\gamaa}$'
+			l=l+r'$\epsilon_{\gamma}$'
 		if label=='other':
 			l=l+r'$\epsilon_{other}$'
 		if 'abundance' in label:
@@ -334,6 +334,7 @@ class plot():
 			else:
 				outLabel=axis.replace('_',' ')
 		return outLabel
+		
 	def _listAbun(self,m):
 		abun_list=[]
 		for i in m.prof_dat.dtype.names:
@@ -461,7 +462,7 @@ class plot():
 		else:
 			abun_list=abun
 			
-		num_plots=len(abun)
+		num_plots=len(abun_list)
 		#Helps when we have many elements not on the plot that stretch the colormap
 		if abun_random:
 			random.shuffle(abun_list)
@@ -757,7 +758,7 @@ class plot():
 	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',
 							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
 							show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
-							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False):
+							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -796,11 +797,13 @@ class plot():
 		if points:
 			ax.scatter(x,y,c=y1col)
 		
-		if y2 is None:
-			y1textcol='k'
-		else:
-			y1textcol=y1col
-		ax.set_ylabel(y1.replace('_',' '), color=y1textcol)
+		if y1Textcol is None:
+			y1labcol=y1col
+		else y1Textcol is not None:
+			y1labcol=y1Textcol
+
+
+		ax.set_ylabel(self.safeLabel(y1label,y1), color=y1labcol)
 		ylim=ax.get_ylim()
 		if y1rev:
 			ax.set_ylim(ylim[1],ylim[0])
@@ -825,8 +828,13 @@ class plot():
 				ax2.plot(x,y,c=y2col,linewidth=2)
 				if points:
 					ax2.scatter(x,y,c=y2col)
+					
+				if y2Textcol is None:
+					y2labcol=y1col
+				else y2Textcol is not None:
+					y2labcol=y1Textcol
 				
-				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
+				ax2.set_ylabel(self.safeLabel(y2label,y2), color=y2labcol)
 				ax2.yaxis.set_major_locator(MaxNLocator(4))
 				ax2.yaxis.set_minor_locator(AutoMinorLocator(3))
 				ylim=ax2.get_ylim()
