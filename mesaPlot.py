@@ -312,7 +312,7 @@ class plot():
 				l=l+r"$\rho_{c}\; [K]$"
 			else:
 				l=l+r"$\rho\; [K]$"
-		if 'column_depth'  in label:
+		if label=='log_column_depth':
 			l=l+r'$y\; [\rm{g}\; \rm{cm}^{-2}]$'
 		elif 'lum' in label:
 			l=l+r'$L\; [L_{\odot}]$'
@@ -415,18 +415,21 @@ class plot():
 		return cmap,norm
 		
 	def _setTicks(self,ax):
-		ax.yaxis.set_major_locator(MaxNLocator(4))
-		ax.xaxis.set_major_locator(MaxNLocator(4))
-		ax.yaxis.set_minor_locator(AutoMinorLocator(3))
-		ax.xaxis.set_minor_locator(AutoMinorLocator(3))
+		ax.yaxis.set_major_locator(MaxNLocator(5))
+		ax.xaxis.set_major_locator(MaxNLocator(5))
+		ax.yaxis.set_minor_locator(AutoMinorLocator(10))
+		ax.xaxis.set_minor_locator(AutoMinorLocator(10))
 	
-	def _plotBurnRegions(self,m,ax,x,y,show_x,show_line):
+	def _plotBurnRegions(self,m,ax,x,y,show_x,show_line,yrng=None):
 		# non 0.0, yellow 1, ornage 10**4, red 10**7
 		ylim=ax.get_ylim()
 		
 		if show_x:
 			yy=np.zeros(np.size(x))
-			yy[:]=ylim[0]
+			if yrng is not None:
+				yy[:]=yrng[0]
+			else:
+				yy[:]=ylim[0]
 			size=240
 		if show_line:
 			yy=y
@@ -442,29 +445,45 @@ class plot():
 		ax.set_ylim(ylim)
 		
 		
-	def _plotMixRegions(self,m,ax,x,y,show_x,show_line):
+	def _plotMixRegions(self,m,ax,x,y,show_x,show_line,yrng=None):
 		ylim=ax.get_ylim()
 		
 		if show_x:
 			yy=np.zeros(np.size(x))
-			yy[:]=ylim[0]
+			if yrng is not None:
+				yy[:]=yrng[0]
+			else:
+				yy[:]=ylim[0]
 			size=90
 		if show_line:
 			yy=y
 			size=60
 	
 		cmap,norm=self._setMixRegionsCol()
-		ax.scatter(x,yy,c=m.prof_dat['mixing_type'],s=size,cmap=cmap,norm=norm,linewidths=0)
+		
+		isSet=None
+		for mixLabel in ['mixing_type','conv_mixing_type']:
+			try:
+				col=m.prof_dat[mixLabel]
+				isSet=True
+				break
+			except:
+				continue
+			
+		if isSet is None:
+			raise(ValueError,"Need mixing type in profile file for showing mix regions, either its mixing_type or conv_mixing_type")
+		
+		ax.scatter(x,yy,c=col,s=size,cmap=cmap,norm=norm,linewidths=0)
 	
 		ax.set_ylim(ylim)
 	
-	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text,line):
+	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text,line,fontsize=mat.rcParams['font.size']-12):
 		for ii in range(1,num_labels+1):
 			ind=(x>=xmin)&(x<=xmax)
 			f = interpolate.interp1d(x[ind],y[ind])
 			xp1=((xmax-xmin)*(ii/(num_labels+1.0)))+xmin
 			yp1=f(xp1)
-			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=mat.rcParams['font.size']-4)
+			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=fontsize)
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
@@ -510,10 +529,10 @@ class plot():
 			self._annotateLine(m,ax,m.prof_dat[xaxis],y,num_labels,xrngL[0],xrngL[1],i,line)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True,yrng=yrng)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True,yrng=yrng)
 			
 		self._setTicks(ax)
 		#ax.legend(loc=0,fontsize=20)
