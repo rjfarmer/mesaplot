@@ -260,6 +260,37 @@ class MESA():
 		f.close()
 		return lines
 		
+	def _getNextProfile(self):
+		currMod=self.prof_head["model_number"]
+		itemindex = np.where(self.prof_ind["model"]==currMod)[0]
+		try:
+			nextItem=self.prof_ind["model"][itemindex[0]+1]
+		except IndexError:
+			return None
+		itemindex = np.where(self.prof_ind["model"]==nextItem)
+		if np.shape(itemindex[0])[0]==0:
+			return None
+		else:
+			return nextItem
+	
+	def _getPrevProfile(self):
+		currMod=self.prof_head["model_number"]
+		itemindex = np.where(self.prof_ind["model"]==currMod)[0]
+		try:
+			nextItem=self.prof_ind["model"][itemindex[0]-1]
+		except IndexError:
+			return None
+		itemindex = np.where(self.prof_ind["model"]==nextItem)
+		if np.shape(itemindex[0])[0]==0:
+			return None
+		else:
+			return nextItem
+	
+	def _getNextModNumHist(self):
+		pass
+
+	def _getPrevModNumHist(self):
+		pass
 
 class plot():
 	def labels(self,label,log=False,center=False):
