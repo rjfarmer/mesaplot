@@ -719,7 +719,7 @@ class plot():
 		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 			
 		for i in burn_list:
-			y=m.hist_dat[i]
+			y=m.hist_dat[i][mInd]
 			
 			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
 			line, =ax.plot(m.hist_dat[xaxis][mInd],y)
@@ -780,7 +780,7 @@ class plot():
 		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 			
 		for i in abun_list:
-			y=m.hist_dat["log_total_mass_"+i]
+			y=m.hist_dat["log_total_mass_"+i][mInd]
 			
 			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
 			line, =ax.plot(m.hist_dat[xaxis][mInd],y)
@@ -849,7 +849,7 @@ class plot():
 		
 		if y1Textcol is None:
 			y1labcol=y1col
-		else y1Textcol is not None:
+		else:
 			y1labcol=y1Textcol
 
 
@@ -880,13 +880,12 @@ class plot():
 					ax2.scatter(x,y,c=y2col)
 					
 				if y2Textcol is None:
-					y2labcol=y1col
-				else y2Textcol is not None:
-					y2labcol=y1Textcol
+					y2labcol=y2col
+				else:
+					y2labcol=y2Textcol
 				
 				ax2.set_ylabel(self.safeLabel(y2label,y2), color=y2labcol)
-				ax2.yaxis.set_major_locator(MaxNLocator(4))
-				ax2.yaxis.set_minor_locator(AutoMinorLocator(3))
+				self._setTicks(ax2)
 				ylim=ax2.get_ylim()
 				if y2rev:
 					ax2.set_ylim(ylim[1],ylim[0])
@@ -981,8 +980,7 @@ class plot():
 				ax2.plot(x,y,c=y2col,linewidth=2)
 				if points:
 					ax2.scatter(x,y,c=y2col)
-				ax2.yaxis.set_major_locator(MaxNLocator(4))
-				ax2.yaxis.set_minor_locator(AutoMinorLocator(3))
+				self._setTicks(ax2)
 				ylim=ax2.get_ylim()
 				if y2rev:
 					ax2.set_ylim(ylim[1],ylim[0])
