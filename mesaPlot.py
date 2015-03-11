@@ -92,12 +92,13 @@ class MESA():
 			
 	#Inspired by http://www.mesastar.org/tools-utilities/python-based-stuff/history-log-scrubber/view
 	#to remove bad lines
-		ind=np.zeros(np.size(self.hist_dat["model_number"]))
-		rev=np.copy(self.hist_dat["model_number"][::-1])
-		diff=np.diff(rev)
-		ind[0:-1]=diff<0
-		ind[-1]=1
-		self.hist_dat=self.hist_dat[ind[::-1].astype('bool')]
+		while (np.any(np.diff(self.hist_dat["star_age"])<0.0)):
+			ind=np.zeros(np.size(self.hist_dat["model_number"]))
+			rev=np.copy(self.hist_dat["star_age"][::-1])
+			diff=np.diff(rev)
+			ind[0:-1]=diff<0
+			ind[-1]=1
+			self.hist_dat=self.hist_dat[ind[::-1].astype('bool')]
 		
 	def scrubHistory(self,f="",fileOut="LOGS/history.data.scrubbed"):
 		self.loadHistory(f)
