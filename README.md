@@ -1,15 +1,15 @@
 ﻿# mesaplot
 Library of python routines to read MESA ouput files and plot MESA quantites
 
-Installation instructions:
+* Installation instructions:
 Simply git clone the repo then add the folder to your PYTHONPATH
 ````bash
 export PYTHONPATH=$PYTHONPATH:/path/to/mesaplot/folder
 ````
 
-How to use:
+* How to use:
 
-Reading data:
+** Reading data:
 
 ````python
 import mesaPlot as mp
@@ -40,7 +40,7 @@ Which will create a file "LOGS/history.data.scrubbed" if you don't want that the
 m.scrubHistory(fileOut='newFile')
 ````
 
-To load a profile file then its:
+To load a profile file its:
 ````python
 m.loadProfile()
 ````
@@ -58,7 +58,7 @@ m.loadProfile(num=MODEL_NUMBER,mode='first|lower|upper|nearest')
 ````
 This is for when the model you want isn't in the data. Either we load the first model, the model just before the one you, the model just after the one you want or the nearest (above or below) the model you want.
 
-Plotting
+** Plotting
 
 Generally the plotting routines follow this structure:
 ````python
@@ -78,9 +78,9 @@ show=True #Should we immediately show the plot or wait
 ax=None #A axis instance, useful for grid plotting, see later on
 xmin=None #min x value to show
 xmax=None #max x value to show
-xL='linear' #Whether axis should be linear or log10 (if the xis is already a log quantity then leave as linear)
-y1L='linear' #Whether axis should be linear or log10 (if the xis is already a log quantity then leave as linear)
-y2L='linear' #Whether axis should be linear or log10 (if the xis is already a log quantity then leave as linear)
+xL='linear' #Whether axis should be linear or log10 (if the axis is already a log quantity then leave as linear)
+y1L='linear' #Whether axis should be linear or log10 (if the axis is already a log quantity then leave as linear)
+y2L='linear' #Whether axis should be linear or log10 (if the axis is already a log quantity then leave as linear)
 y1col='b' #Colour of line (as well as the axis label)
 y2col='r' #Colour of line (as well as the axis label)
 minMod=0 #For history plots minimum model number to show
@@ -104,46 +104,46 @@ show_mix_line=False #Whether to show mix regions on the line or at the bottom as
 show_mix_2=False #Show regions of  mixing on the second yaxis
 ````
 
-Now some remarks about each plot:
+Now some remarks about each plot and any extra options available for that plot:
+Plots the abunances from a profile file:
 ````python
 plotAbun()
 ````
-Plots the abunances from a profile file:
 ````python
 num_labels=3 #Number of labels to show on the line
 abun=None #A lits of isotopes to show, if None shows all available in the profile file
 abun_random=False #Randomizes the colourmap, so isotopes that are near each other in the profile file, dont end up with similar colours
 ````
 
+Plots the B fields from a profile file:
 ````python
 plotDynamo()
 ````
-Plots the B fields from a profile file:
 
+Plots the am_log_D_* terms from a profile file:
 ````python
 plotAngMom()
 ````
-Plots the am_log_D_* terms from a profile file:
 
+Plots the energy generated per reaction (burn_ fields plus "pp","cno","tri_alfa","c12_c12","c12_o16","o16_o16","pnhe4","photo","other" terms) from a profile file:
 ````python
 plotBurn()
 ````
-Plots the energy generated per reaction (burn_ fields plus "pp","cno","tri_alfa","c12_c12","c12_o16","o16_o16","pnhe4","photo","other" terms) from a profile file:
 ````python
 num_labels=3 #Number of labels to show on the line
 ````
 
+General plotting routines for profile|history data
 ````python
 plotProfile()
 plotHistory()
 ````
-General plotting routines for profile|history data
 
+Plots a Kippenhan diagram for the star from the history data, requires the history data has mixing_regions and burn_regions. Mixing regions shown with
+same colours as MESA.
 ````python
 plotKip()
 ````
-Plots a Kippenhan diagram for the star from the history data, requires the history data has mixing_regions and burn_regions. Mixing regions shown with
-same colours as MESA.
 ````python
 reloadHistory=False #Whether to reload the history file
 xaxis='num' #Can only be num for model number at the moment.
@@ -155,20 +155,20 @@ cmax=None #max value of burn power to show. Note will be made symmetric with max
 burnCmap=[cm.Purples_r,cm.hot_r] #Creates a diverging colour map for the burn data, with the first cmap used for <0 and second for >0
 ````
 
+Plots log rho-logTeff
 ````python
 plotTRho()
 ````
-Plots log rho-logTeff
 
+Plots HR diagram
 ````python
 plotHR()
 ````
-Plots HR diagram
 
+Plots multiple profile|history plots with same xaxis, and removes the gap between the plots
 ````python
 stackedPlots()
 ````
-Plots multiple profile|history plots with same xaxis, and removes the gap between the plots
 ````python
 typ='profile' #History or profile data
 num=1 #Number of plots to show num>=2
@@ -184,22 +184,20 @@ y1label=[]
 y2label=[] #same as for plotProfile and plotHistory, except as a list, starting from the top plot downwards. If not left empty, must specify for ech plot (even if you just insert a None)
 ````
 
+Plots multiple profiles on one plot
 ````python
 plotMultiProfiles() 
 ````
-Plots multiple profiles on one plot
-
 ````python
 mods=None #Either set mods or index, mods must be list of model_numbers
 index=None # A index on the history data, ie ind=(m.hist_dat["logT"]>3.5)&(m.hist_dat["logT"]>4.0)
 ````
 
+Plots the plotTRho, plotHR, history plot and abundance plots on one plot. Demonstrates how to make  your own grid plots.
 ````python
 plotGrid2()
 ````
-Plots the plotTRho, plotHR, history plot and abundance plots on one plot. Demonstrates how to make  your own grid plots.
-
-
+Note stackPlots() can't currently be added to a grid plot
 	
 	
 
