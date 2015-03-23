@@ -564,9 +564,9 @@ class plot():
 			xrngL[1]=np.max(m.prof_dat[xaxis])
 		
 		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
-		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
+		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
 		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax.plot(m.prof_dat[xaxis][ind],m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
+		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
@@ -608,7 +608,7 @@ class plot():
 		for i in m.prof_dat.dtype.names:
 			if "am_log_D" in i:
 				#ind=mInd&(m.prof_dat[i]>-90.0)
-				ax.plot(m.prof_dat[xaxis][ind],m.prof_dat[i][ind],label=r"$D_{"+i.split('_')[3]+"}$")
+				ax.plot(m.prof_dat[xaxis],m.prof_dat[i],label=r"$D_{"+i.split('_')[3]+"}$")
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
