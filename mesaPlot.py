@@ -584,6 +584,53 @@ class plot():
 		#ax.set_title("Dynamo Model")
 		if show:
 			plt.show()
+	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=[0.0,10.0],y2rng=[0.0,10.0]
+						show_burn=False,show_mix=False,legend=True,annotate_line=True):
+		if ax ==None:
+			fig=plt.figure()
+			ax=fig.add_subplot(111)
+			ax2=ax.twinx()
+	
+		if model is not None:
+			m.loadProfile(num=int(model))
+			
+		xrngL=[0,0]
+		if xmin is not None:
+			xrngL[0]=xmin
+		else:
+			xrngL[0]=np.min(m.prof_dat[xaxis])
+
+		if xmax is not None:
+			xrngL[1]=xmax
+		else:
+			xrngL[1]=np.max(m.prof_dat[xaxis])
+		
+		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
+		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
+		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
+		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
+		
+		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
+		ax2.plot(m.prof_dat[xaxis],np.log10(m.prof_dat['omega']),label=r'$\log_{10} \omega$',linewidth=2)
+		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
+		ax2.plot(m.prof_dat[xaxis],np.log10(m.prof_dat['j_rot'])-20.0,label=r'$\log_{10} j [10^{20}]$',linewidth=2)
+
+		if show_burn:
+			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
+
+		if show_mix:
+			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
+		
+		if legend:
+			ax.legend(loc=0)
+
+		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self._setTicks(ax)
+		self._setTicks(ax2)
+		ax.set_xlim(xrngL)
+		ax.set_ylim(y1rng)
+		ax2.set_ylim(y2rng)
+		#ax.set_title("Dynamo Model")
 		if show:
 			plt.show()
 
