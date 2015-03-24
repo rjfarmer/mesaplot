@@ -569,10 +569,10 @@ class plot():
 		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
 		
 		try:
 			ax.legend(loc=0)
@@ -611,10 +611,10 @@ class plot():
 				ax.plot(m.prof_dat[xaxis],m.prof_dat[i],label=r"$D_{"+i.split('_')[3]+"}$")
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat[i],show_line=False,show_x=True)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat[i],show_line=False,show_x=True)
 
 		try:
 			ax.legend(loc=0)
