@@ -538,13 +538,13 @@ class plot():
 		ax.set_ylabel(r'$\log_{10}$ Abundance')
 		ax.set_ylim(yrng)
 		ax.set_xlim(xrngL)
-		ax.set_title("Abundance")
+		#ax.set_title("Abundance")
 		if show:
 			plt.show()
 			
 
 	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
-						show_burn=False,show_mix=False):
+						show_burn=False,show_mix=False,legend=True,annotate_line=True):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -574,20 +574,21 @@ class plot():
 		if show_mix:
 			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
 		
-		try:
+		if legend:
 			ax.legend(loc=0)
-		except:
-			pass
+
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self._setTicks(ax)
 		ax.set_xlim(xrngL)
 		ax.set_ylim(yrng)
-		ax.set_title("Dynamo Model")
+		#ax.set_title("Dynamo Model")
+		if show:
+			plt.show()
 		if show:
 			plt.show()
 
 	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
-						show_burn=False,show_mix=False):
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5):
 		if ax ==None:
 			fig=plt.figure()
 			ax=fig.add_subplot(111)
@@ -607,8 +608,9 @@ class plot():
 
 		for i in m.prof_dat.dtype.names:
 			if "am_log_D" in i:
-				#ind=mInd&(m.prof_dat[i]>-90.0)
-				ax.plot(m.prof_dat[xaxis],m.prof_dat[i],label=r"$D_{"+i.split('_')[3]+"}$")
+				line,=ax.plot(m.prof_dat[xaxis],m.prof_dat[i],label=r"$D_{"+i.split('_')[3]+"}$")
+				if annotate_line:
+					self._annotateLine(m,ax,m.prof_dat[xaxis],m.prof_dat[i],num_labels,xrngL[0],xrngL[1],r"$D_{"+i.split('_')[3]+"}$",line)
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat[i],show_line=False,show_x=True)
@@ -616,13 +618,12 @@ class plot():
 		if show_mix:
 			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat[i],show_line=False,show_x=True)
 
-		try:
+		if legend:
 			ax.legend(loc=0)
-		except:
-			pass
+
 
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
-		ax.set_title("Ang Mom Model")
+		#ax.set_title("Ang Mom Model")
 		self._setTicks(ax)
 		ax.set_xlim(xrngL)
 		ax.set_ylim(yrng)
