@@ -482,6 +482,20 @@ class plot():
 			yp1=f(xp1)
 			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=fontsize)
 	
+	def _setYLim(self,ax,yrngIn,yrngOut,rev=False,log=False):
+			yrng=[]
+			if yrngOut is not None:
+				yrng=yrngOut
+			else:
+				yrng=yrngIn
+				
+			if rev:
+				yrng=yrng[::-1]
+			if (log==True or log=='log') and log!='linear':
+				yrng=np.log10(yrng)
+			ax.set_ylim(yrng)
+			
+	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
 					show_burn=False,show_mix=False,fig=None):
@@ -537,7 +551,7 @@ class plot():
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 
 		ax.set_ylabel(r'$\log_{10}$ Abundance')
-		ax.set_ylim(yrng)
+		self._setYLim(ax,ax.get_ylim(),yrng)
 		ax.set_xlim(xrngL)
 		#ax.set_title("Abundance")
 		if show:
@@ -582,10 +596,11 @@ class plot():
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self._setTicks(ax)
 		ax.set_xlim(xrngL)
-		ax.set_ylim(yrng)
+		self._setYLim(ax,ax.get_ylim(),yrng)
 		#ax.set_title("Dynamo Model")
 		if show:
 			plt.show()
+
 	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=[0.0,10.0],y2rng=[0.0,10.0],
 						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None):
 		if fig==None:
@@ -632,8 +647,8 @@ class plot():
 		self._setTicks(ax)
 		self._setTicks(ax2)
 		ax.set_xlim(xrngL)
-		ax.set_ylim(y1rng)
-		ax2.set_ylim(y2rng)
+		self._setYLim(ax,ax.get_ylim(),y1rng)
+		self._setYLim(ax2,ax2.get_ylim(),y2rng)
 		#ax.set_title("Dynamo Model")
 		if show:
 			plt.show()
@@ -678,7 +693,7 @@ class plot():
 		#ax.set_title("Ang Mom Model")
 		self._setTicks(ax)
 		ax.set_xlim(xrngL)
-		ax.set_ylim(yrng)
+		self._setYLim(ax,ax.get_ylim(),yrng)
 		
 		if show:
 			plt.show()
@@ -730,10 +745,9 @@ class plot():
 			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
 		
 		self._setTicks(ax)
-		ax.set_ylim(yrng)
+		self._setYLim(ax,ax.get_ylim(),yrng)
 		ax.set_xlim(xrngL)
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
-		ax.set_title("Burning")
 		if show:
 			plt.show()
 
@@ -785,8 +799,7 @@ class plot():
 			self._plotMixRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
 		
 		self._setTicks(ax)
-		if yrng is not None:
-			ax.set_ylim(yrng)
+		self._setYLim(ax,ax.get_ylim(),yrng)
 		ax.set_xlim(xrngL)
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		ax.set_ylabel(self.labels('log_lum'))
@@ -846,8 +859,7 @@ class plot():
 			self._plotMixRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
 		
 		self._setTicks(ax)
-		if yrng is not None:
-			ax.set_ylim(yrng)
+		self._setYLim(ax,ax.get_ylim(),yrng)
 		ax.set_xlim(xrngL)
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		ax.set_ylabel(self.labels('log_abundance'))
@@ -859,7 +871,7 @@ class plot():
 	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',
 							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
 							show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
-							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None,fig=None):
+							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None,fig=None,y1rng=None,y2rng=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -906,9 +918,7 @@ class plot():
 
 
 		ax.set_ylabel(self.safeLabel(y1label,y1), color=y1labcol)
-		ylim=ax.get_ylim()
-		if y1rev:
-			ax.set_ylim(ylim[1],ylim[0])
+		self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1L)
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,y,show_line=show_burn_line,show_x=show_burn_x)
@@ -939,8 +949,7 @@ class plot():
 				ax2.set_ylabel(self.safeLabel(y2label,y2), color=y2labcol)
 				self._setTicks(ax2)
 				ylim=ax2.get_ylim()
-				if y2rev:
-					ax2.set_ylim(ylim[1],ylim[0])
+				self._setYLim(ax2,ax2.get_ylim(),y2rng,rev=y2rev,log=y2L)
 				if show_burn_2:
 					self._plotBurnRegions(m,ax2,x,y,show_line=show_burn_line,show_x=show_burn_x)
 				if show_mix_2:
@@ -974,7 +983,7 @@ class plot():
 			plt.show()
 
 	def plotHistory(self,m,xaxis='model_number',y1='star_mass',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',y2col='r',
-							minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,fig=None):
+							minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,fig=None,y1rng=None,y2rng=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1014,9 +1023,7 @@ class plot():
 		ax.plot(x,y,c=y1col,linewidth=2)
 		if points:
 			ax.scatter(x,y,c=y1col)
-		ylim=ax.get_ylim()
-		if y1rev:
-			ax.set_ylim(ylim[1],ylim[0])
+		self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1L)
 
 
 		if y2 is not None:
@@ -1034,9 +1041,7 @@ class plot():
 				if points:
 					ax2.scatter(x,y,c=y2col)
 				self._setTicks(ax2)
-				ylim=ax2.get_ylim()
-				if y2rev:
-					ax2.set_ylim(ylim[1],ylim[0])
+				self._setYLim(ax2,ax2.get_ylim(),y2rng,rev=y2rev,log=y2L)
 			except:
 				pass
 
@@ -1070,7 +1075,7 @@ class plot():
 			plt.show()
 
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
-					cmin=None,cmax=None,burnMap=[cm.Purples_r,cm.hot_r],fig=None):
+					cmin=None,cmax=None,burnMap=[cm.Purples_r,cm.hot_r],fig=None,yrng=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1213,18 +1218,18 @@ class plot():
 		#ax.locator_params(nbins=6)
 		self._setTicks(ax)
 		#ax.set_tick_params(axis='both',which='both')
-		
+		self._setYLim(ax,ax.get_ylim(),yrng)
 		if show:
 			plt.show()
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None):
 		self.plotProfile(m,xaxis='logT',y1='logRho',y1L='linear',model=model,show=show,
-								xmin=xmin,xmax=xmax,ax=ax,y1col='k',xlabel=self.labels('teff',log=True),y1label=self.labels('rho',log=True),fig=fig)
+								xmin=xmin,xmax=xmax,ax=ax,y1col='k',xlabel=self.labels('teff',log=True),y1label=self.labels('rho',log=True),fig=fig,y1rng=None,y2rng=None)
 
 	def plotHR(self,m,minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,fig=None):
 		self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1L='linear',minMod=minMod,
 								maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=True,ax=ax,y1col='k',
-								xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True),fig=fig)
+								xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True),fig=fig,y1rng=None,y2rng=None)
 	
 	def mergeCmaps(self,cmaps,rng=[[0.0,0.5],[0.5,1.0]]):
 		"""
