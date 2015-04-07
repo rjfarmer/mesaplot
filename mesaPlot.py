@@ -584,7 +584,7 @@ class plot():
 		#ax.set_title("Dynamo Model")
 		if show:
 			plt.show()
-	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=[0.0,10.0],y2rng=[0.0,10.0]
+	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=[0.0,10.0],y2rng=[0.0,10.0],
 						show_burn=False,show_mix=False,legend=True,annotate_line=True):
 		if ax ==None:
 			fig=plt.figure()
