@@ -484,9 +484,10 @@ class plot():
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
-					show_burn=False,show_mix=False):
-		if ax ==None:
+					show_burn=False,show_mix=False,fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 		#m.loadProfile(num=int(model))
 		
@@ -544,9 +545,10 @@ class plot():
 			
 
 	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
-						show_burn=False,show_mix=False,legend=True,annotate_line=True):
-		if ax ==None:
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 	
 		if model is not None:
@@ -585,11 +587,13 @@ class plot():
 		if show:
 			plt.show()
 	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=[0.0,10.0],y2rng=[0.0,10.0],
-						show_burn=False,show_mix=False,legend=True,annotate_line=True):
-		if ax ==None:
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
-			ax2=ax.twinx()
+			
+		ax2=ax.twinx()
 	
 		if model is not None:
 			m.loadProfile(num=int(model))
@@ -635,9 +639,10 @@ class plot():
 			plt.show()
 
 	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
-						show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5):
-		if ax ==None:
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
@@ -680,9 +685,10 @@ class plot():
 			
 	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
-					show_burn=False,show_mix=False):
-		if ax ==None:
+					show_burn=False,show_mix=False,fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
@@ -733,10 +739,10 @@ class plot():
 
 	def plotBurnSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 					cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
-					show_burn=False,show_mix=False):
-						
-		if ax ==None:
+					show_burn=False,show_mix=False,fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 			
 		if maxMod<0:
@@ -790,10 +796,10 @@ class plot():
 
 	def plotAbunSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 					cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,abun_random=False,points=False,
-					show_burn=False,show_mix=False,abun=None):
-						
-		if ax ==None:
+					show_burn=False,show_mix=False,abun=None,fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 			
 		if maxMod<0:
@@ -853,9 +859,10 @@ class plot():
 	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',
 							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
 							show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
-							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None):
-		if ax ==None:
+							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None,fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
@@ -967,9 +974,10 @@ class plot():
 			plt.show()
 
 	def plotHistory(self,m,xaxis='model_number',y1='star_mass',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',y2col='r',
-							minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None):
-		if ax ==None:
+							minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 		
 		if maxMod<0:
@@ -1061,9 +1069,11 @@ class plot():
 		if show:
 			plt.show()
 
-	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,cmin=None,cmax=None,burnMap=[cm.Purples_r,cm.hot_r]):
-		if ax ==None:
+	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
+					cmin=None,cmax=None,burnMap=[cm.Purples_r,cm.hot_r],fig=None):
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 
 		if reloadHistory:
@@ -1207,14 +1217,14 @@ class plot():
 		if show:
 			plt.show()
 		
-	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None):
+	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None):
 		self.plotProfile(m,xaxis='logT',y1='logRho',y1L='linear',model=model,show=show,
-								xmin=xmin,xmax=xmax,ax=ax,y1col='k',xlabel=self.labels('teff',log=True),y1label=self.labels('rho',log=True))
+								xmin=xmin,xmax=xmax,ax=ax,y1col='k',xlabel=self.labels('teff',log=True),y1label=self.labels('rho',log=True),fig=fig)
 
-	def plotHR(self,m,minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None):
+	def plotHR(self,m,minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,fig=None):
 		self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1L='linear',minMod=minMod,
 								maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=True,ax=ax,y1col='k',
-								xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True))
+								xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True),fig=fig)
 	
 	def mergeCmaps(self,cmaps,rng=[[0.0,0.5],[0.5,1.0]]):
 		"""
@@ -1286,11 +1296,11 @@ class plot():
 			plt.show()
 
 	def plotMultiProfiles(self,m,mods=None,index=None,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',cmap=plt.cm.gist_ncar,
-							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None):
+							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,fig=None):
 		"""Plots mulitple profiles either given as a list of mod numbers or an index over the history data"""
-
-		if ax ==None:
+		if fig==None:
 			fig=plt.figure()
+		if ax==None:
 			ax=fig.add_subplot(111)
 		
 		if mods is not None:
