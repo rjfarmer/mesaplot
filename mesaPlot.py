@@ -372,9 +372,13 @@ class plot():
 				outLabel=axis.replace('_',' ')
 		return outLabel
 		
-	def _listAbun(self,m):
+	def _listAbun(self,m,modFile=False):
 		abun_list=[]
-		for i in m.prof_dat.dtype.names:
+		if modFile:
+			names=m.mod_dat.dtype.names
+		else:
+			names=m.prof_dat.dtype.names
+		for i in names:
 			if len(i)<=5 and len(i)>=2:
 				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
 					if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
@@ -406,6 +410,13 @@ class plot():
 			if "burn_" in i or i in extraBurn:
 				burnList.append(i)
 		return burnList
+
+	def _listMix(self,m):
+		mixList=["log_D_conv","log_D_semi","log_D_ovr","log_D_th","log_D_minimum","log_D_anon"]
+		for i in m.prof_dat.dtype.names:
+			if i in mixList:
+				mixList.append(i)
+		return mixList
 
 
 	def _setMixRegionsCol(self):
@@ -484,30 +495,53 @@ class plot():
 		ax.set_ylim(ylim)
 	
 	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text,line,fontsize=mat.rcParams['font.size']-12):
+		ind=np.argsort(x)
+		xx=x[ind]
+		yy=y[ind]
 		for ii in range(1,num_labels+1):
-			ind=(x>=xmin)&(x<=xmax)
-			f = interpolate.interp1d(x[ind],y[ind])
+			ind=(xx>=xmin)&(xx<=xmax)
+			f = interpolate.interp1d(xx[ind],yy[ind])
 			xp1=((xmax-xmin)*(ii/(num_labels+1.0)))+xmin
 			yp1=f(xp1)
 			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=fontsize)
 	
 	def _setYLim(self,ax,yrngIn,yrngOut,rev=False,log=False):
-			yrng=[]
-			if yrngOut is not None:
-				yrng=yrngOut
-			else:
-				yrng=yrngIn
-				
-			if rev:
-				yrng=yrng[::-1]
-			if (log==True or log=='log') and log!='linear':
-				yrng=np.log10(yrng)
-			ax.set_ylim(yrng)
+		yrng=[]
+		if yrngOut is not None:
+			yrng=yrngOut
+		else:
+			yrng=yrngIn
+			
+		if rev:
+			yrng=yrng[::-1]
+		if (log==True or log=='log') and log!='linear':
+			yrng=np.log10(yrng)
+		ax.set_ylim(yrng)
+			
+	def _setXAxis(self,m,xx,xmin,xmax,fx):
+		x=xx
+		if fx is not None:
+			x=fx(x)
+		
+		xrngL=[0,0]
+		if xmin is not None:
+			xrngL[0]=xmin
+		else:
+			xrngL[0]=np.min(x)
+
+		if xmax is not None:
+			xrngL[1]=xmax
+		else:
+			xrngL[1]=np.max(x)
+			
+		ind=(x>=xrngL[0])&(x<=xrngL[1])
+			
+		return x,xrngL,ind
 			
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
-					show_burn=False,show_mix=False,fig=None):
+					show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -517,19 +551,13 @@ class plot():
 		if model is not None:
 			m.loadProfile(num=int(model))
 			
-		xrngL=[0,0]
-		if xmin is not None:
-			xrngL[0]=xmin
+		if modFile:
+			x,xrngL,mInd=self._setXAxis(m,np.cumsum(m.mod_dat["dq"])*m._fds2f(m.mod_head[1]),xmin,xmax,fx)
 		else:
-			xrngL[0]=np.min(m.prof_dat[xaxis])
-
-		if xmax is not None:
-			xrngL[1]=xmax
-		else:
-			xrngL[1]=np.max(m.prof_dat[xaxis])
+			x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 
 		if abun is None:
-			abun_list=self._listAbun(m)
+			abun_list=self._listAbun(m,modFile)
 		else:
 			abun_list=abun
 			
@@ -540,20 +568,26 @@ class plot():
 
 		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 		
+		
 		for i in abun_list:
-			y=np.log10(m.prof_dat[i])
+			if modFile:
+				y=m.mod_dat[i]
+			else:
+				y=m.prof_dat[i]
+			if fy is not None:
+				y=fy(y)
+			y=np.log10(y)
 			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
-			line, =ax.plot(m.prof_dat[xaxis],y,label=i,linewidth=2)
+			line, =ax.plot(x,y,label=i,linewidth=2)
 			if points:
-				ax.scatter(m.prof_dat[xaxis],y)
-				
-			self._annotateLine(m,ax,m.prof_dat[xaxis],y,num_labels,xrngL[0],xrngL[1],i,line)
+				ax.scatter(x,y)
+			self._annotateLine(m,ax,x,y,num_labels,xrngL[0],xrngL[1],i,line)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True,yrng=yrng)
+			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True,yrng=yrng)
+			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng)
 			
 		self._setTicks(ax)
 		#ax.legend(loc=0,fontsize=20)
@@ -568,7 +602,7 @@ class plot():
 			
 
 	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
-						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None):
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -577,27 +611,18 @@ class plot():
 		if model is not None:
 			m.loadProfile(num=int(model))
 			
-		xrngL=[0,0]
-		if xmin is not None:
-			xrngL[0]=xmin
-		else:
-			xrngL[0]=np.min(m.prof_dat[xaxis])
-
-		if xmax is not None:
-			xrngL[1]=xmax
-		else:
-			xrngL[1]=np.max(m.prof_dat[xaxis])
+		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 		
 		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
-		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
+		ax.plot(x,m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
 		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
+		ax.plot(mx,m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
 		
 		if legend:
 			ax.legend(loc=0)
@@ -611,7 +636,7 @@ class plot():
 			plt.show()
 
 	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=[0.0,10.0],y2rng=[0.0,10.0],
-						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None):
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -622,16 +647,7 @@ class plot():
 		if model is not None:
 			m.loadProfile(num=int(model))
 			
-		xrngL=[0,0]
-		if xmin is not None:
-			xrngL[0]=xmin
-		else:
-			xrngL[0]=np.min(m.prof_dat[xaxis])
-
-		if xmax is not None:
-			xrngL[1]=xmax
-		else:
-			xrngL[1]=np.max(m.prof_dat[xaxis])
+		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 		
 		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
 		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
@@ -663,7 +679,7 @@ class plot():
 			plt.show()
 
 	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
-						show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None):
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None,fx=None,fy=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -671,28 +687,20 @@ class plot():
 			
 		if model is not None:
 			m.loadProfile(num=int(model))
-		xrngL=[0,0]
-		if xmin is not None:
-			xrngL[0]=xmin
-		else:
-			xrngL[0]=np.min(m.prof_dat[xaxis])
-
-		if xmax is not None:
-			xrngL[1]=xmax
-		else:
-			xrngL[1]=np.max(m.prof_dat[xaxis])
+			
+		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 
 		for i in m.prof_dat.dtype.names:
 			if "am_log_D" in i:
-				line,=ax.plot(m.prof_dat[xaxis],m.prof_dat[i],label=r"$D_{"+i.split('_')[3]+"}$")
+				line,=ax.plot(x,m.prof_dat[i],label=r"$D_{"+i.split('_')[3]+"}$")
 				if annotate_line:
-					self._annotateLine(m,ax,m.prof_dat[xaxis],m.prof_dat[i],num_labels,xrngL[0],xrngL[1],r"$D_{"+i.split('_')[3]+"}$",line)
+					self._annotateLine(m,ax,x,m.prof_dat[i],num_labels,xrngL[0],xrngL[1],r"$D_{"+i.split('_')[3]+"}$",line)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat[i],show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x,m.prof_dat[i],show_line=False,show_x=True)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat[i],show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x,m.prof_dat[i],show_line=False,show_x=True)
 
 		if legend:
 			ax.legend(loc=0)
@@ -709,7 +717,7 @@ class plot():
 			
 	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
-					show_burn=False,show_mix=False,fig=None):
+					show_burn=False,show_mix=False,fig=None,fx=None,fy=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -717,17 +725,8 @@ class plot():
 			
 		if model is not None:
 			m.loadProfile(num=int(model))
-		xrngL=[0,0]
-		if xmin is not None:
-			xrngL[0]=xmin
-		else:
-			xrngL[0]=np.min(m.prof_dat[xaxis])
-
-		if xmax is not None:
-			xrngL[1]=xmax
-		else:
-			xrngL[1]=np.max(m.prof_dat[xaxis])
-
+			
+		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 
 
 		burn_list=self._listBurn(m)
@@ -739,19 +738,63 @@ class plot():
 		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 			
 		for i in burn_list:
-			y=np.log10(m.prof_dat[i])
+			y=m.prof_dat[i]
+			if fy is not None:
+				y=fy(y)
+			y=np.log10(y)
 			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
-			line, =ax.plot(m.prof_dat[xaxis],y,label=i.replace('_',' '))
+			line, =ax.plot(x,y,label=i.replace('_',' '))
 			if points:
-				ax.scatter(m.prof_dat[xaxis],y)
-			self._annotateLine(m,ax,m.prof_dat[xaxis],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
+				ax.scatter(x,y)
+			self._annotateLine(m,ax,x,y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
 
 		
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.prof_dat[xaxis],y,show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True)
+		
+		self._setTicks(ax)
+		self._setYLim(ax,ax.get_ylim(),yrng)
+		ax.set_xlim(xrngL)
+		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		if show:
+			plt.show()
+			
+	def plotMix(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
+					cmap=plt.cm.gist_ncar,yrng=[0.0,5.0],num_labels=7,mix_random=False,points=False,
+					show_burn=False,fig=None,fx=None,fy=None):
+		if fig==None:
+			fig=plt.figure()
+		if ax==None:
+			ax=fig.add_subplot(111)
+			
+		if model is not None:
+			m.loadProfile(num=int(model))
+			
+		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
+
+		mix_list=self._listMix(m)
+		num_plots=len(mix_list)
+		
+		if mix_random:
+			random.shuffle(mix_list)
+				
+		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+			
+		for i in mix_list:
+			y=m.prof_dat[i]
+			if fy is not None:
+				y=fy(y)
+			line, =ax.plot(x,y,label=i.replace('_',' '))
+			if points:
+				ax.scatter(x,y)
+			self._annotateLine(m,ax,x,y,num_labels,xrngL[0],xrngL[1],i.split('_')[2],line)
+
+		
+		if show_burn:
+			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True)
 		
 		self._setTicks(ax)
 		self._setYLim(ax,ax.get_ylim(),yrng)
@@ -762,7 +805,7 @@ class plot():
 
 	def plotBurnSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 					cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
-					show_burn=False,show_mix=False,fig=None):
+					show_burn=False,show_mix=False,fig=None,fx=None,fy=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -772,16 +815,7 @@ class plot():
 			maxMod=m.hist_dat["model_number"][-1]
 		modelIndex=(m.hist_dat["model_number"]>=minMod)&(m.hist_dat["model_number"]<=maxMod)
 		
-		mInd=np.zeros(np.size(m.hist_dat[xaxis][modelIndex]),dtype='bool')
-		mInd[:]=True
-		xrngL=[m.hist_dat[xaxis][modelIndex].min(),m.hist_dat[xaxis][modelIndex].max()]
-		if xmin is not None:
-			mInd=(m.hist_dat[xaxis][modelIndex]>=xmin)
-			xrngL[0]=xmin
-
-		if xmax is not None:
-			mInd=mInd&(m.hist_dat[xaxis][modelIndex]<=xmax)
-			xrngL[1]=xmax
+		x,xrngL,mInd=self._setXAxis(m,m.hist_dat[xaxis][modelIndex],xmin,xmax,fx)
 
 			
 		burn_list=self._listBurnHistory(m)
@@ -796,16 +830,16 @@ class plot():
 			y=m.hist_dat[i][mInd]
 			
 			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
-			line, =ax.plot(m.hist_dat[xaxis][mInd],y)
+			line, =ax.plot(x[mInd],y)
 			if points:
-				ax.scatter(m.hist_dat[xaxis][mInd],y)
-			self._annotateLine(m,ax,m.hist_dat[xaxis][mInd],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
+				ax.scatter(x[mInd],y)
+			self._annotateLine(m,ax,x[mInd],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
 		
 		self._setTicks(ax)
 		self._setYLim(ax,ax.get_ylim(),yrng)
@@ -818,7 +852,7 @@ class plot():
 
 	def plotAbunSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 					cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,abun_random=False,points=False,
-					show_burn=False,show_mix=False,abun=None,fig=None):
+					show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -828,16 +862,7 @@ class plot():
 			maxMod=m.hist_dat["model_number"][-1]
 		modelIndex=(m.hist_dat["model_number"]>=minMod)&(m.hist_dat["model_number"]<=maxMod)
 		
-		mInd=np.zeros(np.size(m.hist_dat[xaxis][modelIndex]),dtype='bool')
-		mInd[:]=True
-		xrngL=[m.hist_dat[xaxis][modelIndex].min(),m.hist_dat[xaxis][modelIndex].max()]
-		if xmin is not None:
-			mInd=(m.hist_dat[xaxis][modelIndex]>=xmin)
-			xrngL[0]=xmin
-
-		if xmax is not None:
-			mInd=mInd&(m.hist_dat[xaxis][modelIndex]<=xmax)
-			xrngL[1]=xmax
+		x,xrngL,mInd=self._setXAxis(m,m.hist_dat[xaxis][modelIndex],xmin,xmax,fx)
 
 			
 		if abun is None:
@@ -856,16 +881,16 @@ class plot():
 			y=m.hist_dat["log_total_mass_"+i][mInd]
 			
 			y[np.logical_not(np.isfinite(y))]=yrng[0]-(yrng[1]-yrng[0])
-			line, =ax.plot(m.hist_dat[xaxis][mInd],y)
+			line, =ax.plot(x[mInd],y)
 			if points:
-				ax.scatter(m.hist_dat[xaxis][mInd],y)
-			self._annotateLine(m,ax,m.hist_dat[xaxis][mInd],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
+				ax.scatter(x[mInd],y)
+			self._annotateLine(m,ax,x[mInd],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.hist_dat[xaxis][mInd],y,show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
 		
 		self._setTicks(ax)
 		self._setYLim(ax,ax.get_ylim(),yrng)
@@ -880,7 +905,8 @@ class plot():
 	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',
 							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
 							show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
-							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None,fig=None,y1rng=None,y2rng=None):
+							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None,fig=None,y1rng=None,y2rng=None,
+							fx=None,fy1=None,fy2=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -888,16 +914,9 @@ class plot():
 			
 		if model is not None:
 			m.loadProfile(num=int(model))
-		mInd=np.zeros(np.size(m.prof_dat[xaxis]),dtype='bool')
-		mInd[:]=True
-		xrngL=[m.prof_dat[xaxis].min(),m.prof_dat[xaxis].max()]
-		if xmin is not None:
-			mInd=(m.prof_dat[xaxis]>=xmin)
-			xrngL[0]=xmin
 
-		if xmax is not None:
-			mInd=mInd&(m.prof_dat[xaxis]<=xmax)
-			xrngL[1]=xmax
+		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
+		
 
 		if xL=='log':
 			xrngL=np.log10(xrngL)
@@ -913,9 +932,9 @@ class plot():
 		else:
 			y=m.prof_dat[y1][mInd]
 		if xL=='log':
-			x=np.log10(m.prof_dat[xaxis][mInd])
+			x=np.log10(x[mInd])
 		else:
-			x=m.prof_dat[xaxis][mInd]
+			x=x[mInd]
 		ax.plot(x,y,c=y1col,linewidth=2)
 		if points:
 			ax.scatter(x,y,c=y1col)
@@ -992,7 +1011,8 @@ class plot():
 			plt.show()
 
 	def plotHistory(self,m,xaxis='model_number',y1='star_mass',y2=None,show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',y2L='linear',y1col='b',y2col='r',
-							minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,fig=None,y1rng=None,y2rng=None):
+							minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,fig=None,y1rng=None,y2rng=None,
+							fx=None,fy1=None,fy2=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1002,16 +1022,7 @@ class plot():
 			maxMod=m.hist_dat["model_number"][-1]
 		modelIndex=(m.hist_dat["model_number"]>=minMod)&(m.hist_dat["model_number"]<=maxMod)
 		
-		mInd=np.zeros(np.size(m.hist_dat[xaxis][modelIndex]),dtype='bool')
-		mInd[:]=True
-		xrngL=[m.hist_dat[xaxis][modelIndex].min(),m.hist_dat[xaxis][modelIndex].max()]
-		if xmin is not None:
-			mInd=(m.hist_dat[xaxis][modelIndex]>=xmin)
-			xrngL[0]=xmin
-
-		if xmax is not None:
-			mInd=mInd&(m.hist_dat[xaxis][modelIndex]<=xmax)
-			xrngL[1]=xmax
+		x,xrngL,mInd=self._setXAxis(m,m.hist_dat[xaxis][modelIndex],xmin,xmax,fx)
 
 		if xL=='log':
 			xrngL=np.log10(xrngL)
@@ -1021,14 +1032,18 @@ class plot():
 		else:
 			ax.set_xlim(xrngL)
 			
+		y=m.hist_dat[y1][modelIndex][mInd]
+		if fy1 is not None:
+			y=fy(y)
+			
 		if y1L=='log':
-			y=np.log10(m.hist_dat[y1][modelIndex][mInd])
+			y=np.log10(y)
 		else:
-			y=m.hist_dat[y1][modelIndex][mInd]
+			y=y[modelIndex][mInd]
 		if xL=='log':
-			x=np.log10(m.hist_dat[xaxis][modelIndex][mInd])
+			x=np.log10(x[mInd])
 		else:
-			x=m.hist_dat[xaxis][modelIndex][mInd]
+			x=x[mInd]
 		ax.plot(x,y,c=y1col,linewidth=2)
 		if points:
 			ax.scatter(x,y,c=y1col)
@@ -1038,14 +1053,12 @@ class plot():
 		if y2 is not None:
 			try:
 				ax2 = ax.twinx()
+				if fy1 is not None:
+					y=fy(m.hist_dat[y2][modelIndex][mInd])
 				if y2L=='log':
-					y=np.log10(m.hist_dat[y2][modelIndex][mInd])
+					y=np.log10(y)
 				else:
-					y=m.hist_dat[y2][modelIndex][mInd]
-				if xL=='log':
-					x=np.log10(m.hist_dat[xaxis][modelIndex][mInd])
-				else:
-					x=m.hist_dat[xaxis][modelIndex][mInd]
+					y=y
 				ax2.plot(x,y,c=y2col,linewidth=2)
 				if points:
 					ax2.scatter(x,y,c=y2col)
