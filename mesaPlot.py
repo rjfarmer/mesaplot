@@ -155,10 +155,7 @@ class MESA():
 		"""
 		Fails to read a MESA .mod file.
 		"""
-		try:
-			from StringIO import StringIO
-		except ImportError:
-			from io import StringIO
+		
 		count=0
 		with open(filename,'r') as f:
 			for l in f:
@@ -184,14 +181,19 @@ class MESA():
 			count=count+1
 			self.mod_dat_names.append('zone')
 			self.mod_dat_names.extend(l.split())
-			self.mod_dat=np.genfromtxt(filename,skip_header=count,names=self.mod_dat_names,skip_footer=8,dtype=None)
+			#Make a dictionary of convertes 
+			
+			d = {k:self._fds2f for k in range(len(self.mod_dat_names))}	
+			
+			self.mod_dat=np.genfromtxt(filename,skip_header=count,
+			names=self.mod_dat_names,skip_footer=8,dtype=None,converters=d)
 			#Genfromtxt fails in converting 1d1 to 1.0
-			for i in range(np.size(self.mod_dat)):
-				for j in range(1,len(self.mod_dat_names)):
-					self.mod_dat[i][j]=str(self.mod_dat[i][j]).replace('D','E')
+			#for i in range(np.size(self.mod_dat)):
+				#for j in range(1,len(self.mod_dat_names)):
+					#self.mod_dat[i][j]=str(self.mod_dat[i][j]).replace('D','E')
 
-			newDtype=np.dtype([(name,'float') for name in self.mod_dat_names])
-			self.mod_dat=self.mod_dat.astype(newDtype)
+			#newDtype=np.dtype([(name,'float') for name in self.mod_dat_names])
+			#self.mod_dat=self.mod_dat.astype(newDtype)
 
 		
 	def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1):
@@ -288,6 +290,13 @@ class MESA():
 
 	def _getPrevModNumHist(self):
 		pass
+	
+	def _fds2f(self,x):
+		if isinstance(x, str):
+			f=np.float(x.replace('D','E'))
+		else:
+			f=np.float(x.decode().replace('D','E'))
+		return f
 
 class plot():
 	def labels(self,label,log=False,center=False):
