@@ -582,18 +582,18 @@ class plot():
 		ind=(x>=xrngL[0])&(x<=xrngL[1])
 			
 		return x,xrngL,ind
+	
+	def _getAccretionLoc(self,m):
+		return m.prof_dat["zone"]==m.hist_dat["k_const_mass"],m.prof_dat["zone"]==m.hist_dat["k_below_const_q"],m.prof_dat["zone"]==m.hist_dat["k_below_just_added"]
 		
-	def _getAccretionRegMass(self,m):
-		pass
-	
-	def _getAccretionRegcolDepth(self,m):
-		pass
-	
-	def _getAccretionRegRho(self,m):
-		xLang=m.prof_dat["log_Rho"][m.prof_dat["zone"]==m.hist_dat["k_const_mass"]]
-		xConstQ=m.prof_dat["log_Rho"][m.prof_dat["zone"]==m.hist_dat["k_below_const_q"]]
-		xJustAdd=m.prof_dat["log_Rho"][m.prof_dat["zone"]==m.hist_dat["k_below_just_added"]]
-		return xLang,xConstQ,xJustAdd
+	def _showAccretionLocs(self,m,ax,x):
+		
+		xL,xE,xJA=self._getAccretionLoc(self,m)
+		
+		ax.plot([x[xL],x[xL]],ax.get_ylim(),c=self.color['clr_RoyalPurple'])
+		ax.plot([x[xE],x[xE]],ax.get_ylim(),c=self.color['clr_RoyalBlue'])
+		ax.plot([x[xJA],x[xJA]],ax.get_ylim(),c=self.color['clr_Tan'])
+		
 		
 	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
 					name=None,model=None,age=None,age_units=None,
