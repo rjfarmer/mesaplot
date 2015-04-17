@@ -29,6 +29,7 @@ import matplotlib.cm as cm
 import matplotlib
 from matplotlib.widgets import Button
 import random
+import os as os
 
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
@@ -295,7 +296,17 @@ class MESA():
 		else:
 			f=np.float(x.decode().replace('D','E'))
 		return f
+		
+	def _getMESAPath(self):
+		self.mesa_path=os.getenv("$MESA_PATH")
+		if self.mesa_path==None:
+			raise(ValueError,"Must set MESA_PATH in terminal")
+			
+	def _loadBurnData(self):
+		self._getMESAPath()
+		
 
+			
 class plot():
 	def labels(self,label,log=False,center=False):
 		l=''
