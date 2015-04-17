@@ -308,6 +308,38 @@ class MESA():
 
 			
 class plot():
+	def __init__(self):
+		self.colors={'clr_Black':[ 0.0, 0.0, 0.0],
+						'clr_Blue':[  0.0, 0.0, 1.0],
+						'clr_BrightBlue':[  0.0, 0.4, 1.0],
+						'clr_LightSkyBlue':[  0.53, 0.808, 0.98],
+						'clr_LightSkyGreen':[  0.125, 0.698, 0.668],
+						'clr_MediumSpringGreen':[  0.0, 0.98, 0.604],
+						'clr_Goldenrod':[  0.855, 0.648, 0.125],
+						'clr_Lilac':[  0.8, 0.6, 1.0],
+						'clr_Coral':[  1.0, 0.498, 0.312],
+						'clr_FireBrick':[  0.698, 0.132, 0.132],
+						'clr_RoyalPurple':[  0.4, 0.0, 0.6],
+						'clr_Gold':[  1.0, 0.844, 0.0],
+						'clr_Crimson':[  0.8, 0.0, 0.2 ],
+						'clr_SlateGray':[  0.44, 0.5, 0.565],
+						'clr_SeaGreen':[  0.18, 0.545, 0.34],
+						'clr_Teal':[  0.0, 0.5, 0.5],
+						'clr_LightSteelBlue':[  0.69, 0.77, 0.87],
+						'clr_MediumSlateBlue':[  0.484, 0.408, 0.932],
+						'clr_MediumBlue':[  0.0, 0.0, 0.804],
+						'clr_RoyalBlue':[  0.255, 0.41, 0.884],
+						'clr_LightGray':[  0.828, 0.828, 0.828],
+						'clr_Silver':[  0.752, 0.752, 0.752],
+						'clr_DarkGray':[  0.664, 0.664, 0.664],
+						'clr_Gray':[  0.5, 0.5, 0.5],
+						'clr_IndianRed':[  0.804, 0.36, 0.36],
+						'clr_Tan':[  0.824, 0.705, 0.55],
+						'clr_LightOliveGreen':[  0.6, 0.8, 0.6],
+						'clr_CadetBlue':[  0.372, 0.62, 0.628],
+						'clr_Beige':[  0.96, 0.96, 0.864]}
+         
+	
 	def labels(self,label,log=False,center=False):
 		l=''
 		if log or 'log' in label:
@@ -428,14 +460,19 @@ class plot():
 
 
 	def _setMixRegionsCol(self):
-		cmap = mpl.colors.ListedColormap([[0.18, 0.545, 0.34], [0.53, 0.808, 0.98],
-			[0.96, 0.96, 0.864], [0.44, 0.5, 0.565],[0.8, 0.6, 1.0],
-			[0.0, 0.4, 1.0],[1.0, 0.498, 0.312],[0.824, 0.705, 0.55]])
-
+		#cmap = mpl.colors.ListedColormap([[0.18, 0.545, 0.34], [0.53, 0.808, 0.98],
+			#[0.96, 0.96, 0.864], [0.44, 0.5, 0.565],[0.8, 0.6, 1.0],
+			#[0.0, 0.4, 1.0],[1.0, 0.498, 0.312],[0.824, 0.705, 0.55]])
+		cmap = mpl.colors.ListedColormap([self.colors['clr_SeaGreen'],
+		self.colors['clr_LightSkyBlue'],self.colors['clr_LightSteelBlue'],self.colors['clr_SlateGray'],
+		self.colors['clr_Lilac'],self.colors['clr_Beige'],self.colors['clr_BrightBlue'],
+		self.colors['clr_Coral'],self.colors['clr_Tan'],
+		])
+	
 		cmap.set_over((1., 1., 1.))
 		cmap.set_under((0., 0., 0.))
 		#bounds = [-0.01,0.99,1.99,2.99,3.99,4.99,5.99,6.99,7.99,8.99]
-		bounds=[-1,0,1,2,3,4,5,6,7,8,9]
+		bounds=[0,1,2,3,4,5,6,7,8,9]
 		norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 		return cmap,norm
 		
