@@ -155,6 +155,7 @@ class MESA():
 		"""
 		Fails to read a MESA .mod file.
 		"""
+		from io import BytesIO
 		
 		count=0
 		with open(filename,'r') as f:
@@ -181,19 +182,16 @@ class MESA():
 			count=count+1
 			self.mod_dat_names.append('zone')
 			self.mod_dat_names.extend(l.split())
-			#Make a dictionary of convertes 
+			#Make a dictionary of converters 
 			
 			d = {k:self._fds2f for k in range(len(self.mod_dat_names))}	
 			
 			self.mod_dat=np.genfromtxt(filename,skip_header=count,
-			names=self.mod_dat_names,skip_footer=8,dtype=None,converters=d)
-			#Genfromtxt fails in converting 1d1 to 1.0
-			#for i in range(np.size(self.mod_dat)):
-				#for j in range(1,len(self.mod_dat_names)):
-					#self.mod_dat[i][j]=str(self.mod_dat[i][j]).replace('D','E')
-
-			#newDtype=np.dtype([(name,'float') for name in self.mod_dat_names])
-			#self.mod_dat=self.mod_dat.astype(newDtype)
+							 names=self.mod_dat_names,skip_footer=8,dtype=None,converters=d)
+							 
+			#Convert the header data
+			yy=' '.join(str(e) for e in m.mod_head).replace("'",'').replace('D','E').encode()
+			m.mod_dat=np.genfromtxt(BytesIO(yy),names=m.mod_dat_names,dtype=None)
 
 		
 	def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1):
