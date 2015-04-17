@@ -312,7 +312,6 @@ class plot():
 		l=''
 		if log or 'log' in label:
 			l=r'$\log_{10}\;$'
-	
 		if label=='mass':
 			l=l+r"$\rm{Mass}\; [M_{\odot}]$"
 		if label=='model':
@@ -558,11 +557,26 @@ class plot():
 		xConstQ=m.prof_dat["log_Rho"][m.prof_dat["zone"]==m.hist_dat["k_below_const_q"]]
 		xJustAdd=m.prof_dat["log_Rho"][m.prof_dat["zone"]==m.hist_dat["k_below_just_added"]]
 		return xLang,xConstQ,xJustAdd
-			
+		
+	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
+					name=None,model=None,age=None,age_units=None,
+					fontCent=mat.rcParams['font.size']-6,fontOther=mat.rcParams['font.size']-12):
+		if show_title_name:
+			ax.set_title(name,loc="center",fontsize=fontCent)
+		if show_title_model:
+			ax.set_title("Model "+str(np.int(model)),loc="right",fontsize=fontOther)
+		if show_title_age:
+			s="age "+"{:8.4e}".format(np.float(age))
+			if age_units is None:
+				s=s+" yrs"
+			else:
+				s=s+" "+age_units
+			ax.set_title(s,loc="left",fontsize=fontOther)
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 						cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
-					show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False):
+					show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
+					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -570,7 +584,11 @@ class plot():
 		#m.loadProfile(num=int(model))
 		
 		if model is not None:
-			m.loadProfile(num=int(model))
+			try:
+				if m.prof_head["model_number"]!=model:
+					m.loadProfile(num=int(model))
+			except:
+				m.loadProfile(num=int(model))
 			
 		if modFile:
 			x,xrngL,mInd=self._setXAxis(m,np.cumsum(m.mod_dat["dq"])*m._fds2f(m.mod_head[1]),xmin,xmax,fx)
@@ -617,20 +635,28 @@ class plot():
 		ax.set_ylabel(r'$\log_{10}$ Abundance')
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		ax.set_xlim(xrngL)
-		#ax.set_title("Abundance")
+		
+		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Abundances',m.prof_head["model_number"],m.prof_head["star_age"])
+		
+		
 		if show:
 			plt.show()
 			
 
 	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
-						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None):
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
+					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
 			ax=fig.add_subplot(111)
 	
 		if model is not None:
-			m.loadProfile(num=int(model))
+			try:
+				if m.prof_head["model_number"]!=model:
+					m.loadProfile(num=int(model))
+			except:
+				m.loadProfile(num=int(model))
 			
 		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 		
@@ -653,11 +679,15 @@ class plot():
 		ax.set_xlim(xrngL)
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		#ax.set_title("Dynamo Model")
+		
+		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Dynamo',m.prof_head["model_number"],m.prof_head["star_age"])
+		
 		if show:
 			plt.show()
 
 	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=[0.0,10.0],y2rng=[0.0,10.0],
-						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None):
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
+					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -666,7 +696,11 @@ class plot():
 		ax2=ax.twinx()
 	
 		if model is not None:
-			m.loadProfile(num=int(model))
+			try:
+				if m.prof_head["model_number"]!=model:
+					m.loadProfile(num=int(model))
+			except:
+				m.loadProfile(num=int(model))
 			
 		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 		
@@ -695,19 +729,26 @@ class plot():
 		ax.set_xlim(xrngL)
 		self._setYLim(ax,ax.get_ylim(),y1rng)
 		self._setYLim(ax2,ax2.get_ylim(),y2rng)
-		#ax.set_title("Dynamo Model")
+		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Dynamo',m.prof_head["model_number"],m.prof_head["star_age"])
+		
+		
 		if show:
 			plt.show()
 
 	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
-						show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None,fx=None,fy=None):
+						show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None,fx=None,fy=None,
+					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
-			m.loadProfile(num=int(model))
+			try:
+				if m.prof_head["model_number"]!=model:
+					m.loadProfile(num=int(model))
+			except:
+				m.loadProfile(num=int(model))
 			
 		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 
@@ -732,20 +773,27 @@ class plot():
 		self._setTicks(ax)
 		ax.set_xlim(xrngL)
 		self._setYLim(ax,ax.get_ylim(),yrng)
+		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Ang mom',m.prof_head["model_number"],m.prof_head["star_age"])
+		
 		
 		if show:
 			plt.show()
 			
 	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 					cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
-					show_burn=False,show_mix=False,fig=None,fx=None,fy=None):
+					show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
+					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
-			m.loadProfile(num=int(model))
+			try:
+				if m.prof_head["model_number"]!=model:
+					m.loadProfile(num=int(model))
+			except:
+				m.loadProfile(num=int(model))
 			
 		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 
@@ -780,19 +828,27 @@ class plot():
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		ax.set_xlim(xrngL)
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Burn',m.prof_head["model_number"],m.prof_head["star_age"])
+		
+		
 		if show:
 			plt.show()
 			
 	def plotMix(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 					cmap=plt.cm.gist_ncar,yrng=[0.0,5.0],num_labels=7,mix_random=False,points=False,
-					show_burn=False,fig=None,fx=None,fy=None):
+					show_burn=False,fig=None,fx=None,fy=None,
+					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
-			m.loadProfile(num=int(model))
+			try:
+				if m.prof_head["model_number"]!=model:
+					m.loadProfile(num=int(model))
+			except:
+				m.loadProfile(num=int(model))
 			
 		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 
@@ -821,6 +877,9 @@ class plot():
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		ax.set_xlim(xrngL)
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Mixing',m.prof_head["model_number"],m.prof_head["star_age"])
+		
+		
 		if show:
 			plt.show()
 
@@ -927,14 +986,19 @@ class plot():
 							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
 							show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
 							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None,fig=None,y1rng=None,y2rng=None,
-							fx=None,fy1=None,fy2=None):
+							fx=None,fy1=None,fy2=None,
+							show_title_name=False,title_name=None,show_title_model=False,show_title_age=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
 		if model is not None:
-			m.loadProfile(num=int(model))
+			try:
+				if m.prof_head["model_number"]!=model:
+					m.loadProfile(num=int(model))
+			except:
+				m.loadProfile(num=int(model))
 
 		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 		
@@ -1028,6 +1092,10 @@ class plot():
 				ax2.set_ylabel(y2label)
 			else:
 				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
+				
+		self.setTitle(ax,show_title_name,show_title_model,show_title_age,title_name,m.prof_head["model_number"],m.prof_head["star_age"])
+		
+		
 		if show:
 			plt.show()
 
