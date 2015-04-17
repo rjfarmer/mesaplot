@@ -546,6 +546,18 @@ class plot():
 		ind=(x>=xrngL[0])&(x<=xrngL[1])
 			
 		return x,xrngL,ind
+		
+	def _getAccretionRegMass(self,m):
+		pass
+	
+	def _getAccretionRegcolDepth(self,m):
+		pass
+	
+	def _getAccretionRegRho(self,m):
+		xLang=m.prof_dat["log_Rho"][m.prof_dat["zone"]==m.hist_dat["k_const_mass"]]
+		xConstQ=m.prof_dat["log_Rho"][m.prof_dat["zone"]==m.hist_dat["k_below_const_q"]]
+		xJustAdd=m.prof_dat["log_Rho"][m.prof_dat["zone"]==m.hist_dat["k_below_just_added"]]
+		return xLang,xConstQ,xJustAdd
 			
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
