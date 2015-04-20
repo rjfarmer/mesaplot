@@ -298,13 +298,25 @@ class MESA():
 		return f
 		
 	def _getMESAPath(self):
-		self.mesa_path=os.getenv("$MESA_PATH")
-		if self.mesa_path==None:
-			raise(ValueError,"Must set MESA_PATH in terminal")
+		self.mesa_dir=os.getenv("MESA_DIR")
+		if self.mesa_dir==None:
+			raise ValueError("Must set MESA_DIR in terminal")
 			
 	def _loadBurnData(self):
 		self._getMESAPath()
+		dataDir=self.mesa_dir+"/data/star_data/plot_info/"
 		
+		self._hburn=np.genfromtxt(dataDir+"hydrogen_burn.data",names=["logRho","logT"])
+		self._heburn=np.genfromtxt(dataDir+"helium_burn.data",names=["logRho","logT"])
+		self._cburn=np.genfromtxt(dataDir+"carbon_burn.data",names=["logRho","logT"])
+		self._oburn=np.genfromtxt(dataDir+"oxygen_burn.data",names=["logRho","logT"])
+	
+		self._psi4=np.genfromtxt(dataDir+"psi4.data",names=["logRho","logT"])
+		self._elect=np.genfromtxt(dataDir+"elect.data",names=["logRho","logT"])
+		self._gamma4=np.genfromtxt(dataDir+"gamma_4_thirds.data",names=["logRho","logT"])
+		self._kap=np.genfromtxt(dataDir+'kap_rad_cond_eq.data',names=["logRho","logT"])
+		self._opal=np.genfromtxt(dataDir+'opal_clip.data',names=["logRho","logT"])
+		self._scvh=np.genfromtxt(dataDir+'scvh_clip.data',names=["logRho","logT"])
 
 			
 class plot():
@@ -355,9 +367,9 @@ class plot():
 				l=l+r"$T_{eff}\; [K]$"
 		if label=='rho':
 			if center:
-				l=l+r"$\rho_{c}\; [K]$"
+				l=l+r"$\rho_{c}\; [\rm{g\;cm^{-3}}]$"
 			else:
-				l=l+r"$\rho\; [K]$"
+				l=l+r"$\rho\; [\rm{g\;cm^{-3}}]$"
 		if label=='log_column_depth':
 			l=l+r'$y\; [\rm{g}\; \rm{cm}^{-2}]$'
 		elif 'lum' in label:
@@ -590,10 +602,54 @@ class plot():
 		
 		xL,xE,xJA=self._getAccretionLoc(self,m)
 		
-		ax.plot([x[xL],x[xL]],ax.get_ylim(),c=self.color['clr_RoyalPurple'])
-		ax.plot([x[xE],x[xE]],ax.get_ylim(),c=self.color['clr_RoyalBlue'])
-		ax.plot([x[xJA],x[xJA]],ax.get_ylim(),c=self.color['clr_Tan'])
+		ax.plot([x[xL],x[xL]],ax.get_ylim(),c=self.colors['clr_RoyalPurple'])
+		ax.plot([x[xE],x[xE]],ax.get_ylim(),c=self.colors['clr_RoyalBlue'])
+		ax.plot([x[xJA],x[xJA]],ax.get_ylim(),c=self.colors['clr_Tan'])
 		
+		
+	def _showBurnData(self,m,ax):
+		 m._loadBurnData()
+		 ax.plot(m._hburn["logRho"],m._hburn["logT"],c=self.colors['clr_Gray'])
+		 ax.annotate('H burn', xy=(m._hburn["logRho"][-1],m._hburn["logT"][-1]), 
+							xytext=(m._hburn["logRho"][-1],m._hburn["logT"][-1]),color=self.colors['clr_Gray'],
+							fontsize=mat.rcParams['font.size']-12)
+							
+		 ax.plot(m._heburn["logRho"],m._heburn["logT"],c=self.colors['clr_Gray'])
+		 ax.annotate('He burn', xy=(m._heburn["logRho"][-1],m._heburn["logT"][-1]), 
+							xytext=(m._heburn["logRho"][-1],m._heburn["logT"][-1]),color=self.colors['clr_Gray'],
+							fontsize=mat.rcParams['font.size']-12)
+							
+		 ax.plot(m._cburn["logRho"],m._cburn["logT"],c=self.colors['clr_Gray'])
+		 ax.annotate('C burn', xy=(m._cburn["logRho"][-1],m._cburn["logT"][-1]), 
+							xytext=(m._cburn["logRho"][-1],m._cburn["logT"][-1]),color=self.colors['clr_Gray'],
+							fontsize=mat.rcParams['font.size']-12)
+		 
+		 ax.plot(m._oburn["logRho"],m._oburn["logT"],c=self.colors['clr_Gray'])
+		 ax.annotate('O burn', xy=(m._oburn["logRho"][-1],m._oburn["logT"][-1]), 
+							xytext=(m._oburn["logRho"][-1],m._oburn["logT"][-1]),color=self.colors['clr_Gray'],
+							fontsize=mat.rcParams['font.size']-12)
+		
+	def _showPgas(self,m,ax):
+		lr1=-8
+		lr2=5
+		lt1=np.log10(3.2*10**7)+(lr1-np.log10(0.7))/3.0
+		lt2=np.log10(3.2*10**7)+(lr2-np.log10(0.7))/3.0
+		ax.plot([lr1,lr2],[lt1,lt2],color=self.colors['clr_Gray'])
+		ax.annotate(r'$P_{rad}\approx P_{gas}$', xy=(-4.0,6.5), 
+							xytext=(-4.0,6.5),color=self.colors['clr_Gray'],
+							fontsize=mat.rcParams['font.size']-12)
+							
+	def _showDegeneracy(self,m,ax):
+		ax.plot(m._psi4["logRho"],m._psi4["logT"],color=self.colors['clr_Gray'])
+		ax.annotate(r'$\epsilon_F/KT\approx 4$', xy=(2.0,6.0), 
+							xytext=(2.0,6.0),color=self.colors['clr_Gray'],
+							fontsize=mat.rcParams['font.size']-12)
+
+	def _showGamma4(self,m,ax):
+		ax.plot(m._gamma4["logRho"],m._gamma4["logT"],color=self.colors['clr_Crimson'])
+		ax.annotate(r'$\Gamma_{1} <4/3$', xy=(3.8,9.2), 
+							xytext=(3.8,9.2),color=self.colors['clr_Crimson'],
+							fontsize=mat.rcParams['font.size']-12)
 		
 	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
 					name=None,model=None,age=None,age_units=None,
@@ -1370,10 +1426,31 @@ class plot():
 		if show:
 			plt.show()
 		
-	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None):
-		self.plotProfile(m,xaxis='logT',y1='logRho',y1L='linear',model=model,show=show,
-								xmin=xmin,xmax=xmax,ax=ax,y1col='k',xlabel=self.labels('teff',log=True),y1label=self.labels('rho',log=True),fig=fig,y1rng=None,y2rng=None)
-
+	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None,
+					showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,showGamma=False):
+		if fig==None:
+			fig=plt.figure()
+		if ax==None:
+			ax=fig.add_subplot(111)
+	
+		self.plotProfile(m,xaxis='logRho',y1='logT',y1L='linear',model=model,show=False,
+								xmin=xmin,xmax=xmax,ax=ax,y1col='k',y1label=self.labels('teff',log=True),xlabel=self.labels('rho',log=True),fig=fig,y1rng=None,y2rng=None)
+		if showBurn or showAll:
+			self._showBurnData(m,ax)
+		
+		if showPgas or showAll:
+			self._showPgas(m,ax)
+			
+		if showDegeneracy or showAll:
+			self._showDegeneracy(m,ax)
+			
+		if showGamma or showAll:
+			self._showGamma4(m,ax)
+			
+		if show:
+			plt.show()
+								
+								
 	def plotHR(self,m,minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,fig=None):
 		self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1L='linear',minMod=minMod,
 								maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=True,ax=ax,y1col='k',
