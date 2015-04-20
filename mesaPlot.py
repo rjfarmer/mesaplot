@@ -650,6 +650,45 @@ class plot():
 		ax.annotate(r'$\Gamma_{1} <4/3$', xy=(3.8,9.2), 
 							xytext=(3.8,9.2),color=self.colors['clr_Crimson'],
 							fontsize=mat.rcParams['font.size']-12)
+							
+	def _showEOS(self,m,ax):
+		logRho1 =  2.7
+		logRho2 =  2.5
+		logRho3 =  -1.71
+		logRho4  = -2.21
+		logRho5  = -9.0
+		logRho6  = -9.99
+		logRho7  = -12
+		logT1  =  7.7
+		logT2 =   7.6
+		logT3  =  4.65
+		logT4  =  4.75
+		logT5  =  3.60
+		logT6  =  3.50
+		logT7 =   2.3
+		logT8  =  2.2
+		
+		ax.plot([logRho2,logRho7], [logT1,logT1],c=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho2,logRho7], [logT2,logT2],c=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho2,logRho1], [logT1,logT2],c=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho1,logRho1], [logT2,logT3],c=self.colors['clr_LightSkyGreen'])         
+
+		ax.plot([logRho4,logRho5], [logT7,logT7],c=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho4,logRho5], [logT8,logT8],c=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho4,logRho3], [logT8,logT7],c=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho6,logRho5], [logT7,logT8],c=self.colors['clr_LightSkyGreen'])       
+		
+		ax.plot([logRho2,logRho2], [logT2,logT4],c=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho3,logRho1], [logT7,logT3],c=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho4,logRho2], [logT7,logT4],c=self.colors['clr_LightSkyGreen'])       
+
+		ax.plot([logRho5,logRho5], [logT7,logT6],c=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho6,logRho6], [logT7,logT6],c=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho5,logRho6], [logT6,logT5],c=self.colors['clr_LightSkyGreen'])     
+			
+		ax.plot([logRho6,logRho7], [logT5,logT5],c=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho6,logRho7], [logT6,logT6],c=self.colors['clr_LightSkyGreen'])     
+		
 		
 	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
 					name=None,model=None,age=None,age_units=None,
@@ -1428,7 +1467,7 @@ class plot():
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None,
 					show_burn=False,show_mix=False,
-					showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,showGamma=False):
+					showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,showGamma=False,showEOS=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1450,6 +1489,9 @@ class plot():
 		if showGamma or showAll:
 			self._showGamma4(m,ax)
 			
+		if showEOS or showAll:
+			self._showEOS(m,ax)
+
 		if show:
 			plt.show()
 								
