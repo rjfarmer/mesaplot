@@ -1427,6 +1427,7 @@ class plot():
 			plt.show()
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None,
+					show_burn=False,show_mix=False,
 					showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,showGamma=False):
 		if fig==None:
 			fig=plt.figure()
@@ -1434,7 +1435,9 @@ class plot():
 			ax=fig.add_subplot(111)
 	
 		self.plotProfile(m,xaxis='logRho',y1='logT',y1L='linear',model=model,show=False,
-								xmin=xmin,xmax=xmax,ax=ax,y1col='k',y1label=self.labels('teff',log=True),xlabel=self.labels('rho',log=True),fig=fig,y1rng=None,y2rng=None)
+								show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,
+								xmin=xmin,xmax=xmax,ax=ax,y1col='k',y1label=self.labels('teff',log=True),
+								xlabel=self.labels('rho',log=True),fig=fig,y1rng=None,y2rng=None)
 		if showBurn or showAll:
 			self._showBurnData(m,ax)
 		
