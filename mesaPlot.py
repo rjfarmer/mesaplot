@@ -19,37 +19,31 @@ from __future__ import print_function
 import numpy as np
 import mmap
 import matplotlib as mpl
-#mpl.use('GTK3Cairo')
 import matplotlib.pyplot as plt
 import bisect
 import scipy.interpolate as interpolate
 from matplotlib.ticker import MaxNLocator,AutoMinorLocator
 import os
-import matplotlib as mat
-from matplotlib import rc
-import matplotlib.cm as cm
-import matplotlib
-from matplotlib.widgets import Button
 import random
 import os as os
 
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+mpl.rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
-#rc('font',**{'family':'serif','serif':['Palatino']})
-rc('text', usetex=True)
-rc('font',size=32)
-rc('xtick', labelsize=28) 
-rc('ytick', labelsize=28) 
-mat.rcParams['axes.linewidth'] = 2.0
-mat.rcParams['xtick.major.size']=18      # major tick size in points
-mat.rcParams['xtick.minor.size']=9      # minor tick size in points
-mat.rcParams['ytick.major.size']=18      # major tick size in points
-mat.rcParams['ytick.minor.size']=9      # minor tick size in points
+#mpl.rc('font',**{'family':'serif','serif':['Palatino']})
+mpl.rc('text', usetex=True)
+mpl.rc('font',size=32)
+mpl.rc('xtick', labelsize=28) 
+mpl.rc('ytick', labelsize=28) 
+mpl.rcParams['axes.linewidth'] = 2.0
+mpl.rcParams['xtick.major.size']=18      # major tick size in points
+mpl.rcParams['xtick.minor.size']=9      # minor tick size in points
+mpl.rcParams['ytick.major.size']=18      # major tick size in points
+mpl.rcParams['ytick.minor.size']=9      # minor tick size in points
 
-mat.rcParams['xtick.major.width']=0.8      # major tick size in points
-mat.rcParams['xtick.minor.width']=0.6      # minor tick size in points
-mat.rcParams['ytick.major.width']=0.8      # major tick size in points
-mat.rcParams['ytick.minor.width']=0.6      # minor tick size in points
+mpl.rcParams['xtick.major.width']=0.8      # major tick size in points
+mpl.rcParams['xtick.minor.width']=0.6      # minor tick size in points
+mpl.rcParams['ytick.major.width']=0.8      # major tick size in points
+mpl.rcParams['ytick.minor.width']=0.6      # minor tick size in points
 
 def randf(N,a,b):
 	return a + (b - a) * (np.random.random_integers(N) - 1) / (N - 1.)
@@ -553,7 +547,7 @@ class plot():
 	
 		ax.set_ylim(ylim)
 	
-	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text,line,fontsize=mat.rcParams['font.size']-12):
+	def _annotateLine(self,m,ax,x,y,num_labels,xmin,xmax,text,line,fontsize=mpl.rcParams['font.size']-12):
 		ind=np.argsort(x)
 		xx=x[ind]
 		yy=y[ind]
@@ -614,22 +608,22 @@ class plot():
 		 ax.plot(m._hburn["logRho"],m._hburn["logT"],c=self.colors['clr_Gray'])
 		 ax.annotate('H burn', xy=(m._hburn["logRho"][-1],m._hburn["logT"][-1]), 
 							xytext=(m._hburn["logRho"][-1],m._hburn["logT"][-1]),color=self.colors['clr_Gray'],
-							fontsize=mat.rcParams['font.size']-12)
+							fontsize=mpl.rcParams['font.size']-12)
 							
 		 ax.plot(m._heburn["logRho"],m._heburn["logT"],c=self.colors['clr_Gray'])
 		 ax.annotate('He burn', xy=(m._heburn["logRho"][-1],m._heburn["logT"][-1]), 
 							xytext=(m._heburn["logRho"][-1],m._heburn["logT"][-1]),color=self.colors['clr_Gray'],
-							fontsize=mat.rcParams['font.size']-12)
+							fontsize=mpl.rcParams['font.size']-12)
 							
 		 ax.plot(m._cburn["logRho"],m._cburn["logT"],c=self.colors['clr_Gray'])
 		 ax.annotate('C burn', xy=(m._cburn["logRho"][-1],m._cburn["logT"][-1]), 
 							xytext=(m._cburn["logRho"][-1],m._cburn["logT"][-1]),color=self.colors['clr_Gray'],
-							fontsize=mat.rcParams['font.size']-12)
+							fontsize=mpl.rcParams['font.size']-12)
 		 
 		 ax.plot(m._oburn["logRho"],m._oburn["logT"],c=self.colors['clr_Gray'])
 		 ax.annotate('O burn', xy=(m._oburn["logRho"][-1],m._oburn["logT"][-1]), 
 							xytext=(m._oburn["logRho"][-1],m._oburn["logT"][-1]),color=self.colors['clr_Gray'],
-							fontsize=mat.rcParams['font.size']-12)
+							fontsize=mpl.rcParams['font.size']-12)
 		
 	def _showPgas(self,m,ax):
 		lr1=-8
@@ -639,19 +633,19 @@ class plot():
 		ax.plot([lr1,lr2],[lt1,lt2],color=self.colors['clr_Gray'])
 		ax.annotate(r'$P_{rad}\approx P_{gas}$', xy=(-4.0,6.5), 
 							xytext=(-4.0,6.5),color=self.colors['clr_Gray'],
-							fontsize=mat.rcParams['font.size']-12)
+							fontsize=mpl.rcParams['font.size']-12)
 							
 	def _showDegeneracy(self,m,ax):
 		ax.plot(m._psi4["logRho"],m._psi4["logT"],color=self.colors['clr_Gray'])
 		ax.annotate(r'$\epsilon_F/KT\approx 4$', xy=(2.0,6.0), 
 							xytext=(2.0,6.0),color=self.colors['clr_Gray'],
-							fontsize=mat.rcParams['font.size']-12)
+							fontsize=mpl.rcParams['font.size']-12)
 
 	def _showGamma4(self,m,ax):
 		ax.plot(m._gamma4["logRho"],m._gamma4["logT"],color=self.colors['clr_Crimson'])
 		ax.annotate(r'$\Gamma_{1} <4/3$', xy=(3.8,9.2), 
 							xytext=(3.8,9.2),color=self.colors['clr_Crimson'],
-							fontsize=mat.rcParams['font.size']-12)
+							fontsize=mpl.rcParams['font.size']-12)
 							
 	def _showEOS(self,m,ax):
 		logRho1 =  2.7
@@ -694,7 +688,7 @@ class plot():
 		
 	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
 					name=None,model=None,age=None,age_units=None,
-					fontCent=mat.rcParams['font.size']-6,fontOther=mat.rcParams['font.size']-12):
+					fontCent=mpl.rcParams['font.size']-6,fontOther=mpl.rcParams['font.size']-12):
 		if show_title_name:
 			ax.set_title(name,loc="center",fontsize=fontCent)
 		if show_title_model:
@@ -1320,7 +1314,7 @@ class plot():
 			plt.show()
 
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
-					cmin=None,cmax=None,burnMap=[cm.Purples_r,cm.hot_r],fig=None,yrng=None):
+					cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1524,7 +1518,7 @@ class plot():
 				for j in range(len(cmapseg[key])):
 					cdict[key].append([minX+(maxX-minX)*cmapseg[key][j][0],cmapseg[key][j][1],cmapseg[key][j][2]])
 
-		return matplotlib.colors.LinearSegmentedColormap('colormap',cdict,1024)
+		return mpl.colors.LinearSegmentedColormap('colormap',cdict,1024)
 		
 	def stackedPlots(self,m,typ='profile',num=1,model=None,xaxis='mass',show=True,fig=None,ax=None,xmin=None,xmax=None,xL='linear',xlabel=None,
 								xrev=False,y1rev=[],y2rev=[],points=False,minMod=0,maxMod=-1,
