@@ -683,7 +683,45 @@ class plot():
 		ax.plot([logRho5,logRho6], [logT6,logT5],c=self.colors['clr_LightSkyGreen'])     
 			
 		ax.plot([logRho6,logRho7], [logT5,logT5],c=self.colors['clr_LightSkyGreen'])       
-		ax.plot([logRho6,logRho7], [logT6,logT6],c=self.colors['clr_LightSkyGreen'])     
+		ax.plot([logRho6,logRho7], [logT6,logT6],c=self.colors['clr_LightSkyGreen'])  
+		
+		
+		logRho0 = logRho1
+		logRho1 = 2.2
+		logRho2 = 1.2
+		logRho3 = -2.0
+		logRho4 = -3.8
+		logRho5 = -5.8
+		logRho6 = -6.8
+		logRho7 = -10
+		logT1 = 6.6
+		logT2 = 6.5
+		logT3 = 4.0
+		logT4 = 3.4
+		logT5 = 3.3
+
+		ax.plot([logRho0, logRho2],[logT1, logT1],c=self.colors['clr_LightSkyBlue'])          
+		ax.plot([logRho2, logRho4],[logT1, logT3],c=self.colors['clr_LightSkyBlue'])             
+		ax.plot([logRho4, logRho5],[logT3, logT4],c=self.colors['clr_LightSkyBlue'])            
+		ax.plot([logRho5, logRho7],[logT4, logT4],c=self.colors['clr_LightSkyBlue'])             
+
+		ax.plot([logRho0, logRho1],[logT2, logT2],c=self.colors['clr_LightSkyBlue'])            
+		ax.plot([logRho1, logRho3],[logT2, logT3],c=self.colors['clr_LightSkyBlue'])             
+		ax.plot([logRho3, logRho5],[logT3, logT5],c=self.colors['clr_LightSkyBlue'])             
+		ax.plot([logRho5, logRho7],[logT5, logT5],c=self.colors['clr_LightSkyBlue']) 
+		
+		ax.annotate('HELM', xy=(8.6,8.6), 
+							xytext=(8.6,8.6),color=self.colors['clr_Gray'],
+							fontsize=mpl.rcParams['font.size']-12)
+		ax.annotate('OPAL', xy=(-7.2, 5.8), 
+							xytext=(-7.2, 5.8),color=self.colors['clr_Gray'],
+							fontsize=mpl.rcParams['font.size']-12)
+		ax.annotate('SCVH', xy=(-0.8, 3.7), 
+							xytext=(-0.8, 3.7),color=self.colors['clr_Gray'],
+							fontsize=mpl.rcParams['font.size']-12)
+		ax.annotate('PC', xy=(7.1, 5.1), 
+							xytext=(7.1, 5.1),color=self.colors['clr_Gray'],
+							fontsize=mpl.rcParams['font.size']-12)
 		
 		
 	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
@@ -1461,7 +1499,7 @@ class plot():
 		if show:
 			plt.show()
 		
-	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None,
+	def plotTRho(self,m,model=None,show=True,ax=None,xmin=-4.0,xmax=10.0,fig=None,yrng=[3.0,10.0],
 					show_burn=False,show_mix=False,
 					showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,showGamma=False,showEOS=False):
 		if fig==None:
@@ -1472,7 +1510,7 @@ class plot():
 		self.plotProfile(m,xaxis='logRho',y1='logT',y1L='linear',model=model,show=False,
 								show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,
 								xmin=xmin,xmax=xmax,ax=ax,y1col='k',y1label=self.labels('teff',log=True),
-								xlabel=self.labels('rho',log=True),fig=fig,y1rng=None,y2rng=None)
+								xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None)
 		if showBurn or showAll:
 			self._showBurnData(m,ax)
 		
