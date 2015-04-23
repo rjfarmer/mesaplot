@@ -114,6 +114,9 @@ show_mix_line=False #Whether to show mix regions on the line (show_mix_x) or at 
 show_mix_2=False #Show regions of  mixing on the second yaxis
 fx=None
 fy,fy1,fy2=None #Accepts a lamda/function to transform the data either xaxis (fx) or y axis(fy) before plotting
+show_title=False #Whether to show the plot title
+show_title_model=False #Whether to show the model number in topt right corner
+show_title_age=False #Whether to show the star age in top left corner
 ````
 
 Now some remarks about each plot and any extra options available for that plot:
@@ -135,7 +138,7 @@ Plots the B fields from a profile file:
 ````python
 plotDynamo()
 ````
-Show the ang mometun terms as well as magnetic fields
+Show the ang momentum terms as well as magnetic fields
 ````
 plotDynamo2()
 ````
