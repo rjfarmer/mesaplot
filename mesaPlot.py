@@ -814,7 +814,7 @@ class plot():
 			plt.show()
 			
 
-	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
+	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=None,
 						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
 					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
@@ -834,7 +834,7 @@ class plot():
 		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
 		ax.plot(x,m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
 		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax.plot(mx,m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
+		ax.plot(x,m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
@@ -856,7 +856,7 @@ class plot():
 		if show:
 			plt.show()
 
-	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=[0.0,10.0],y2rng=[0.0,10.0],
+	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=None,y2rng=None,
 						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
 					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
@@ -876,14 +876,14 @@ class plot():
 		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 		
 		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
-		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
+		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2,c='g')
 		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
+		ax.plot(m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2,c='b')
 		
 		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
-		ax2.plot(m.prof_dat[xaxis],np.log10(m.prof_dat['omega']),label=r'$\log_{10} \omega$',linewidth=2)
+		ax2.plot(m.prof_dat[xaxis],np.log10(m.prof_dat['omega']),'--',label=r'$\log_{10} \omega$',linewidth=2,c='r')
 		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax2.plot(m.prof_dat[xaxis],np.log10(m.prof_dat['j_rot'])-20.0,label=r'$\log_{10} j [10^{20}]$',linewidth=2)
+		ax2.plot(m.prof_dat[xaxis],np.log10(m.prof_dat['j_rot'])-20.0,'--',label=r'$\log_{10} j [10^{20}]$',linewidth=2,c='k')
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)

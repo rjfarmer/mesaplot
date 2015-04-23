@@ -138,10 +138,13 @@ Plots the B fields from a profile file:
 ````python
 plotDynamo()
 ````
-Show the ang momentum terms as well as magnetic fields
+![Dynamo  50M_z2m2_high_rotation](/examples/dynamo1.png?raw=true "Dynamo 1 plot")
+
+Show the rotation terms terms as well as magnetic fields
 ````
 plotDynamo2()
 ````
+![Abundance plot 50M_z2m2_high_rotation](/examples/dynamo2.png?raw=true "Dynamo 2 plot")
 
 ### Angular momentum mixing
 Plots the am_log_D_* terms from a profile file:
