@@ -25,7 +25,6 @@ import scipy.interpolate as interpolate
 from matplotlib.ticker import MaxNLocator,AutoMinorLocator
 import os
 import random
-import os as os
 
 mpl.rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
@@ -127,23 +126,29 @@ class MESA():
 			if np.count_nonzero(self.prof_ind)==1:
 				filename=f+"/profile"+str(int(np.atleast_1d(self.prof_ind["profile"])[0]))+".data"
 			else:
-				#Find profile with mode 'nearest','upper','lower','first','last'
-				pos = bisect.bisect_left(self.prof_ind["model"], num)
-				if pos == 0 or mode=='first':
+				if num==0:
+					#Load first model
 					filename=f+"/profile"+str(int(self.prof_ind["profile"][0]))+".data"
-				elif pos == np.size(self.prof_ind["profile"]) or mode=='last':
+				elif num==-1:
 					filename=f+"/profile"+str(int(self.prof_ind["profile"][-1]))+".data"
-				elif mode=='lower':
-					filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
-				elif mode=='upper':
-					filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
-				elif mode=='nearest':
-					if self.prof_ind["model"][pos]-num < num-self.prof_ind["model"][pos-1]:
-						filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
-					else:
-						filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
 				else:
-					raise(ValueError,"Invalid mode")
+					#Find profile with mode 'nearest','upper','lower','first','last'
+					pos = bisect.bisect_left(self.prof_ind["model"], num)
+					if pos == 0 or mode=='first':
+						filename=f+"/profile"+str(int(self.prof_ind["profile"][0]))+".data"
+					elif pos == np.size(self.prof_ind["profile"]) or mode=='last':
+						filename=f+"/profile"+str(int(self.prof_ind["profile"][-1]))+".data"
+					elif mode=='lower':
+						filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
+					elif mode=='upper':
+						filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
+					elif mode=='nearest':
+						if self.prof_ind["model"][pos]-num < num-self.prof_ind["model"][pos-1]:
+							filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
+						else:
+							filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
+					else:
+						raise(ValueError,"Invalid mode")
 			print(filename)
 			self._readProfile(filename)
 			return
@@ -1289,7 +1294,7 @@ class plot():
 			
 		y=m.hist_dat[y1][modelIndex][mInd]
 		if fy1 is not None:
-			y=fy(y)
+			y=fy1(y)
 			
 		if y1L=='log':
 			y=np.log10(y)
@@ -1309,7 +1314,7 @@ class plot():
 			try:
 				ax2 = ax.twinx()
 				if fy1 is not None:
-					y=fy(m.hist_dat[y2][modelIndex][mInd])
+					y=fy2(m.hist_dat[y2][modelIndex][mInd])
 				if y2L=='log':
 					y=np.log10(y)
 				else:
