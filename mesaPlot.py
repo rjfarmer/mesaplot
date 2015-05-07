@@ -193,8 +193,7 @@ class MESA():
 							 
 			#Convert the header data
 			yy=' '.join(str(e) for e in m.mod_head).replace("'",'').replace('D','E').encode()
-			m.mod_dat=np.genfromtxt(BytesIO(yy),names=m.mod_dat_names,dtype=None)
-
+			self.mod_dat=np.genfromtxt(BytesIO(yy),names=m.mod_dat_names,dtype=None)
 		
 	def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1):
 		if len(f)==0:
@@ -572,8 +571,8 @@ class plot():
 			
 		if rev:
 			yrng=yrng[::-1]
-		if (log==True or log=='log') and log!='linear':
-			yrng=np.log10(yrng)
+		#if (log==True or log=='log') and log!='linear':
+			#yrng=np.log10(yrng)
 		ax.set_ylim(yrng)
 			
 	def _setXAxis(self,m,xx,xmin,xmax,fx):
@@ -1158,7 +1157,8 @@ class plot():
 							show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
 							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None,fig=None,y1rng=None,y2rng=None,
 							fx=None,fy1=None,fy2=None,
-							show_title_name=False,title_name=None,show_title_model=False,show_title_age=False):
+							show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
+							y1linelabel=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1191,7 +1191,7 @@ class plot():
 			x=np.log10(x[mInd])
 		else:
 			x=x[mInd]
-		ax.plot(x,y,c=y1col,linewidth=2)
+		ax.plot(x,y,c=y1col,linewidth=2,label=y1linelabel)
 		if points:
 			ax.scatter(x,y,c=y1col)
 		
@@ -1221,7 +1221,7 @@ class plot():
 					x=np.log10(m.prof_dat[xaxis][mInd])
 				else:
 					x=m.prof_dat[xaxis][mInd]
-				ax2.plot(x,y,c=y2col,linewidth=2)
+				ax2.plot(x,y,c=y2col,linewidth=2,label=y1linelabel)
 				if points:
 					ax2.scatter(x,y,c=y2col)
 					
@@ -1313,8 +1313,10 @@ class plot():
 		if y2 is not None:
 			try:
 				ax2 = ax.twinx()
+				y=m.hist_dat[y2][modelIndex][mInd]
 				if fy1 is not None:
-					y=fy2(m.hist_dat[y2][modelIndex][mInd])
+					y=fy2(y)
+
 				if y2L=='log':
 					y=np.log10(y)
 				else:
@@ -1535,10 +1537,10 @@ class plot():
 			plt.show()
 								
 								
-	def plotHR(self,m,minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,fig=None):
+	def plotHR(self,m,minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,fig=None,points=None):
 		self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1L='linear',minMod=minMod,
-								maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=True,ax=ax,y1col='k',
-								xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True),fig=fig,y1rng=None,y2rng=None)
+								maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=False,ax=ax,y1col='k',
+								xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True),fig=fig,y1rng=None,y2rng=None,points=points)
 	
 	def mergeCmaps(self,cmaps,rng=[[0.0,0.5],[0.5,1.0]]):
 		"""
@@ -1632,7 +1634,9 @@ class plot():
 				self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
 									xrev=xrev,y1rev=y1rev,points=points,
 									y1=y1,y1L=y1L,y1col=cm[i],
-									y1label=y1label)
+									y1label=y1label,fig=fig) 
+		
+		ax.legend(loc=0,fontsize=12)
 		
 		if show:
 			plt.show()
