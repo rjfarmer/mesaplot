@@ -77,9 +77,9 @@ class MESA():
 				self.log_fold='LOGS/'
 			f=self.log_fold
 		else:
-			self.log_fold=f
+			self.log_fold=f+"/"
 			
-		filename=f+"/history.data"
+		filename=os.path.join(f,"history.data")
 		numLines=self._filelines(filename)
 		self.hist_head=np.genfromtxt(filename,skip_header=1,skip_footer=numLines-4,names=True)
 		self.hist_dat=np.genfromtxt(filename,skip_header=5,names=True,invalid_raise=False)
@@ -186,14 +186,15 @@ class MESA():
 			self.mod_dat_names.extend(l.split())
 			#Make a dictionary of converters 
 			
-			d = {k:self._fds2f for k in range(len(self.mod_dat_names))}	
+		d = {k:self._fds2f for k in range(len(self.mod_dat_names))}	
 			
-			self.mod_dat=np.genfromtxt(filename,skip_header=count,
-							 names=self.mod_dat_names,skip_footer=8,dtype=None,converters=d)
-							 
-			#Convert the header data
-			yy=' '.join(str(e) for e in m.mod_head).replace("'",'').replace('D','E').encode()
-			self.mod_dat=np.genfromtxt(BytesIO(yy),names=m.mod_dat_names,dtype=None)
+		self.mod_dat=np.genfromtxt(filename,skip_header=count,
+							 names=self.mod_dat_names,skip_footer=5,dtype=None,converters=d)
+		#Convert the header data
+		yy=' '.join(str(e) for e in self.mod_dat).replace("'",'').replace('D','E').encode()
+		print(np.shape(yy))
+		print(self.mod_dat_names)
+		self.mod_dat=np.genfromtxt(BytesIO(yy),names=self.mod_dat_names,dtype=None)
 		
 	def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1):
 		if len(f)==0:
@@ -761,7 +762,7 @@ class plot():
 				m.loadProfile(num=int(model))
 			
 		if modFile:
-			x,xrngL,mInd=self._setXAxis(m,np.cumsum(m.mod_dat["dq"])*m._fds2f(m.mod_head[1]),xmin,xmax,fx)
+			x,xrngL,mInd=self._setXAxis(m,np.cumsum(m.mod_dat["dq"][::-1])*m._fds2f(m.mod_head[1]),xmin,xmax,fx)
 		else:
 			x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 
@@ -780,7 +781,7 @@ class plot():
 		
 		for i in abun_list:
 			if modFile:
-				y=m.mod_dat[i]
+				y=m.mod_dat[i][::-1]
 			else:
 				y=m.prof_dat[i]
 			if fy is not None:
