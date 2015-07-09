@@ -361,7 +361,7 @@ class plot():
 			l=l+r"$\rm{Mass}\; [M_{\odot}]$"
 		if label=='model':
 			l=l+r"$\rm{Model\; number}$"
-		if 'teff' in label or label=='logT':
+		if 'teff' in label or label=='logT' or '_T' in label:
 			if center:
 				l=l+r"$T_{eff,c}\; [K]$"
 			else:
