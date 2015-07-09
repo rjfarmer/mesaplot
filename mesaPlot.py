@@ -1621,7 +1621,7 @@ class plot():
 			plt.show()
 
 	def plotMultiProfiles(self,m,mods=None,index=None,xaxis='mass',y1='',y2='',show=True,ax=None,xmin=None,xmax=None,xL='linear',y1L='linear',cmap=plt.cm.gist_ncar,
-							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,fig=None):
+							y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,fig=None,show_mix=False,show_burn=True):
 		"""Plots mulitple profiles either given as a list of mod numbers or an index over the history data"""
 		if fig==None:
 			fig=plt.figure()
@@ -1632,10 +1632,10 @@ class plot():
 			cm=[cmap(i) for i in np.linspace(0.0,0.9,len(mods))]
 			for i in range(len(mods)):
 				model=mods[i]
-				self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
+				self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,fig=fig,xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
 									xrev=xrev,y1rev=y1rev,points=points,
-									y1=y1,y1L=y1L,y1col=cm[i],
-									y1label=y1label)
+									y1=y1,y1L=y1L,y1col='k',
+									y1label=y1label,show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True)
 		elif index is not None:
 			cm=[cmap(i) for i in np.linspace(0.0,0.9,len(mods))]
 			for i in m.hist_dat["model_number"][index]:
