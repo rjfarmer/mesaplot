@@ -495,7 +495,7 @@ class plot():
 		ax.yaxis.set_minor_locator(AutoMinorLocator(10))
 		ax.xaxis.set_minor_locator(AutoMinorLocator(10))
 	
-	def _plotBurnRegions(self,m,ax,x,y,show_x,show_line,yrng=None):
+	def _plotBurnRegions(self,m,ax,x,y,show_x,show_line,yrng=None,ind=None):
 		# non 0.0, yellow 1, ornage 10**4, red 10**7
 		ylim=ax.get_ylim()
 		
@@ -509,14 +509,18 @@ class plot():
 		if show_line:
 			yy=y
 			size=180
+			
+		if ind is not None:
+			netEng=m.prof_dat['net_nuclear_energy'][ind]
+		else:
+			netEng=m.prof_dat['net_nuclear_energy']
 		
-		ind=(m.prof_dat['net_nuclear_energy']>=1.0)&(m.prof_dat['net_nuclear_energy']<=4.0)	
-		ax.scatter(x[ind],yy[ind],c='yellow',s=size,linewidths=0,alpha=1.0)
-		ind=(m.prof_dat['net_nuclear_energy']>=4.0)&(m.prof_dat['net_nuclear_energy']<=7.0)
-		ax.scatter(x[ind],yy[ind],c='orange',s=size,linewidths=0,alpha=1.0)
-		ind=(m.prof_dat['net_nuclear_energy']>=7.0)
-		ax.scatter(x[ind],yy[ind],c='red',s=size,edgecolor='none',alpha=1.0)
-		
+		ind2=(netEng>=1.0)&(netEng<=4.0)	
+		ax.scatter(x[ind2],yy[ind2],c='yellow',s=size,linewidths=0,alpha=1.0)
+		ind2=(netEng>=4.0)&(netEng<=7.0)
+		ax.scatter(x[ind2],yy[ind2],c='orange',s=size,linewidths=0,alpha=1.0)
+		ind2=(netEng>=7.0)
+		ax.scatter(x[ind2],yy[ind2],c='red',s=size,edgecolor='none',alpha=1.0)
 		ax.set_ylim(ylim)
 		
 		
@@ -794,7 +798,7 @@ class plot():
 			self._annotateLine(m,ax,x,y,num_labels,xrngL[0],xrngL[1],i,line)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng)
+			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng)
@@ -837,7 +841,7 @@ class plot():
 		ax.plot(x,m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
@@ -886,7 +890,7 @@ class plot():
 		ax2.plot(m.prof_dat[xaxis],np.log10(m.prof_dat['j_rot'])-20.0,'--',label=r'$\log_{10} j [10^{20}]$',linewidth=2,c='k')
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
@@ -930,7 +934,7 @@ class plot():
 					self._annotateLine(m,ax,x,m.prof_dat[i],num_labels,xrngL[0],xrngL[1],r"$D_{"+i.split('_')[3]+"}$",line)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,m.prof_dat[i],show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x,m.prof_dat[i],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x,m.prof_dat[i],show_line=False,show_x=True)
@@ -990,7 +994,7 @@ class plot():
 
 		
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True)
@@ -1042,7 +1046,7 @@ class plot():
 
 		
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
 		
 		self._setTicks(ax)
 		self._setYLim(ax,ax.get_ylim(),yrng)
@@ -1087,7 +1091,7 @@ class plot():
 			self._annotateLine(m,ax,x[mInd],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
@@ -1138,7 +1142,7 @@ class plot():
 			self._annotateLine(m,ax,x[mInd],y,num_labels,xrngL[0],xrngL[1],self.safeLabel(None,i),line)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
+			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
@@ -1206,7 +1210,7 @@ class plot():
 		self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1L)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=show_burn_line,show_x=show_burn_x)
+			self._plotBurnRegions(m,ax,x,y,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x,y,show_line=show_mix_line,show_x=show_mix_x)
@@ -1236,7 +1240,7 @@ class plot():
 				ylim=ax2.get_ylim()
 				self._setYLim(ax2,ax2.get_ylim(),y2rng,rev=y2rev,log=y2L)
 				if show_burn_2:
-					self._plotBurnRegions(m,ax2,x,y,show_line=show_burn_line,show_x=show_burn_x)
+					self._plotBurnRegions(m,ax2,x,y,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
 				if show_mix_2:
 					self._plotMixRegions(m,ax2,x,y,show_line=show_mix_line,show_x=show_mix_x)
 			except:
