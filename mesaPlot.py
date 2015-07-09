@@ -811,7 +811,8 @@ class plot():
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		ax.set_xlim(xrngL)
 		
-		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Abundances',m.prof_head["model_number"],m.prof_head["star_age"])
+		if show_title_name or show_title_model or show_title_age:
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Abundances',m.prof_head["model_number"],m.prof_head["star_age"])
 		
 		
 		if show:
@@ -855,7 +856,8 @@ class plot():
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		#ax.set_title("Dynamo Model")
 		
-		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Dynamo',m.prof_head["model_number"],m.prof_head["star_age"])
+		if show_title_name or show_title_model or show_title_age:
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Dynamo',m.prof_head["model_number"],m.prof_head["star_age"])
 		
 		if show:
 			plt.show()
