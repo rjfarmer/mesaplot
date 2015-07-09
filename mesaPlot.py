@@ -1364,7 +1364,7 @@ class plot():
 			plt.show()
 
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
-					cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None):
+					cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,show_mass_loc=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1373,7 +1373,11 @@ class plot():
 		if reloadHistory:
 			m.loadHistory()
 			
-		
+		try:
+			xx=m.hist_dat['model_number']
+		except:
+			raise ValueError("Must call loadHistory first")
+			
 		if xrng[0]>=0:
 			modInd=(m.hist_dat["model_number"]>=xrng[0])&(m.hist_dat["model_number"]<=xrng[1])
 		else:	
@@ -1381,14 +1385,10 @@ class plot():
 			modInd[:]=True
 			
 		if np.all(np.diff(m.hist_dat["model_number"][modInd])) !=1:
-			raise(ValueError,"model_number must be monotomically increasing, ie set history_interval=1")
+			raise ValueError("model_number must be monotomically increasing, ie set history_interval=1")
+
 			
-		try:
-			q=np.linspace(0.0,m.hist_head["initial_mass"],1*np.max(m.hist_dat["num_zones"][modInd]))
-		except:
-			m.loadHistory()
-			q=np.linspace(0.0,m.hist_head["initial_mass"],1*np.max(m.hist_dat["num_zones"][modInd]))
-		
+		q=np.linspace(0.0,np.max(m.hist_dat["star_mass"]),np.max(m.hist_dat["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
 
 		burnZones=np.zeros((numModels,np.size(q)))
@@ -1508,6 +1508,10 @@ class plot():
 		self._setTicks(ax)
 		#ax.set_tick_params(axis='both',which='both')
 		self._setYLim(ax,ax.get_ylim(),yrng)
+		
+		#Add line at outer mass location
+		ax.plot(np.linspace(ax.get_xlim()[0],ax.get_xlim()[1],np.size(m.hist_dat['star_mass'])),m.hist_dat['star_mass'],c='k')
+		
 		if show:
 			plt.show()
 		
