@@ -144,7 +144,7 @@ Show the rotation terms terms as well as magnetic fields
 ````
 plotDynamo2()
 ````
-![Abundance plot 50M_z2m2_high_rotation](/examples/dynamo2.png?raw=true "Dynamo 2 plot")
+![Dyanmo 2 50M_z2m2_high_rotation](/examples/dynamo2.png?raw=true "Dynamo 2 plot")
 
 ### Angular momentum mixing
 Plots the am_log_D_* terms from a profile file:
@@ -190,13 +190,17 @@ cmin=None #Min value of burn to show
 cmax=None #max value of burn power to show. Note will be made symmetric with max(abs(cmin),abs(cmax))
 burnCmap=[cm.Purples_r,cm.hot_r] #Creates a diverging colour map for the burn data, with the first cmap used for <0 and second for >0
 ````
+![Kippenhan plot 1M_pre_ms_to_wd](/examples/kip.png?raw=true "Kippenhan plot")
+
 
 ### log Rho log Teff
 Plots log rho-logTeff
 ````python
 plotTRho()
 ````
+![Log Rho vs log T 1M_pre_ms_to_wd](/examples/kip.png?raw=true "Log Rho vs log T with burn and mix data")
 
+### HR plot
 Plots HR diagram
 ````python
 plotHR()
