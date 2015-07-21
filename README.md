@@ -198,7 +198,7 @@ Plots log rho-logTeff
 ````python
 plotTRho()
 ````
-![Log Rho vs log T 1M_pre_ms_to_wd](/examples/kip.png?raw=true "Log Rho vs log T with burn and mix data")
+![Log Rho vs log T 1M_pre_ms_to_wd](/examples/trho.png?raw=true "Log Rho vs log T with burn and mix data")
 
 ### HR plot
 Plots HR diagram
