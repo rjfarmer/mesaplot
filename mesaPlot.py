@@ -191,10 +191,8 @@ class MESA():
 		self.mod_dat=np.genfromtxt(filename,skip_header=count,
 							 names=self.mod_dat_names,skip_footer=5,dtype=None,converters=d)
 		#Convert the header data
-		yy=' '.join(str(e) for e in self.mod_dat).replace("'",'').replace('D','E').encode()
-		print(np.shape(yy))
-		print(self.mod_dat_names)
-		self.mod_dat=np.genfromtxt(BytesIO(yy),names=self.mod_dat_names,dtype=None)
+		#yy=' '.join(str(e) for e in self.mod_head).replace("'",'').replace('D','E').encode()
+		#self.mod_dat=np.genfromtxt(BytesIO(self.mod_head),names=self.mod_head_names,dtype=None)
 		
 	def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1):
 		if len(f)==0:
@@ -524,7 +522,7 @@ class plot():
 		ax.set_ylim(ylim)
 		
 		
-	def _plotMixRegions(self,m,ax,x,y,show_x,show_line,yrng=None):
+	def _plotMixRegions(self,m,ax,x,y,show_x,show_line,yrng=None,ind=None):
 		ylim=ax.get_ylim()
 		
 		if show_x:
@@ -551,6 +549,9 @@ class plot():
 			
 		if isSet is None:
 			raise(ValueError,"Need mixing type in profile file for showing mix regions, either its mixing_type or conv_mixing_type")
+		
+		if ind is not None:
+			col=col[ind]
 		
 		ax.scatter(x,yy,c=col,s=size,cmap=cmap,norm=norm,linewidths=0)
 	
@@ -801,7 +802,7 @@ class plot():
 			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng)
+			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng,ind=mInd)
 			
 		self._setTicks(ax)
 		#ax.legend(loc=0,fontsize=20)
@@ -845,7 +846,7 @@ class plot():
 			self._plotBurnRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 		
 		if legend:
 			ax.legend(loc=0)
@@ -895,7 +896,7 @@ class plot():
 			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 		
 		if legend:
 			ax.legend(loc=0)
@@ -939,7 +940,7 @@ class plot():
 			self._plotBurnRegions(m,ax,x,m.prof_dat[i],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,m.prof_dat[i],show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x,m.prof_dat[i],show_line=False,show_x=True,ind=mInd)
 
 		if legend:
 			ax.legend(loc=0)
@@ -999,7 +1000,7 @@ class plot():
 			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
 		
 		self._setTicks(ax)
 		self._setYLim(ax,ax.get_ylim(),yrng)
@@ -1096,7 +1097,7 @@ class plot():
 			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
 		
 		self._setTicks(ax)
 		self._setYLim(ax,ax.get_ylim(),yrng)
@@ -1147,7 +1148,7 @@ class plot():
 			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True)
+			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
 		
 		self._setTicks(ax)
 		self._setYLim(ax,ax.get_ylim(),yrng)
@@ -1215,7 +1216,7 @@ class plot():
 			self._plotBurnRegions(m,ax,x,y,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,y,show_line=show_mix_line,show_x=show_mix_x)
+			self._plotMixRegions(m,ax,x,y,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
 	
 		if y2 is not None:
 			try:
@@ -1244,7 +1245,7 @@ class plot():
 				if show_burn_2:
 					self._plotBurnRegions(m,ax2,x,y,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
 				if show_mix_2:
-					self._plotMixRegions(m,ax2,x,y,show_line=show_mix_line,show_x=show_mix_x)
+					self._plotMixRegions(m,ax2,x,y,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
 			except:
 				pass
 
@@ -1529,6 +1530,7 @@ class plot():
 								show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,
 								xmin=xmin,xmax=xmax,ax=ax,y1col='k',y1label=self.labels('teff',log=True),
 								xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None)
+
 		if showBurn or showAll:
 			self._showBurnData(m,ax)
 		
