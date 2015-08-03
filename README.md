@@ -175,8 +175,7 @@ mod=NUM
 To load model number NUM
 
 ### Kippenhan 
-Plots a Kippenhan diagram for the star from the history data, requires the history data has mixing_regions and burn_regions. Mixing regions shown with
-same colours as MESA.
+Plots a Kippenhan diagram for the star from the history data, requires the history data has mixing_regions and burn_regions. Mixing regions shown with same colours as MESA.
 ````python
 plotKip()
 ````
