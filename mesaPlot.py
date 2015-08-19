@@ -733,6 +733,21 @@ class plot():
 							xytext=(7.1, 5.1),color=self.colors['clr_Gray'],
 							fontsize=mpl.rcParams['font.size']-12)
 		
+	def _plotCoreLoc(self,m,ax,xaxis,x,ymin,ymax):
+		coreMasses=['he_core_mass','c_core_mass','o_core_mass','si_core_mass','fe_core_mass']
+		coreCol=['k','k','k','k','k']
+		
+		for cm,cc in zip(coreMasses,coreCol):
+			#Find cell where we have core mass and use that to index the actual x axis
+			pos = bisect.bisect_right(m.prof_dat["mass"][::-1], m.prof_head[cm])
+			print(cm,pos,m.prof_head[cm],np.size(m.prof_dat['mass'])-pos,m.prof_dat['mass'][np.size(m.prof_dat['mass'])-pos])
+			pos=np.size(m.prof_dat['mass'])-pos
+			ax.plot([m.prof_dat[xaxis][pos],m.prof_dat[xaxis][pos]],[ymin,ymax],'--',color=cc)
+			xp1=m.prof_dat[xaxis][pos]
+			yp1=0.95*(ymax-ymin)+ymin
+			ax.annotate(cm.split('_')[0], xy=(xp1,yp1), xytext=(xp1,yp1),color=cc,fontsize=mpl.rcParams['font.size']-12)
+		
+		
 		
 	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
 					name=None,model=None,age=None,age_units=None,
@@ -1168,7 +1183,7 @@ class plot():
 							show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None,fig=None,y1rng=None,y2rng=None,
 							fx=None,fy1=None,fy2=None,
 							show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
-							y1linelabel=None):
+							y1linelabel=None,show_core_loc=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1222,6 +1237,12 @@ class plot():
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x,y,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
+	
+	
+		if show_core_loc:
+			self._plotCoreLoc(m,ax,xaxis,x,ax.get_ylim()[0],ax.get_ylim()[1])
+	
+	
 	
 		if y2 is not None:
 			try:
