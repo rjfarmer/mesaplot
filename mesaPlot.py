@@ -1480,9 +1480,6 @@ class plot():
 		b2=np.copy(burnZones.T)
 		b1[b1<0.0]=np.nan
 		b2[b2>0.0]=np.nan
-
-		
-		newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
 		
 		#im2=ax.imshow(b2,cmap=plt.get_cmap('Purples_r'),extent=extent,interpolation='nearest',origin='lower',aspect='auto')
 		if cmin is None:
@@ -1495,8 +1492,13 @@ class plot():
 		else:
 			vmax=cmax
 			
-		vmax=np.maximum(np.abs(vmax),np.abs(vmin))
-		vmin=-vmax
+		if vmin < 0:
+			vmax=np.maximum(np.abs(vmax),np.abs(vmin))
+			vmin=-vmax
+			newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
+		else:
+			vmin=0
+			newCm=burnMap[-1]
 
 		im1=ax.imshow(burnZones.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
 		bb=0
