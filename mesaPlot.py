@@ -740,7 +740,7 @@ class plot():
 		for cm,cc in zip(coreMasses,coreCol):
 			#Find cell where we have core mass and use that to index the actual x axis
 			pos = bisect.bisect_right(m.prof_dat["mass"][::-1], m.prof_head[cm])
-			print(cm,pos,m.prof_head[cm],np.size(m.prof_dat['mass'])-pos,m.prof_dat['mass'][np.size(m.prof_dat['mass'])-pos])
+			#print(cm,pos,m.prof_head[cm],np.size(m.prof_dat['mass'])-pos,m.prof_dat['mass'][np.size(m.prof_dat['mass'])-pos])
 			pos=np.size(m.prof_dat['mass'])-pos
 			ax.plot([m.prof_dat[xaxis][pos],m.prof_dat[xaxis][pos]],[ymin,ymax],'--',color=cc)
 			xp1=m.prof_dat[xaxis][pos]
