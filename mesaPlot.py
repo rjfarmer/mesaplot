@@ -840,6 +840,32 @@ class plot():
 					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
 			fig=plt.figure()
+			
+		ax1_1=fig.add_subplot(231)
+		ax1_2=fig.add_subplot(234)
+		
+		ax2_t1=fig.add_subplot(233)
+		ax2_t2=fig.add_subplot(236)
+		
+		ax2_1=ax2_t1.twinx()
+		ax2_2=ax2_t2.twinx()
+		
+		for i in [ax1_1,ax1_2,ax2_1,ax2_2,ax2_t1,ax2_t2]:
+			i.spines['top'].set_visible(False)
+			i.spines['right'].set_visible(False)
+			i.spines['bottom'].set_visible(False)
+			i.spines['left'].set_visible(False)
+			i.yaxis.set_major_locator(plt.NullLocator())
+			i.xaxis.set_major_locator(plt.NullLocator())
+			i.yaxis.set_minor_locator(plt.NullLocator())
+			i.xaxis.set_minor_locator(plt.NullLocator())
+			i.patch.set_facecolor('None')
+		
+		ax1_1.plot(0,0,c='w')
+		ax1_2.plot(0,0,c='w')
+		ax2_1.plot(0,0,c='w')
+		ax2_2.plot(0,0,c='w')
+		
 		if ax==None:
 			ax=fig.add_subplot(111)
 	
@@ -853,20 +879,20 @@ class plot():
 		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 		
 		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
-		ax.plot(x,m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2,c='g')
+		ax.plot(x,m.prof_dat['dynamo_log_B_r'],linewidth=2,c='g')
 		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax.plot(x,m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2,c='b')
+		ax.plot(x,m.prof_dat['dynamo_log_B_phi'],linewidth=2,c='b')
 		
-		ax.set_xlabel()
+		scale=2.1
+		ax1_1.set_ylabel(r'$B_r$',color='g', labelpad=scale*mpl.rcParams['font.size'])
+		ax1_2.set_ylabel(r'$B_{\phi}$',color='b', labelpad=scale*mpl.rcParams['font.size'])
+
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
-		
-		if legend:
-			ax.legend(loc=0)
 
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self._setTicks(ax)
@@ -885,9 +911,36 @@ class plot():
 					show_title_name=False,show_title_model=False,show_title_age=False):
 		if fig==None:
 			fig=plt.figure()
+			
+		ax1_1=fig.add_subplot(231)
+		ax1_2=fig.add_subplot(234)
+		
+		ax2_t1=fig.add_subplot(233)
+		ax2_t2=fig.add_subplot(236)
+		
+		ax2_1=ax2_t1.twinx()
+		ax2_2=ax2_t2.twinx()
+		
+		for i in [ax1_1,ax1_2,ax2_1,ax2_2,ax2_t1,ax2_t2]:
+			i.spines['top'].set_visible(False)
+			i.spines['right'].set_visible(False)
+			i.spines['bottom'].set_visible(False)
+			i.spines['left'].set_visible(False)
+			i.yaxis.set_major_locator(plt.NullLocator())
+			i.xaxis.set_major_locator(plt.NullLocator())
+			i.yaxis.set_minor_locator(plt.NullLocator())
+			i.xaxis.set_minor_locator(plt.NullLocator())
+			i.patch.set_facecolor('None')
+		
+		
+		ax1_1.plot(0,0,c='w')
+		ax1_2.plot(0,0,c='w')
+		ax2_1.plot(0,0,c='w')
+		ax2_2.plot(0,0,c='w')
+		
 		if ax==None:
 			ax=fig.add_subplot(111)
-			
+	
 		ax2=ax.twinx()
 	
 		if model is not None:
@@ -909,14 +962,20 @@ class plot():
 		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
 		ax2.plot(m.prof_dat[xaxis],np.log10(m.prof_dat['j_rot'])-20.0,'--',label=r'$\log_{10} j [10^{20}]$',linewidth=2,c='k')
 
+
+		scale=2.1
+		ax1_1.set_ylabel(r'$B_r$',color='g', labelpad=scale*mpl.rcParams['font.size'])
+		ax1_2.set_ylabel(r'$B_{\phi}$',color='b', labelpad=scale*mpl.rcParams['font.size'])
+		ax2_1.set_ylabel(r'$\log_{10} \omega$',color='r', labelpad=scale*mpl.rcParams['font.size'])
+		ax2_2.set_ylabel(r'$\log_{10} j [10^{20}]$',color='k', labelpad=scale*mpl.rcParams['font.size'])
+
+
 		if show_burn:
 			self._plotBurnRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,m.prof_dat[xaxis],m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 		
-		if legend:
-			ax.legend(loc=0)
 
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self._setTicks(ax)
