@@ -838,9 +838,11 @@ class plot():
 		x,xrngL,mInd=self._setXAxis(m,m.prof_dat[xaxis],xmin,xmax,fx)
 		
 		#ind=(m.prof_dat['dynamo_log_B_r']>-90)
-		ax.plot(x,m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2)
+		ax.plot(x,m.prof_dat['dynamo_log_B_r'],label=r'$B_r$',linewidth=2,c='g')
 		#ind=mInd&(m.prof_dat['dynamo_log_B_phi']>-90)
-		ax.plot(x,m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2)
+		ax.plot(x,m.prof_dat['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2,c='b')
+		
+		ax.set_xlabel()
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,m.prof_dat['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
