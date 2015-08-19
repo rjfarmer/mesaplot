@@ -7,7 +7,7 @@ m.loadHistory()
 p=mp.plot()
 
 fig=plt.figure(figsize=(12,10))
-ax=fig.add_subplot(1)
+ax=fig.add_subplot(111)
 
 #Simply plot
 p.plotKip(m,fig=fig,ax=ax,show=False)

@@ -1604,7 +1604,7 @@ class plot():
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		
 		#Add line at outer mass location
-		ax.plot(np.linspace(ax.get_xlim()[0],ax.get_xlim()[1],np.size(m.hist_dat['star_mass'])),m.hist_dat['star_mass'],c='k')
+		ax.plot(m.hist_dat['model_number'][modInd],m.hist_dat['star_mass'][modInd],c='k')
 		
 		if show:
 			plt.show()
