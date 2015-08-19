@@ -1192,11 +1192,14 @@ class plot():
 		else:
 			ax.set_xlim(xrngL)
 
-
+		y=m.prof_dat[y1][mInd]
+		if fy1 is not None:
+			y=fy1(y)
+			
 		if y1L=='log':
-			y=np.log10(m.prof_dat[y1][mInd])
+			y=np.log10(y)
 		else:
-			y=m.prof_dat[y1][mInd]
+			y=y
 		if xL=='log':
 			x=np.log10(x[mInd])
 		else:
@@ -1223,10 +1226,14 @@ class plot():
 		if y2 is not None:
 			try:
 				ax2 = ax.twinx()
+				y=m.prof_dat[y2][mInd]
+				if fy2 is not None:
+					y=fy2(y)
+					
 				if y2L=='log':
-					y=np.log10(m.prof_dat[y2][mInd])
+					y=np.log10(y)
 				else:
-					y=m.prof_dat[y2][mInd]
+					y=y
 				if xL=='log':
 					x=np.log10(m.prof_dat[xaxis][mInd])
 				else:
@@ -1324,7 +1331,7 @@ class plot():
 			try:
 				ax2 = ax.twinx()
 				y=m.hist_dat[y2][modelIndex][mInd]
-				if fy1 is not None:
+				if fy2 is not None:
 					y=fy2(y)
 
 				if y2L=='log':
