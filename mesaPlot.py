@@ -786,80 +786,9 @@ class plot():
 			plt.show()
 			
 
-	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=None,
-						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
-					show_title_name=False,show_title_model=False,show_title_age=False):
-		if fig==None:
-			fig=plt.figure()
-			
-		ax1_1=fig.add_subplot(231)
-		ax1_2=fig.add_subplot(234)
-		
-		ax2_t1=fig.add_subplot(233)
-		ax2_t2=fig.add_subplot(236)
-		
-		ax2_1=ax2_t1.twinx()
-		ax2_2=ax2_t2.twinx()
-		
-		for i in [ax1_1,ax1_2,ax2_1,ax2_2,ax2_t1,ax2_t2]:
-			i.spines['top'].set_visible(False)
-			i.spines['right'].set_visible(False)
-			i.spines['bottom'].set_visible(False)
-			i.spines['left'].set_visible(False)
-			i.yaxis.set_major_locator(plt.NullLocator())
-			i.xaxis.set_major_locator(plt.NullLocator())
-			i.yaxis.set_minor_locator(plt.NullLocator())
-			i.xaxis.set_minor_locator(plt.NullLocator())
-			i.patch.set_facecolor('None')
-		
-		ax1_1.plot(0,0,c='w')
-		ax1_2.plot(0,0,c='w')
-		ax2_1.plot(0,0,c='w')
-		ax2_2.plot(0,0,c='w')
-		
-		if ax==None:
-			ax=fig.add_subplot(111)
-	
-		if model is not None:
-			try:
-				if m.prof.head["model_number"]!=model:
-					m.loadProfile(num=int(model))
-			except:
-				m.loadProfile(num=int(model))
-			
-		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
-		
-		#ind=(m.prof.data['dynamo_log_B_r']>-90)
-		ax.plot(x,m.prof.data['dynamo_log_B_r'],linewidth=2,c='g')
-		#ind=mInd&(m.prof.data['dynamo_log_B_phi']>-90)
-		ax.plot(x,m.prof.data['dynamo_log_B_phi'],linewidth=2,c='b')
-		
-		scale=2.1
-		ax1_1.set_ylabel(r'$B_r$',color='g', labelpad=scale*mpl.rcParams['font.size'])
-		ax1_2.set_ylabel(r'$B_{\phi}$',color='b', labelpad=scale*mpl.rcParams['font.size'])
-
-
-		if show_burn:
-			self._plotBurnRegions(m,ax,x,m.prof.data['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
-
-		if show_mix:
-			self._plotMixRegions(m,ax,x,m.prof.data['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
-
-		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
-		self._setTicks(ax)
-		ax.set_xlim(xrngL)
-		self._setYLim(ax,ax.get_ylim(),yrng)
-		#ax.set_title("Dynamo Model")
-		
-		if show_title_name or show_title_model or show_title_age:
-			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Dynamo',m.prof.head["model_number"],m.prof.head["star_age"])
-		
-		if show:
-			plt.show()
-
 	def plotDynamo2(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=None,y2rng=None,
 						show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
-					show_title_name=False,show_title_model=False,show_title_age=False):
+					show_title_name=False,show_title_model=False,show_title_age=False,show_rotation=True):
 		if fig==None:
 			fig=plt.figure()
 			
@@ -908,17 +837,19 @@ class plot():
 		#ind=mInd&(m.prof.data['dynamo_log_B_phi']>-90)
 		ax.plot(m.prof.data[xaxis],m.prof.data['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2,c='b')
 		
-		#ind=(m.prof.data['dynamo_log_B_r']>-90)
-		ax2.plot(m.prof.data[xaxis],np.log10(m.prof.data['omega']),'--',label=r'$\log_{10} \omega$',linewidth=2,c='r')
+		if show_rotation:
+         ax2.plot(m.prof.data[xaxis],np.log10(m.prof.data['omega']),'--',label=r'$\log_{10} \omega$',linewidth=2,c='r')
 		#ind=mInd&(m.prof.data['dynamo_log_B_phi']>-90)
-		ax2.plot(m.prof.data[xaxis],np.log10(m.prof.data['j_rot'])-20.0,'--',label=r'$\log_{10} j [10^{20}]$',linewidth=2,c='k')
+         ax2.plot(m.prof.data[xaxis],np.log10(m.prof.data['j_rot'])-20.0,'--',label=r'$\log_{10} j [10^{20}]$',linewidth=2,c='k')
 
 
 		scale=2.1
 		ax1_1.set_ylabel(r'$B_r$',color='g', labelpad=scale*mpl.rcParams['font.size'])
 		ax1_2.set_ylabel(r'$B_{\phi}$',color='b', labelpad=scale*mpl.rcParams['font.size'])
-		ax2_1.set_ylabel(r'$\log_{10} \omega$',color='r', labelpad=scale*mpl.rcParams['font.size'])
-		ax2_2.set_ylabel(r'$\log_{10} j [10^{20}]$',color='k', labelpad=scale*mpl.rcParams['font.size'])
+		
+		if show_rotation:
+         ax2_1.set_ylabel(r'$\log_{10} \omega$',color='r', labelpad=scale*mpl.rcParams['font.size'])
+         ax2_2.set_ylabel(r'$\log_{10} j [10^{20}]$',color='k', labelpad=scale*mpl.rcParams['font.size'])
 
 
 		if show_burn:
