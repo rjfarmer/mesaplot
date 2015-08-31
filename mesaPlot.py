@@ -708,7 +708,9 @@ class plot(object):
          ax.set_title(s,loc="left",fontsize=fontOther)
          
 
-   def _plotAnnotatedLine(self,ax,x,y,fy,xmin,xmax,ymin=None,ymax=None,annotate_line=False,label='',points=False,xlog=False,ylog=False,xrev=False,yrev=False,linecol=None,linewidth=2,num_labels=5):
+   def _plotAnnotatedLine(self,ax,x,y,fy,xmin,xmax,ymin=None,ymax=None,annotate_line=False,label='',
+                          points=False,xlog=False,ylog=False,xrev=False,yrev=False,linecol=None,
+                          linewidth=2,num_labels=5):
          if xlog:
             x=np.log10(x)
          if ylog:
@@ -779,7 +781,9 @@ class plot(object):
       
       
       for i in abun_list:
-         self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels)
+         self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
+                                 ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
+                                 label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels)
            
       if show_burn:
          self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng,ind=mInd)
@@ -902,7 +906,10 @@ class plot(object):
 
       for i in m.prof.data_names:         
          if "am_log_D" in i:
-            self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,label=r"$D_{"+i.split('_')[3]+"}$",points=points,ylog=True,num_labels=num_labels)
+            self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
+                                    ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
+                                    label=r"$D_{"+i.split('_')[3]+"}$",points=points,
+                                    ylog=True,num_labels=num_labels)
 
       if show_burn:
          self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
@@ -948,7 +955,9 @@ class plot(object):
       plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
          
       for i in burn_list:
-         self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels)
+         self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
+                                 xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
+                                 label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels)
 
       
       if show_burn:
@@ -991,7 +1000,10 @@ class plot(object):
       plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
          
       for i in mix_list:
-         self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,label=i.split('_')[1],points=points,ylog=True,num_labels=num_labels)
+         self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
+                                 xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
+                                 annotate_line=annotate_line,label=i.split('_')[1],
+                                 points=points,ylog=True,num_labels=num_labels)
       
       if show_burn:
          self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
@@ -1027,7 +1039,10 @@ class plot(object):
       plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
          
       for i in burn_list:
-         self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels)
+         self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
+                                 xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
+                                 annotate_line=annotate_line,label=self.safeLabel(None,i),
+                                 points=points,ylog=True,num_labels=num_labels)
 
       if show_burn:
          self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
@@ -1070,7 +1085,10 @@ class plot(object):
          
       for i in abun_list:
          y=m.hist.data["log_total_mass_"+i][mInd]
-         self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy,xmin=xrngL[0],xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels)
+         self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy,xmin=xrngL[0],
+                                 xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
+                                 annotate_line=annotate_line,label=self.safeLabel(None,i),
+                                 points=points,ylog=True,num_labels=num_labels)
 
 
       if show_burn:
@@ -1086,10 +1104,12 @@ class plot(object):
          plt.show()
 
 
-   def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,xlog=False,y1log=False,y2log=False,y1col='b',
+   def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,
+                   xlog=False,y1log=False,y2log=False,y1col='b',
                      y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
                      show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
-                     show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,y1Textcol=None,y2Textcol=None,fig=None,y1rng=[None,None],y2rng=[None,None],
+                     show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,
+                     y1Textcol=None,y2Textcol=None,fig=None,y1rng=[None,None],y2rng=[None,None],
                      fx=None,fy1=None,fy2=None,
                      show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
                      y1linelabel=None,show_core_loc=False):
@@ -1108,7 +1128,10 @@ class plot(object):
       x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
       
       y=m.prof.data[y1][mInd]
-      self._plotAnnotatedLine(ax=ax,x=x[mInd],y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],ymin=y1rng[0],ymax=y1rng[1],annotate_line=False,label=self.safeLabel(y1label,y1),points=points,xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col)
+      self._plotAnnotatedLine(ax=ax,x=x[mInd],y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
+                              ymin=y1rng[0],ymax=y1rng[1],annotate_line=False,
+                              label=self.safeLabel(y1label,y1),points=points,
+                              xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col)
       
       if y1Textcol is None:
          y1labcol=y1col
@@ -1134,7 +1157,10 @@ class plot(object):
       if y2 is not None:
          try:
             y=m.prof.data[y2][mInd]
-            self._plotAnnotatedLine(ax,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],annotate_line=False,label=self.safeLabel(y1label,y1),points=points,xlog=xlog,ylog=y2log,xrev=xrev,yrev=y2rev,linecol=y2col)  
+            self._plotAnnotatedLine(ax,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
+                                    annotate_line=False,label=self.safeLabel(y1label,y1),
+                                    points=points,xlog=xlog,ylog=y2log,xrev=xrev,
+                                    yrev=y2rev,linecol=y2col)  
    
             if y2Textcol is None:
                y2labcol=y2col
@@ -1180,9 +1206,13 @@ class plot(object):
       if show:
          plt.show()
 
-   def plotHistory(self,m,xaxis='model_number',y1='star_mass',y2=None,show=True,ax=None,xmin=None,xmax=None,xlog=False,y1log=False,y2log=False,y1col='b',y2col='r',
-                     minMod=0,maxMod=-1,xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,fig=None,y1rng=[None,None],y2rng=[None,None],
-                     fx=None,fy1=None,fy2=None):
+   def plotHistory(self,m,xaxis='model_number',y1='star_mass',y2=None,show=True,
+                   ax=None,xmin=None,xmax=None,xlog=False,y1log=False,
+                   y2log=False,y1col='b',y2col='r',minMod=0,maxMod=-1,xrev=False,
+                   y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,
+                   y2label=None,fig=None,y1rng=[None,None],y2rng=[None,None],
+                   fx=None,fy1=None,fy2=None):
+      
       if fig==None:
          fig=plt.figure()
       if ax==None:
@@ -1195,7 +1225,10 @@ class plot(object):
       x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
          
       y=m.hist.data[y1][modelIndex][mInd]
-      self._plotAnnotatedLine(ax=ax,x=x[mInd],y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],ymin=y1rng[0],ymax=y1rng[1],annotate_line=False,label=self.safeLabel(y1label,y1),points=points,xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col)
+      self._plotAnnotatedLine(ax=ax,x=x[mInd],y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
+                              ymin=y1rng[0],ymax=y1rng[1],annotate_line=False,
+                              label=self.safeLabel(y1label,y1),points=points,
+                              xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col)
       
       self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1log)
 
@@ -1204,7 +1237,10 @@ class plot(object):
          try:
             ax2 = ax.twinx()
             y=m.hist.data[y2][modelIndex][mInd]
-            self._plotAnnotatedLine(ax,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],annotate_line=False,label=self.safeLabel(y1label,y1),points=points,xlog=xlog,ylog=y2log,xrev=xrev,yrev=y2rev,linecol=y2col)  
+            self._plotAnnotatedLine(ax,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],
+                                    y2rng[1],annotate_line=False,
+                                    label=self.safeLabel(y1label,y1),points=points,
+                                    xlog=xlog,ylog=y2log,xrev=xrev,yrev=y2rev,linecol=y2col)  
          except:
             pass
 
@@ -1340,7 +1376,8 @@ class plot(object):
          vmin=0
          newCm=burnMap[-1]
 
-      im1=ax.imshow(burnZones.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
+      im1=ax.imshow(burnZones.T,cmap=newCm,extent=extent,interpolation='nearest',
+                    origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
       bb=0
 
       
@@ -1425,7 +1462,8 @@ class plot(object):
    def plotHR(self,m,minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,fig=None,points=None):
       self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1log=False,minMod=minMod,
                         maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=False,ax=ax,y1col='k',
-                        xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True),fig=fig,y1rng=None,y2rng=None,points=points)
+                        xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True),
+                        fig=fig,y1rng=None,y2rng=None,points=points)
    
    def mergeCmaps(self,cmaps,rng=[[0.0,0.5],[0.5,1.0]]):
       """
@@ -1450,10 +1488,11 @@ class plot(object):
 
       return mpl.colors.LinearSegmentedColormap('colormap',cdict,1024)
       
-   def stackedPlots(self,m,typ='profile',num=1,model=None,xaxis='mass',show=True,fig=None,ax=None,xmin=None,xmax=None,xlog=False,xlabel=None,
-                        xrev=False,y1rev=[],y2rev=[],points=False,minMod=0,maxMod=-1,
-                        y1=[],y2=[],y1log=[],y2log=[],y1col=[],
-                        y2col=[],y1label=[],y2label=[]):
+   def stackedPlots(self,m,typ='profile',num=1,model=None,xaxis='mass',show=True,
+                    fig=None,ax=None,xmin=None,xmax=None,xlog=False,xlabel=None,
+                     xrev=False,y1rev=[],y2rev=[],points=False,minMod=0,maxMod=-1,
+                     y1=[],y2=[],y1log=[],y2log=[],y1col=[],
+                     y2col=[],y1label=[],y2label=[]):
       if num<2:
          raise(ValueError,'num must be >=2')
       
@@ -1497,7 +1536,11 @@ class plot(object):
       if show:
          plt.show()
 
-   def plotMultiProfiles(self,m,mods=None,index=None,xaxis='mass',y1='',show=True,ax=None,xmin=None,xmax=None,xlog=False,y1log=False,cmap=plt.cm.gist_ncar,xrev=False,y1rev=False,points=False,xlabel=None,y1label=None,fig=None,show_mix=False,show_burn=True):
+   def plotMultiProfiles(self,m,mods=None,index=None,xaxis='mass',y1='',show=True,
+                         ax=None,xmin=None,xmax=None,xlog=False,y1log=False,
+                         cmap=plt.cm.gist_ncar,xrev=False,y1rev=False,
+                         points=False,xlabel=None,y1label=None,fig=None,
+                         show_mix=False,show_burn=True):
       """Plots mulitple profiles either given as a list of mod numbers or an index over the history data"""
       if fig==None:
          fig=plt.figure()
@@ -1508,15 +1551,18 @@ class plot(object):
          cm=[cmap(i) for i in np.linspace(0.0,0.9,len(mods))]
          for i in range(len(mods)):
             model=mods[i]
-            self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,fig=fig,xmin=xmin,xmax=xmax,xlog=xlog,xlabel=xlabel,
+            self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,fig=fig,
+                             xmin=xmin,xmax=xmax,xlog=xlog,xlabel=xlabel,
                            xrev=xrev,y1rev=y1rev,points=points,
                            y1=y1,y1log=y1log,y1col='k',
-                           y1label=y1label,show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True)
+                           y1label=y1label,show_mix=show_mix,show_burn=show_burn,
+                           show_mix_line=True,show_burn_line=True)
       elif index is not None:
          cm=[cmap(i) for i in np.linspace(0.0,0.9,np.count_nonzero(index))]
          for i in m.hist.data["model_number"][index]:
             model=m.hist.data["model_number"][index][i]
-            self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,xmin=xmin,xmax=xmax,xlog=xlog,xlabel=xlabel,
+            self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,xmin=xmin,
+                             xmax=xmax,xlog=xlog,xlabel=xlabel,
                            xrev=xrev,y1rev=y1rev,points=points,
                            y1=y1,y1log=y1log,y1col=cm[i],
                            y1label=y1label,fig=fig) 
@@ -1541,7 +1587,8 @@ class plot(object):
       ax=plt.subplot(2,4,6)
       self.plotHistory(m,ax=ax,show=False,xaxis='log_center_T',y1='log_center_Rho',y1L='linear',
                         minMod=0,maxMod=m.prof.head['model_number'],y1col='k',
-                        xlabel=self.labels('teff',log=True,center=True),y1label=self.labels('rho',log=True,center=True))
+                        xlabel=self.labels('teff',log=True,center=True),
+                        y1label=self.labels('rho',log=True,center=True))
       
       ax=plt.subplot(1,2,2)
       self.plotAbun(m,ax=ax,show=False,xlabel=self.labels('mass'))
