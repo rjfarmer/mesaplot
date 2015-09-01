@@ -9,8 +9,8 @@ p=mp.plot()
 
 fig=plt.figure(figsize=(12,10))
 ax=fig.add_subplot(111)
-p.plotDynamo(m,yrng=[0,10],fig=fig,ax=ax)
+p.plotDynamo(m,yrng=[0,10],fig=fig,ax=ax,show_rotation=False)
 
 fig=plt.figure(figsize=(12,10))
 ax=fig.add_subplot(111)
-p.plotDynamo2(m,y1rng=[0,10],fig=fig,ax=ax)
+p.plotDynamo(m,y1rng=[0,10],fig=fig,ax=ax,show_rotation=True)

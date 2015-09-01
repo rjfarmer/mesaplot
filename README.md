@@ -39,6 +39,9 @@ Which will create a file "LOGS/history.data.scrubbed" if you don't want that the
 m.scrubHistory(fileOut='newFile')
 ````
 
+Data can be accessed as m.hist.data['COLUMN_NAME'] or m.hist.COLUMN_NAME. The second option is 
+also tab completable. The header information is either m.hist.head['COL_NAME'] or m.hist.COL_NAME.
+
 ### Profile files
 To load a profile file its:
 ````python
@@ -58,6 +61,9 @@ m.loadProfile(num=MODEL_NUMBER,mode='first|lower|upper|nearest')
 ````
 This is for when the model you want isn't in the data. Either we load the first model, the model just before the one you, the model just after the one you want or the nearest (above or below) the model you want.
 There are also two special model numbers 0 for first model we have and -1 for the last.
+
+Data can be accessed as m.prof.data['COLUMN_NAME'] or m.prof.COLUMN_NAME. The second option is 
+also tab completable. The header information is either m.prof.head['COL_NAME'] or m.prof.COL_NAME.
 
 ### Mod files
 To load a mod file its:
@@ -88,9 +94,9 @@ ax=None #A axis instance, useful for grid plotting, see later on
 fig=None # Pass a fig instance
 xmin=None #min x value to show
 xmax=None #max x value to show
-xL='linear' #Whether axis should be linear or log10 (if the axis is already a log quantity then leave as linear)
-y1L='linear' #Whether axis should be linear or log10 (if the axis is already a log quantity then leave as linear)
-y2L='linear' #Whether axis should be linear or log10 (if the axis is already a log quantity then leave as linear)
+xlog=False #Whether axis should be linear or log10 (if the axis is already a log quantity then leave as linear)
+y1log=False #Whether axis should be linear or log10 (if the axis is already a log quantity then leave as linear)
+y2log=False #Whether axis should be linear or log10 (if the axis is already a log quantity then leave as linear)
 y1col='b' #Colour of line (as well as the axis label)
 y2col='r' #Colour of line (as well as the axis label)
 minMod=0 #For history plots minimum model number to show
