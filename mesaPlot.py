@@ -62,7 +62,12 @@ class data(object):
       return x
    
    def __dir__(self):
-      return self.head_names + self.data_names
+      x=''
+      if len(self.head_names)>0:
+         x=x+self.head_names
+      if len(self.data_names)>0:
+         x=x+self.data_names
+      return x
 
    def loadFile(self,filename):
       numLines=self._filelines(filename)
@@ -676,19 +681,19 @@ class plot(object):
                      xytext=(7.1, 5.1),color=self.colors['clr_Gray'],
                      fontsize=mpl.rcParams['font.size']-12)
       
-   def _plotCoreLoc(self,data,ax,xaxis,x,ymin,ymax):
-      coreMasses=['he_core_mass','c_core_mass','o_core_mass','si_core_mass','fe_core_mass']
-      coreCol=['k','k','k','k','k']
+   def _plotCoreLoc(self,prof,ax,xaxis,x,ymin,ymax,linecol='k',coreMasses=None):
+      if coreMasses is None:
+         coreMasses=['he_core_mass','c_core_mass','o_core_mass','si_core_mass','fe_core_mass']
       
-      for cm,cc in zip(coreMasses,coreCol):
+      for cm in coreMasses:
          #Find cell where we have core mass and use that to index the actual x axis
-         pos = bisect.bisect_right(m.prof.data["mass"][::-1], m.prof.head[cm])
-         #print(cm,pos,m.prof.head[cm],np.size(m.prof.data['mass'])-pos,m.prof.data['mass'][np.size(m.prof.data['mass'])-pos])
-         pos=np.size(m.prof.data['mass'])-pos
-         ax.plot([m.prof.data[xaxis][pos],m.prof.data[xaxis][pos]],[ymin,ymax],'--',color=cc)
-         xp1=m.prof.data[xaxis][pos]
-         yp1=0.95*(ymax-ymin)+ymin
-         ax.annotate(cm.split('_')[0], xy=(xp1,yp1), xytext=(xp1,yp1),color=cc,fontsize=mpl.rcParams['font.size']-12)
+         pos = bisect.bisect_right(prof.data["mass"][::-1], prof.head[cm])
+         if pos < np.size(prof.data[xaxis]) and pos > 0 and prof.head[cm] >0.0:
+            pos=np.size(prof.data['mass'])-pos
+            ax.plot([prof.data[xaxis][pos],prof.data[xaxis][pos]],[ymin,ymax],'--',color=linecol)
+            xp1=prof.data[xaxis][pos]
+            yp1=0.95*(ymax-ymin)+ymin
+            ax.annotate(cm.split('_')[0], xy=(xp1,yp1), xytext=(xp1,yp1),color=linecol,fontsize=mpl.rcParams['font.size']-12)
       
       
       
