@@ -706,27 +706,26 @@ class plot(object):
 
 		total_num=len(labels)
 		
-		if colors==None:
+		if colors is None:
 			colors=['k']
 			colors=colors*total_num
 		
-		if num_left==0:
-			num_left=total_num
 		scale=2.5
-		for i in range(num_left):
-			axis=fig.add_subplot(num_left,3,(i*3)+1)
-			axis.spines['top'].set_visible(False)
-			axis.spines['right'].set_visible(False)
-			axis.spines['bottom'].set_visible(False)
-			axis.spines['left'].set_visible(False)
-			axis.yaxis.set_major_locator(plt.NullLocator())
-			axis.xaxis.set_major_locator(plt.NullLocator())
-			axis.yaxis.set_minor_locator(plt.NullLocator())
-			axis.xaxis.set_minor_locator(plt.NullLocator())
-			axis.patch.set_facecolor('None')
-			axis.plot(0,0,c='w')
-			scale=2.0
-			axis.set_ylabel(labels[i],color=colors[i], labelpad=85,fontsize=16,backgroundcolor='k')
+		if num_left > 0:
+			for i in range(num_left):
+				axis=fig.add_subplot(num_left,3,(i*3)+1)
+				axis.spines['top'].set_visible(False)
+				axis.spines['right'].set_visible(False)
+				axis.spines['bottom'].set_visible(False)
+				axis.spines['left'].set_visible(False)
+				axis.yaxis.set_major_locator(plt.NullLocator())
+				axis.xaxis.set_major_locator(plt.NullLocator())
+				axis.yaxis.set_minor_locator(plt.NullLocator())
+				axis.xaxis.set_minor_locator(plt.NullLocator())
+				axis.patch.set_facecolor('None')
+				axis.plot(0,0,c='w')
+				scale=2.0
+				axis.set_ylabel(labels[i],color=colors[i], labelpad=85,fontsize=16,backgroundcolor='k')
 			
 		flip=False
 		if num_right > 0:
@@ -743,11 +742,21 @@ class plot(object):
 				axis.xaxis.set_minor_locator(plt.NullLocator())
 				axis.patch.set_facecolor('None')
 				axis.plot(0,0,c='w')
-				axis.set_ylabel(labels[i],color=colors[i], labelpad=85,fontsize=16,backgroundcolor='k')
+				axis2=axis.twinx()
+				axis2.spines['top'].set_visible(False)
+				axis2.spines['right'].set_visible(False)
+				axis2.spines['bottom'].set_visible(False)
+				axis2.spines['left'].set_visible(False)
+				axis2.yaxis.set_major_locator(plt.NullLocator())
+				axis2.xaxis.set_major_locator(plt.NullLocator())
+				axis2.yaxis.set_minor_locator(plt.NullLocator())
+				axis2.xaxis.set_minor_locator(plt.NullLocator())
+				axis2.patch.set_facecolor('None')
+				axis2.set_ylabel(labels[i],color=colors[i], labelpad=85,fontsize=16,backgroundcolor='k')
 			
 		
 	def _addMixLabelsAxis(self,fig):
-		self._addExtraLabelsToAxis(fig,labels=self.mix_names,colors=self.mix_col,num_left=len(self.mix_names),num_right=0)
+		self._addExtraLabelsToAxis(fig,labels=self.mix_names,colors=self.mix_col,num_left=len(self.mix_names))
 		
 	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
 				name=None,model=None,age=None,age_units=None,
