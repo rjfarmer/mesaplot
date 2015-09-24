@@ -157,7 +157,7 @@ class MESA(object):
 	
 		
 	def loadProfile(self,f='',num=None,prof=-1,mode='nearest'):
-		if num==None:
+		if num==None and prof==-1:
 			self._readProfile(f) #f is a filename
 			return
 		
