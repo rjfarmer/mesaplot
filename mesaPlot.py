@@ -1531,16 +1531,31 @@ class plot(object):
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=-4.0,xmax=10.0,fig=None,yrng=[3.0,10.0],
 				show_burn=False,show_mix=False,
-				showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,showGamma=False,showEOS=False):
+				showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,
+				showGamma=False,showEOS=False,logT=False,logRho=False,
+				ycol='k'):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
 			ax=fig.add_subplot(111)
+			
+			
+		xname='logRho'
+		xlog=False
+		if logRho:
+			xname='rho'
+			xlog=True
+			
+		yname='logT'
+		ylog=False
+		if logT:
+			yname='temperature'
+			ylog=True
 	
-		self.plotProfile(m,xaxis='logRho',y1='logT',y1L='linear',model=model,show=False,
+		self.plotProfile(m,xaxis=xname,y1=yname,y1log=ylog,xlog=xlog,model=model,show=False,
 							show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,
-							xmin=xmin,xmax=xmax,ax=ax,y1col='k',y1label=self.labels('teff',log=True),
-							xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None)
+							xmin=xmin,xmax=xmax,ax=ax,y1label=self.labels('teff',log=True),
+							xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col=ycol)
 
 		if showBurn or showAll:
 			self._showBurnData(ax)
