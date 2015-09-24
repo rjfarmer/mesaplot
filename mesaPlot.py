@@ -781,7 +781,9 @@ class plot(object):
 				axis2.yaxis.set_minor_locator(plt.NullLocator())
 				axis2.xaxis.set_minor_locator(plt.NullLocator())
 				axis2.patch.set_facecolor('None')
-				axis2.set_ylabel(labels[i],color=colors[i], labelpad=85,fontsize=16,backgroundcolor='k')
+				text=axis2.set_ylabel(labels[i],color=colors[i], labelpad=right_pad,fontsize=16)
+				text.set_path_effects([path_effects.Stroke(linewidth=3, foreground='black'),
+                       path_effects.Normal()])
 			
 		
 	def _addMixLabelsAxis(self,fig):
