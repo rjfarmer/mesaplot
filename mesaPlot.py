@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import bisect
 import scipy.interpolate as interpolate
 from matplotlib.ticker import MaxNLocator,AutoMinorLocator
+import matplotlib.patheffects as path_effects
 import os
 import random
 
@@ -700,9 +701,21 @@ class plot(object):
 				xp1=prof.data[xaxis][pos]
 				yp1=0.95*(ymax-ymin)+ymin
 				ax.annotate(cm.split('_')[0], xy=(xp1,yp1), xytext=(xp1,yp1),color=linecol,fontsize=mpl.rcParams['font.size']-12)
+				
+	def _showMassLoc(self,m,fig,ax,x,modInd):
+		coreMasses=['he_core_mass','c_core_mass','o_core_mass','si_core_mass','fe_core_mass']
+		labels=['He','C','O','Si','Fe']
+		col=['clr_Teal','clr_LightOliveGreen','clr_SeaGreen','clr_Lilac','clr_Crimson']
 		
+		for i,j in zip(coreMasses,col):
+			y=m.hist.data[i][modInd]
+			if np.any(y):
+				ax.plot(x,y,color=self.colors[j],linewidth=5)
+				
+		self._addExtraLabelsToAxis(fig,labels,[self.colors[i] for i in col],
+									num_left=0,num_right=len(labels),right_pad=50)
 		
-	def _addExtraLabelsToAxis(self,fig,labels,colors=None,num_left=0,num_right=0):
+	def _addExtraLabelsToAxis(self,fig,labels,colors=None,num_left=0,num_right=0,left_pad=85,right_pad=85):
 
 		total_num=len(labels)
 		
@@ -725,7 +738,9 @@ class plot(object):
 				axis.patch.set_facecolor('None')
 				axis.plot(0,0,c='w')
 				scale=2.0
-				axis.set_ylabel(labels[i],color=colors[i], labelpad=85,fontsize=16,backgroundcolor='k')
+				text=axis.set_ylabel(labels[i],color=colors[i], labelpad=left_pad,fontsize=16)
+				text.set_path_effects([path_effects.Stroke(linewidth=3, foreground='black'),
+                       path_effects.Normal()])
 			
 		flip=False
 		if num_right > 0:
@@ -1493,6 +1508,9 @@ class plot(object):
 		
 		#Add line at outer mass location
 		ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],c='k')
+		
+		if show_mass_loc:
+			self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
 		
 		if show:
 			plt.show()
