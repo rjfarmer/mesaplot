@@ -325,7 +325,6 @@ class plot(object):
 					'clr_LightOliveGreen':[  0.6, 0.8, 0.6],
 					'clr_CadetBlue':[  0.372, 0.62, 0.628],
 					'clr_Beige':[  0.96, 0.96, 0.864]}
-		self._setMixRegionsCol()
 					
 	
 	def _getMESAPath(self):
@@ -447,7 +446,7 @@ class plot(object):
 		return mixList
 
 
-	def _setMixRegionsCol(self):
+	def _setMixRegionsCol(self,kip=False,mix=False):
 		#cmap = mpl.colors.ListedColormap([[0.18, 0.545, 0.34], [0.53, 0.808, 0.98],
 			#[0.96, 0.96, 0.864], [0.44, 0.5, 0.565],[0.8, 0.6, 1.0],
 			#[0.0, 0.4, 1.0],[1.0, 0.498, 0.312],[0.824, 0.705, 0.55]])      
@@ -463,8 +462,10 @@ class plot(object):
 	
 		cmap.set_over((1., 1., 1.))
 		cmap.set_under((0., 0., 0.))
-		#bounds = [-0.01,0.99,1.99,2.99,3.99,4.99,5.99,6.99,7.99,8.99]
-		bounds=[0,1,2,3,4,5,6,7,8,9]
+		if mix:
+			bounds=[0.0,1.01,2.01,3.01,4.01,5.01,6.01,7.01,8.01,9.01]
+		if kip:
+			bounds=[0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0]
 		norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 		return cmap,norm
 		
@@ -517,10 +518,10 @@ class plot(object):
 			yy=y
 			size=60
 	
-		cmap,norm=self._setMixRegionsCol()
+		cmap,norm=self._setMixRegionsCol(mix=True)
 		
 		isSet=None
-		for mixLabel in ['mixing_type','conv_mixing_type']:
+		for mixLabel in ['mixing_type','conv_mixing_type','mlt_mixing_type']:
 			try:
 				col=m.prof.data[mixLabel]
 				isSet=True
@@ -701,7 +702,41 @@ class plot(object):
 		ax.annotate('PC', xy=(7.1, 5.1), 
 						xytext=(7.1, 5.1),color=self.colors['clr_Gray'],
 						fontsize=mpl.rcParams['font.size']-12)
+						
+	def _showBurnMixLegend(self,ax,mix=True,burn=True):
 		
+		label=[]
+		color=[]
+		
+		
+		if burn:
+			label.append(r'$>1\; \rm{erg}^{-1}\;s^{-1}$')
+			color.append(self.colors['clr_Gold'])
+			label.append(r'$>1000\; \rm{erg}^{-1}\;s^{-1}$')
+			color.append(self.colors['clr_Coral'])
+			label.append(r'$>10^7\; \rm{erg}^{-1}\;s^{-1}$')
+			color.append(self.colors['clr_Crimson'])
+
+		if mix:
+			cmap,norm=self._setMixRegionsCol(mix=True)
+			for i,j in zip(self.mix_names,self.mix_col):
+				label.append(i)
+				color.append(j)
+				
+		xlim=ax.get_xlim()
+		ylim=ax.get_ylim()
+		for i,j, in zip(label,color):
+			ax.plot([0,0],[0,0],c='w',label=i,alpha=0.0)
+				
+		leg=ax.legend(framealpha = 0,labelspacing=0.0,numpoints=1,loc=4,handlelength=1)
+		for text,i,j in zip(leg.get_texts(),label,color):
+			plt.setp(text, color = j,fontsize=16)
+			text.set_path_effects([path_effects.Stroke(linewidth=2, foreground='black'),
+                       path_effects.Normal()])
+	
+		ax.set_xlim(xlim)
+		ax.set_ylim(ylim)
+	
 	def _plotCoreLoc(self,prof,ax,xaxis,x,ymin,ymax,linecol='k',coreMasses=None):
 		if coreMasses is None:
 			coreMasses=['he_core_mass','c_core_mass','o_core_mass','si_core_mass','fe_core_mass']
@@ -824,9 +859,9 @@ class plot(object):
 			
 			y[np.logical_not(np.isfinite(y))]=ymin-(ymax-ymin)
 			if linecol is None:
-				line, =ax.plot(x,y,label=label,linewidth=linewidth)
+				line, =ax.plot(x,y,linewidth=linewidth)
 			else:
-				line, =ax.plot(x,y,label=label,c=linecol,linewidth=linewidth)
+				line, =ax.plot(x,y,c=linecol,linewidth=linewidth)
 			if points:
 				ax.scatter(x,y)
 			if annotate_line:
@@ -841,6 +876,8 @@ class plot(object):
 			else:
 				ax.set_ylim(ymin,ymax)
 			self._setTicks(ax)
+	
+			return x,y
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
@@ -1003,16 +1040,16 @@ class plot(object):
 
 		for i in m.prof.data_names:         
 			if "am_log_D" in i:
-				self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
+				px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 										ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
 										label=r"$D_{"+i.split('_')[3]+"}$",points=points,
 										ylog=True,num_labels=num_labels)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
+			self._plotBurnRegions(m,ax,px,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
+			self._plotMixRegions(m,ax,px,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
 
 		if legend:
 			ax.legend(loc=0)
@@ -1052,16 +1089,16 @@ class plot(object):
 		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 			
 		for i in burn_list:
-			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
+			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
 									label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels)
 
 		
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
+			self._plotBurnRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
+			self._plotMixRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
 		
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Burn',m.prof.head["model_number"],m.prof.head["star_age"])
@@ -1097,13 +1134,13 @@ class plot(object):
 		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
 			
 		for i in mix_list:
-			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
+			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=i.split('_')[1],
 									points=points,ylog=True,num_labels=num_labels)
 		
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
+			self._plotBurnRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
 		
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Mixing',m.prof.head["model_number"],m.prof.head["star_age"])
@@ -1225,7 +1262,7 @@ class plot(object):
 		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 		
 		y=m.prof.data[y1][mInd]
-		self._plotAnnotatedLine(ax=ax,x=x[mInd],y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
+		px,py=self._plotAnnotatedLine(ax=ax,x=x[mInd],y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
 								ymin=y1rng[0],ymax=y1rng[1],annotate_line=False,
 								label=self.safeLabel(y1label,y1),points=points,
 								xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col)
@@ -1240,21 +1277,28 @@ class plot(object):
 		self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1log)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
+			self._plotBurnRegions(m,ax,px,py,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,y,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
+			self._plotMixRegions(m,ax,px,py,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
+	
+		if show_burn and show_mix:
+			self._showBurnMixLegend(ax,burn=True,mix=True)
+		elif show_burn and not show_mix:
+			self._showBurnMixLegend(ax,burn=True,mix=False)
+		elif show_mix and not show_burn:
+			self._showBurnMixLegend(ax,burn=False,mix=True)
 	
 	
 		if show_core_loc:
-			self._plotCoreLoc(m,ax,xaxis,x,ax.get_ylim()[0],ax.get_ylim()[1])
+			self._plotCoreLoc(m,ax,xaxis,px,ax.get_ylim()[0],ax.get_ylim()[1])
 	
 	
 		y2_is_valid=False
 		if y2 is not None:
 			try:
 				y=m.prof.data[y2][mInd]
-				self._plotAnnotatedLine(ax,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
+				px,py=self._plotAnnotatedLine(ax,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
 										annotate_line=False,label=self.safeLabel(y1label,y1),
 										points=points,xlog=xlog,ylog=y2log,xrev=xrev,
 										yrev=y2rev,linecol=y2col)  
@@ -1266,9 +1310,9 @@ class plot(object):
 				
 				ax2.set_ylabel(self.safeLabel(y2label,y2), color=y2labcol)
 				if show_burn_2:
-					self._plotBurnRegions(m,ax2,x,y,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
+					self._plotBurnRegions(m,ax2,px,py,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
 				if show_mix_2:
-					self._plotMixRegions(m,ax2,x,y,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
+					self._plotMixRegions(m,ax2,px,py,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
 				
 				y2_is_valid=True
 			except:
@@ -1503,7 +1547,7 @@ class plot(object):
 				
 		mixZones[mixZones==0]=-np.nan
 		
-		mixCmap,mixNorm=self._setMixRegionsCol()
+		mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
 		
 		ax.imshow(mixZones.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto')
 		#ax.contourf(XX,YY,mixZones.T,cmap=cmap,norm=norm,origin='lower')
@@ -1557,7 +1601,7 @@ class plot(object):
 		self.plotProfile(m,xaxis=xname,y1=yname,y1log=ylog,xlog=xlog,model=model,show=False,
 							show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,
 							xmin=xmin,xmax=xmax,ax=ax,y1label=self.labels('teff',log=True),
-							xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col=ycol)
+							xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col='k')
 
 		if showBurn or showAll:
 			self._showBurnData(ax)
