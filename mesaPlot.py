@@ -53,22 +53,36 @@ class data(object):
 		pass
 
 	def __getattr__(self, name):
+		x=None
 		try:
 			x=self.data[name]
 		except:
 			try:
 				x=np.atleast_1d(self.head[name])[0]
 			except:
-				raise ValueError("No value "+name)
-		return x
+				raise AttributeError
+		if x is not None:
+			return x
+		else:
+			raise AttributeError
 	
 	def __dir__(self):
-		x=''
-		if len(self.head_names)>0:
-			x=x+self.head_names
-		if len(self.data_names)>0:
-			x=x+self.data_names
-		return x
+		x=[]
+		try:
+			if len(self.head_names)>0:
+				x=x+list(self.head_names)
+		except:
+			pass
+		try:
+			if len(self.data_names)>0:
+				x=x+list(self.data_names)
+		except:
+			pass
+
+		if len(x)>0:
+			return x
+		else:
+			raise ValueError("Have not loaded file yet")
 
 	def loadFile(self,filename):
 		numLines=self._filelines(filename)
