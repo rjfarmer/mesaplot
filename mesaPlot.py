@@ -29,7 +29,7 @@ import random
 
 mpl.rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
-#mpl.rc('font',**{'family':'serif','serif':['Palatino']})
+#mpl.rc('font',**{'family':'serif','serif':['Palatino']})   
 mpl.rc('text', usetex=True)
 mpl.rc('font',size=32)
 mpl.rc('xtick', labelsize=28) 
@@ -82,7 +82,7 @@ class data(object):
 		if len(x)>0:
 			return x
 		else:
-			raise ValueError("Have not loaded file yet")
+			raise AttributeError
 
 	def loadFile(self,filename):
 		numLines=self._filelines(filename)
@@ -822,6 +822,7 @@ class plot(object):
 			
 		
 	def _addMixLabelsAxis(self,fig):
+		self._setMixRegionsCol(kip=True)
 		self._addExtraLabelsToAxis(fig,labels=self.mix_names,colors=self.mix_col,num_left=len(self.mix_names))
 		
 	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
