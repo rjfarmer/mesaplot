@@ -843,7 +843,7 @@ class plot(object):
 
 	def _plotAnnotatedLine(self,ax,x,y,fy,xmin,xmax,ymin=None,ymax=None,annotate_line=False,label='',
 							points=False,xlog=False,ylog=False,xrev=False,yrev=False,linecol=None,
-							linewidth=2,num_labels=5):
+							linewidth=2,num_labels=5,linestyle='-'):
 			if xlog:
 				x=np.log10(x)
 			if ylog:
@@ -860,9 +860,9 @@ class plot(object):
 			
 			y[np.logical_not(np.isfinite(y))]=ymin-(ymax-ymin)
 			if linecol is None:
-				line, =ax.plot(x,y,linewidth=linewidth)
+				line, =ax.plot(x,y,linestyle=linestyle,linewidth=linewidth)
 			else:
-				line, =ax.plot(x,y,c=linecol,linewidth=linewidth)
+				line, =ax.plot(x,y,linestyle=linestyle,c=linecol,linewidth=linewidth)
 			if points:
 				ax.scatter(x,y)
 			if annotate_line:
@@ -883,7 +883,7 @@ class plot(object):
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True):
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-'):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -918,7 +918,7 @@ class plot(object):
 		for i in abun_list:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 									ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-									label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels)
+									label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels,linestyle=linestyle)
 			
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng,ind=mInd)
@@ -1193,7 +1193,7 @@ class plot(object):
 
 	def plotAbunSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,abun_random=False,points=False,
-				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True):
+				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-'):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1223,7 +1223,7 @@ class plot(object):
 			self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=self.safeLabel(None,i),
-									points=points,ylog=True,num_labels=num_labels)
+									points=points,ylog=True,num_labels=num_labels,linestyle=linestyle)
 
 
 		if show_burn:
