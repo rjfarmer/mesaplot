@@ -586,22 +586,22 @@ class plot(object):
 
 	def _showBurnData(self,ax):
 		self._loadBurnData()
-		ax.plot(self._hburn["logRho"],self._hburn["logT"],c=self.colors['clr_Gray'])
+		ax.plot(self._hburn["logRho"],self._hburn["logT"],color=self.colors['clr_Gray'])
 		ax.annotate('H burn', xy=(self._hburn["logRho"][-1],self._hburn["logT"][-1]), 
 						xytext=(self._hburn["logRho"][-1],self._hburn["logT"][-1]),color=self.colors['clr_Gray'],
 						fontsize=mpl.rcParams['font.size']-12)
 						
-		ax.plot(self._heburn["logRho"],self._heburn["logT"],c=self.colors['clr_Gray'])
+		ax.plot(self._heburn["logRho"],self._heburn["logT"],color=self.colors['clr_Gray'])
 		ax.annotate('He burn', xy=(self._heburn["logRho"][-1],self._heburn["logT"][-1]), 
 						xytext=(self._heburn["logRho"][-1],self._heburn["logT"][-1]),color=self.colors['clr_Gray'],
 						fontsize=mpl.rcParams['font.size']-12)
 						
-		ax.plot(self._cburn["logRho"],self._cburn["logT"],c=self.colors['clr_Gray'])
+		ax.plot(self._cburn["logRho"],self._cburn["logT"],color=self.colors['clr_Gray'])
 		ax.annotate('C burn', xy=(self._cburn["logRho"][-1],self._cburn["logT"][-1]), 
 						xytext=(self._cburn["logRho"][-1],self._cburn["logT"][-1]),color=self.colors['clr_Gray'],
 						fontsize=mpl.rcParams['font.size']-12)
 		
-		ax.plot(self._oburn["logRho"],self._oburn["logT"],c=self.colors['clr_Gray'])
+		ax.plot(self._oburn["logRho"],self._oburn["logT"],color=self.colors['clr_Gray'])
 		ax.annotate('O burn', xy=(self._oburn["logRho"][-1],self._oburn["logT"][-1]), 
 						xytext=(self._oburn["logRho"][-1],self._oburn["logT"][-1]),color=self.colors['clr_Gray'],
 						fontsize=mpl.rcParams['font.size']-12)
@@ -645,26 +645,26 @@ class plot(object):
 		logT7 =   2.3
 		logT8  =  2.2
 		
-		ax.plot([logRho2,logRho7], [logT1,logT1],c=self.colors['clr_LightSkyGreen'])         
-		ax.plot([logRho2,logRho7], [logT2,logT2],c=self.colors['clr_LightSkyGreen'])         
-		ax.plot([logRho2,logRho1], [logT1,logT2],c=self.colors['clr_LightSkyGreen'])         
-		ax.plot([logRho1,logRho1], [logT2,logT3],c=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho2,logRho7], [logT1,logT1],color=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho2,logRho7], [logT2,logT2],color=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho2,logRho1], [logT1,logT2],color=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho1,logRho1], [logT2,logT3],color=self.colors['clr_LightSkyGreen'])         
 
-		ax.plot([logRho4,logRho5], [logT7,logT7],c=self.colors['clr_LightSkyGreen'])         
-		ax.plot([logRho4,logRho5], [logT8,logT8],c=self.colors['clr_LightSkyGreen'])         
-		ax.plot([logRho4,logRho3], [logT8,logT7],c=self.colors['clr_LightSkyGreen'])         
-		ax.plot([logRho6,logRho5], [logT7,logT8],c=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho4,logRho5], [logT7,logT7],color=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho4,logRho5], [logT8,logT8],color=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho4,logRho3], [logT8,logT7],color=self.colors['clr_LightSkyGreen'])         
+		ax.plot([logRho6,logRho5], [logT7,logT8],color=self.colors['clr_LightSkyGreen'])       
 		
-		ax.plot([logRho2,logRho2], [logT2,logT4],c=self.colors['clr_LightSkyGreen'])       
-		ax.plot([logRho3,logRho1], [logT7,logT3],c=self.colors['clr_LightSkyGreen'])       
-		ax.plot([logRho4,logRho2], [logT7,logT4],c=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho2,logRho2], [logT2,logT4],color=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho3,logRho1], [logT7,logT3],color=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho4,logRho2], [logT7,logT4],color=self.colors['clr_LightSkyGreen'])       
 
-		ax.plot([logRho5,logRho5], [logT7,logT6],c=self.colors['clr_LightSkyGreen'])       
-		ax.plot([logRho6,logRho6], [logT7,logT6],c=self.colors['clr_LightSkyGreen'])       
-		ax.plot([logRho5,logRho6], [logT6,logT5],c=self.colors['clr_LightSkyGreen'])     
+		ax.plot([logRho5,logRho5], [logT7,logT6],color=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho6,logRho6], [logT7,logT6],color=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho5,logRho6], [logT6,logT5],color=self.colors['clr_LightSkyGreen'])     
 			
-		ax.plot([logRho6,logRho7], [logT5,logT5],c=self.colors['clr_LightSkyGreen'])       
-		ax.plot([logRho6,logRho7], [logT6,logT6],c=self.colors['clr_LightSkyGreen'])  
+		ax.plot([logRho6,logRho7], [logT5,logT5],color=self.colors['clr_LightSkyGreen'])       
+		ax.plot([logRho6,logRho7], [logT6,logT6],color=self.colors['clr_LightSkyGreen'])  
 		
 		
 		logRho0 = logRho1
@@ -681,15 +681,15 @@ class plot(object):
 		logT4 = 3.4
 		logT5 = 3.3
 
-		ax.plot([logRho0, logRho2],[logT1, logT1],c=self.colors['clr_LightSkyBlue'])          
-		ax.plot([logRho2, logRho4],[logT1, logT3],c=self.colors['clr_LightSkyBlue'])             
-		ax.plot([logRho4, logRho5],[logT3, logT4],c=self.colors['clr_LightSkyBlue'])            
-		ax.plot([logRho5, logRho7],[logT4, logT4],c=self.colors['clr_LightSkyBlue'])             
+		ax.plot([logRho0, logRho2],[logT1, logT1],color=self.colors['clr_LightSkyBlue'])          
+		ax.plot([logRho2, logRho4],[logT1, logT3],color=self.colors['clr_LightSkyBlue'])             
+		ax.plot([logRho4, logRho5],[logT3, logT4],color=self.colors['clr_LightSkyBlue'])            
+		ax.plot([logRho5, logRho7],[logT4, logT4],color=self.colors['clr_LightSkyBlue'])             
 
-		ax.plot([logRho0, logRho1],[logT2, logT2],c=self.colors['clr_LightSkyBlue'])            
-		ax.plot([logRho1, logRho3],[logT2, logT3],c=self.colors['clr_LightSkyBlue'])             
-		ax.plot([logRho3, logRho5],[logT3, logT5],c=self.colors['clr_LightSkyBlue'])             
-		ax.plot([logRho5, logRho7],[logT5, logT5],c=self.colors['clr_LightSkyBlue']) 
+		ax.plot([logRho0, logRho1],[logT2, logT2],color=self.colors['clr_LightSkyBlue'])            
+		ax.plot([logRho1, logRho3],[logT2, logT3],color=self.colors['clr_LightSkyBlue'])             
+		ax.plot([logRho3, logRho5],[logT3, logT5],color=self.colors['clr_LightSkyBlue'])             
+		ax.plot([logRho5, logRho7],[logT5, logT5],color=self.colors['clr_LightSkyBlue']) 
 		
 		ax.annotate('HELM', xy=(8.6,8.6), 
 						xytext=(8.6,8.6),color=self.colors['clr_Gray'],
