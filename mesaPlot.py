@@ -451,11 +451,16 @@ class plot(object):
 			#[0.96, 0.96, 0.864], [0.44, 0.5, 0.565],[0.8, 0.6, 1.0],
 			#[0.0, 0.4, 1.0],[1.0, 0.498, 0.312],[0.824, 0.705, 0.55]])      
 		self.mix_names=['None','Conv','Soften','Over','Semi','Thermo','Rot','Mini','Anon']
-		self.mix_col=[self.colors['clr_SeaGreen'],
-		self.colors['clr_LightSkyBlue'],self.colors['clr_LightSteelBlue'],self.colors['clr_SlateGray'],
-		self.colors['clr_Lilac'],self.colors['clr_Beige'],self.colors['clr_BrightBlue'],
-		self.colors['clr_Coral'],self.colors['clr_Tan'],
-		]
+		self.mix_col=[self.colors['clr_SeaGreen'], #None
+					  self.colors['clr_LightSkyBlue'], #Convection
+					  self.colors['clr_LightSteelBlue'], #Softened convection
+					  self.colors['clr_SlateGray'], # Overshoot
+					  self.colors['clr_Lilac'], #Semi convection
+					  self.colors['clr_Beige'], #Thermohaline
+					  self.colors['clr_BrightBlue'], #Rotation
+					  self.colors['clr_Coral'], #Minimum
+					  self.colors['clr_Tan'] #Anonymous
+					  ]
 		
 		cmap = mpl.colors.ListedColormap(self.mix_col)
 	
