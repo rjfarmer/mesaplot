@@ -24,11 +24,11 @@ This loads up the history file data by default it will look for LOGS/history.dat
 But if you have a different folder to look at then you can either
 
 ````python
-m.log_fold='new_folder'
+m.log_fold='new_folder/LOGS/'
 ````
 or
 ````python
-m.loadHistory(f='new_folder')
+m.loadHistory(f='new_folder/LOGS/')
 ````
 Note this will automatically clean the history data of retries, backups and restarts. To write that data back to disk 
 ````python
