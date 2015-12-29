@@ -29,10 +29,26 @@ import matplotlib.patheffects as path_effects
 import os
 import random
 
-mpl.rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+try:
+   #Can be a problem on mac's
+   mpl.rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+except:
+   pass
 ## for Palatino and other serif fonts use:
 #mpl.rc('font',**{'family':'serif','serif':['Palatino']})   
-mpl.rc('text', usetex=True)
+
+
+try:
+   #Again can be problematic on mac's
+   #TODO: create a flag and fix labels
+   mpl.rc('text', usetex=True)
+   fig=plt.figure()
+   plt.xlabel(r'\log_{10}')
+except:
+   pass
+
+
+
 mpl.rc('font',size=32)
 mpl.rc('xtick', labelsize=28) 
 mpl.rc('ytick', labelsize=28) 
