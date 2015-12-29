@@ -19,6 +19,8 @@ from __future__ import print_function
 import numpy as np
 import mmap
 import matplotlib as mpl
+import matplotlib.colors as colors
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import bisect
 import scipy.interpolate as interpolate
@@ -438,12 +440,19 @@ class plot(object):
 	def _listAbun(self,data):
 		abun_list=[]
 		names=data.data_names
-		for i in names:
+		for j in names:
+			if "log_" in j:
+				i=j[4:]
+				l="log_"
+			else:
+				i=j
+				l=""
 			if len(i)<=5 and len(i)>=2:
 				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
 					if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
-						abun_list.append(i)
-		return abun_list
+						abun_list.append(l+i)
+						lout=l
+		return abun_list,lout
 
 	def _listBurn(self,data):
 		burnList=[]
@@ -887,7 +896,8 @@ class plot(object):
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-'):
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
+				colors=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -907,28 +917,36 @@ class plot(object):
 			x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 
 		if abun is None:
-			abun_list=self._listAbun(m.prof)
+			abun_list,log=self._listAbun(m.prof)
 		else:
 			abun_list=abun
+			log=""
+			
+		abun_log=True
+		if len(log)>0:
+			abun_log=False
 			
 		num_plots=len(abun_list)
 		#Helps when we have many elements not on the plot that stretch the colormap
 		if abun_random:
 			random.shuffle(abun_list)
 
-		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		if colors is None:
+			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		else:
+			plt.gca().set_color_cycle(colors)
 		
 		
 		for i in abun_list:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 									ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-									label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels,linestyle=linestyle)
+									label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,linestyle=linestyle)
 			
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng,ind=mInd)
+			self._plotBurnRegions(m,ax,x,m.prof.mass,show_line=False,show_x=True,yrng=yrng,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True,yrng=yrng,ind=mInd)
+			self._plotMixRegions(m,ax,x,m.prof.mass,show_line=False,show_x=True,yrng=yrng,ind=mInd)
 			
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		ax.set_ylabel(r'$\log_{10}$ Abundance')
@@ -1197,7 +1215,7 @@ class plot(object):
 
 	def plotAbunSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,abun_random=False,points=False,
-				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-'):
+				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-',colors=None):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1211,7 +1229,7 @@ class plot(object):
 
 			
 		if abun is None:
-			abun_list=self._listAbun(m.hist)
+			abun_list,log=self._listAbun(m.hist)
 		else:
 			abun_list=abun
 			
@@ -1219,8 +1237,11 @@ class plot(object):
 		#Helps when we have many elements not on the plot that stretch the colormap
 		if abun_random:
 			random.shuffle(abun_list)
-				
-		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		
+		if colors is None:
+			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		else:
+			plt.gca().set_color_cycle([colors(i) for i in np.linspace(0.0,0.9,num_plots)])
 			
 		for i in abun_list:
 			y=m.hist.data["log_total_mass_"+i][mInd]
@@ -1301,10 +1322,11 @@ class plot(object):
 	
 		y2_is_valid=False
 		if y2 is not None:
+			ax2=ax.twinx()
 			try:
 				y=m.prof.data[y2][mInd]
-				px,py=self._plotAnnotatedLine(ax,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
-										annotate_line=False,label=self.safeLabel(y1label,y1),
+				px,py=self._plotAnnotatedLine(ax2,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
+										annotate_line=False,label=self.safeLabel(y2label,y2),
 										points=points,xlog=xlog,ylog=y2log,xrev=xrev,
 										yrev=y2rev,linecol=y2col)  
 	
@@ -1567,18 +1589,135 @@ class plot(object):
 		fig.set_size_inches(12,9.45)
 		
 		#ax.locator_params(nbins=6)
-		self._setTicks(ax)
+		#self._setTicks(ax)
 		#ax.set_tick_params(axis='both',which='both')
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		
 		#Add line at outer mass location
 		ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],c='k')
 		
+		lt=np.log10((m.hist.data['star_age'])*3600.0*24.0*365.0)
+		
+		xl=[]
+		
+		
 		if show_mass_loc:
 			self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
 		
 		if show:
 			plt.show()
+		
+
+	def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
+				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
+				show_mass_loc=False,show_mix_labels=True):
+		if fig==None:
+			fig=plt.figure()
+			
+		if show_mix_labels:
+			self._addMixLabelsAxis(fig)
+
+		if ax==None:
+			ax=fig.add_subplot(111)
+		
+		if reloadHistory:
+			m.loadHistory()
+			
+		try:
+			xx=m.hist.data['model_number']
+		except:
+			raise ValueError("Must call loadHistory first")
+			
+		if xrng[0]>=0:
+			modInd=(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
+		else:	
+			modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
+			modInd[:]=True
+			
+		if np.all(np.diff(m.hist.data["model_number"][modInd])) !=1:
+			raise ValueError("model_number must be monotomically increasing, ie set history_interval=1")
+
+			
+		q=np.linspace(0.0,np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
+		numModels=np.count_nonzero(modInd)
+
+		#burnZones=np.zeros((numModels,np.size(q)))
+			
+		self.numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
+		self.numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
+		#print self.numMixZones
+		for j in range(1,self.numBurnZones+1):
+			if m.hist.data["burn_qtop_"+str(j)][-1] == -1:
+				self.numBurnZones=j
+				break
+				
+		for j in range(1,self.numMixZones+1):
+			if m.hist.data["mix_qtop_"+str(j)][0] == 1.0:
+				self.numMixZones=j
+				break
+
+		vmin=99.0
+		vmax=-99.0
+		for j in range(1,self.numBurnZones+1):
+			vmin=np.minimum(vmin,np.nanmin(m.hist.data["burn_type_"+str(j)][m.hist.data["burn_type_"+str(j)]>-50.0]))
+			vmax=np.maximum(vmax,np.nanmax(m.hist.data["burn_type_"+str(j)][m.hist.data["burn_type_"+str(j)]>-50.0]))
+			
+		vmax=np.maximum(np.abs(vmax),np.abs(vmin))
+		vmin=-vmax
+		newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
+		
+		cNorm=colors.Normalize(vmin=vmin,vmax=vmax)
+		scalerMap=cm.ScalarMappable(norm=cNorm,cmap=newCm)
+		
+		syr=3600.0*24.0*365.0
+		logT=np.log10(m.hist.data["star_age"][-1]*syr)
+
+		k=0		
+		for i in range(np.size(m.hist.data["model_number"])):
+			if modInd[i]:
+				j=1
+				if m.hist.data["burn_qtop_"+str(j)][-1] > -1:
+					plt.plot([logT[i],logT[i]],[0.0,m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i]],
+					color=scalerMap.to_rgba(m.hist.data["burn_type_"+str(j)][i]))
+
+				for j in range(2,self.numBurnZones+1):
+					if m.hist.data["burn_qtop_"+str(j)][i] > -1:
+						print(i,j,[m.hist.data["burn_qtop_"+str(j-1)][i]*m.hist.data['star_mass'][i],
+															m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i]],
+															scalerMap.to_rgba(m.hist.data["burn_type_"+str(j)][i]))
+						plt.plot([logT[i],logT[i]],[m.hist.data["burn_qtop_"+str(j-1)][i]*m.hist.data['star_mass'][i],
+															m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i]],
+															color=scalerMap.to_rgba(m.hist.data["burn_type_"+str(j)][i]))
+
+				
+		plt.xlabel(r"$\rm{Model\; number}$")
+		plt.ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
+		
+		#ax.plot([0,0],[0,0])
+		#cb=mpl.colorbar.ColorbarBase(ax, cmap=newCm,norm=cNorm)
+		#cb.solids.set_edgecolor("face")
+
+		#cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
+		fig.set_size_inches(12,9.45)
+		
+		#ax.locator_params(nbins=6)
+		#self._setTicks(ax)
+		#ax.set_tick_params(axis='both',which='both')
+		self._setYLim(ax,ax.get_ylim(),yrng)
+		
+		#Add line at outer mass location
+		#ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],c='k')
+		
+		#lt=np.log10((m.hist.data['star_age'])*3600.0*24.0*365.0)
+		
+		#if show_mass_loc:
+			#self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
+		
+		if show:
+			plt.show()
+		
+		
+		
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=-4.0,xmax=10.0,fig=None,yrng=[3.0,10.0],
 				show_burn=False,show_mix=False,
@@ -1591,22 +1730,29 @@ class plot(object):
 			ax=fig.add_subplot(111)
 			
 			
-		xname='logRho'
-		xlog=False
-		if logRho:
+		try:
+			x=m.prof.logRho
+			xname='logRho'
+			xlog=False
+		except:
+			x=m.prof.Rho
 			xname='rho'
 			xlog=True
 			
-		yname='logT'
-		ylog=False
-		if logT:
+			
+		try:
+			y=m.prof.logT
+			yname='logT'
+			ylog=False
+		except:
+			y=m.prof.temperature
 			yname='temperature'
 			ylog=True
 	
 		self.plotProfile(m,xaxis=xname,y1=yname,y1log=ylog,xlog=xlog,model=model,show=False,
 							show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,
 							xmin=xmin,xmax=xmax,ax=ax,y1label=self.labels('teff',log=True),
-							xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col='k')
+							xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col=ycol)
 
 		if showBurn or showAll:
 			self._showBurnData(ax)
@@ -1631,7 +1777,7 @@ class plot(object):
 		self.plotHistory(m,xaxis='log_Teff',y1='log_L',y1log=False,minMod=minMod,
 							maxMod=maxMod,show=show,xmin=xmin,xmax=xmax,xrev=True,y1rev=False,ax=ax,y1col='k',
 							xlabel=self.labels('teff',log=True),y1label=self.labels('lum',log=True),
-							fig=fig,y1rng=None,y2rng=None,points=points)
+							fig=fig,points=points)
 	
 	def mergeCmaps(self,cmaps,rng=[[0.0,0.5],[0.5,1.0]]):
 		"""
