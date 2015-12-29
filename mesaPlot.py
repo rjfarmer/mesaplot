@@ -44,8 +44,9 @@ try:
    mpl.rc('text', usetex=True)
    fig=plt.figure()
    plt.xlabel(r'\log_{10}')
+   fig.close()
 except:
-   pass
+   mpl.rc('text', usetex=False)
 
 
 
