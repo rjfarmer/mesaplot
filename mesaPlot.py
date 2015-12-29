@@ -50,21 +50,24 @@ def randf(N,a,b):
 
 class data(object):
 	def __init__(self):
-		pass
+		self.data={}
+		self.head={}
+		
 
 	def __getattr__(self, name):
 		x=None
+		
 		try:
 			x=self.data[name]
 		except:
 			try:
 				x=np.atleast_1d(self.head[name])[0]
 			except:
-				raise AttributeError
+				raise NameError
 		if x is not None:
 			return x
 		else:
-			raise AttributeError
+			raise NameError
 	
 	def __dir__(self):
 		x=[]
@@ -82,7 +85,7 @@ class data(object):
 		if len(x)>0:
 			return x
 		else:
-			raise AttributeError
+			raise NameError
 
 	def loadFile(self,filename):
 		numLines=self._filelines(filename)
