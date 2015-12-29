@@ -43,7 +43,7 @@ try:
    #TODO: create a flag and fix labels
    mpl.rc('text', usetex=True)
    fig=plt.figure()
-   plt.xlabel(r'\log_{10}')
+   plt.xlabel(r'$\log_{10}$')
    fig.close()
 except:
    mpl.rc('text', usetex=False)
