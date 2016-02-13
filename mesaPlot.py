@@ -1462,7 +1462,7 @@ class plot(object):
 
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
-				show_mass_loc=False,show_mix_labels=True):
+				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1):
 		if fig==None:
 			fig=plt.figure()
 			
@@ -1479,15 +1479,17 @@ class plot(object):
 			xx=m.hist.data['model_number']
 		except:
 			raise ValueError("Must call loadHistory first")
-			
+		
+		modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
+		modInd[::step]=True
+		
 		if xrng[0]>=0:
-			modInd=(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
-		else:	
-			modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
-			modInd[:]=True
+			modInd=modInd&(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
 			
-		if np.all(np.diff(m.hist.data["model_number"][modInd])) !=1:
-			raise ValueError("model_number must be monotomically increasing, ie set history_interval=1")
+		
+		#modDiff=np.diff(m.hist.data["model_number"][modInd])
+		#if np.all(modDiff) !=modDiff[0]:
+			#raise ValueError("model_number must be monotomically increasing, ie set history_interval=1")
 
 			
 		q=np.linspace(0.0,np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
@@ -1509,14 +1511,14 @@ class plot(object):
 				break
 
 		k=0		
-		for i in range(np.size(m.hist.data["model_number"])):
-			if modInd[i]:
-				ind2b=np.zeros(np.size(q),dtype='bool')
-				for j in range(1,self.numBurnZones+1):
-					indb=(q<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2b)
-					burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
-					ind2b=ind2b|indb
-				k=k+1
+		for jj in m.hist.data["model_number"][modInd]:
+			ind2b=np.zeros(np.size(q),dtype='bool')
+			i=m.hist.data["model_number"]==jj
+			for j in range(1,self.numBurnZones+1):
+				indb=(q<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2b)
+				burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
+				ind2b=ind2b|indb
+			k=k+1
 
 		#age=np.log10((m.hist.data["star_age"]-ageZero)/10**6)
 		Xmin=m.hist.data["model_number"][modInd][0]
@@ -1532,23 +1534,23 @@ class plot(object):
 		
 		burnZones[burnZones<-100]=0.0
 
-		bb=np.zeros(np.shape(burnZones))
-		try:
-			bb[burnZones<0]=-burnZones[burnZones<0]/np.min(burnZones[(burnZones<0)])
-		except:
-			pass
-		try:
-			bb[burnZones>0]=burnZones[burnZones>0]/np.max(burnZones[(burnZones>0)])
-		except:
-			pass
-		#burnZones=0.0
+		#bb=np.zeros(np.shape(burnZones))
+		#try:
+			#bb[burnZones<0]=-burnZones[burnZones<0]/np.min(burnZones[(burnZones<0)])
+		#except:
+			#pass
+		#try:
+			#bb[burnZones>0]=burnZones[burnZones>0]/np.max(burnZones[(burnZones>0)])
+		#except:
+			#pass
+		##burnZones=0.0
 		
-		#ax.imshow(bb.T,cmap=plt.get_cmap('seismic'),vmin=-1.0,vmax=1.0,extent=extent,interpolation='nearest',origin='lower',aspect='auto')
-		#ax.contourf(XX,YY,bb.T,cmap=plt.get_cmap('seismic'),vmin=-1.0,vmax=1.0,origin='lower')
-		b1=np.copy(burnZones.T)
-		b2=np.copy(burnZones.T)
-		b1[b1<0.0]=np.nan
-		b2[b2>0.0]=np.nan
+		##ax.imshow(bb.T,cmap=plt.get_cmap('seismic'),vmin=-1.0,vmax=1.0,extent=extent,interpolation='nearest',origin='lower',aspect='auto')
+		##ax.contourf(XX,YY,bb.T,cmap=plt.get_cmap('seismic'),vmin=-1.0,vmax=1.0,origin='lower')
+		#b1=np.copy(burnZones.T)
+		#b2=np.copy(burnZones.T)
+		#b1[b1<0.0]=np.nan
+		#b2[b2>0.0]=np.nan
 		
 		#im2=ax.imshow(b2,cmap=plt.get_cmap('Purples_r'),extent=extent,interpolation='nearest',origin='lower',aspect='auto')
 		if cmin is None:
@@ -1571,32 +1573,32 @@ class plot(object):
 
 		im1=ax.imshow(burnZones.T,cmap=newCm,extent=extent,interpolation='nearest',
 						origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
-		bb=0
+		burnZones=0
 
 		
 		mixZones=np.zeros((numModels,np.size(q)))
 		k=0
-		for i in range(np.size(m.hist.data["model_number"])):
-			if modInd[i]:
-				ind2=np.zeros(np.size(q),dtype='bool')
-				for j in range(1,self.numMixZones+1):
-					ind=(q<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
-					if mix is None:
-						mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-					elif mix ==-1 :
-						mixZones[k,ind]=0.0
-					elif m.hist.data["mix_type_"+str(j)][i] in mix:
-						mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-					else:
-						mixZones[k,ind]=0.0
-					ind2=ind2|ind
-				k=k+1					
+		for jj in m.hist.data["model_number"][modInd]:
+			ind2=np.zeros(np.size(q),dtype='bool')
+			i=m.hist.data["model_number"]==jj
+			for j in range(1,self.numMixZones+1):
+				ind=(q<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
+				if mix is None:
+					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+				elif mix ==-1 :
+					mixZones[k,ind]=0.0
+				elif m.hist.data["mix_type_"+str(j)][i] in mix:
+					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+				else:
+					mixZones[k,ind]=0.0
+				ind2=ind2|ind
+			k=k+1					
 				
 		mixZones[mixZones==0]=-np.nan
 		
 		mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
 		
-		ax.imshow(mixZones.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto')
+		ax.imshow(mixZones.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
 		#ax.contourf(XX,YY,mixZones.T,cmap=cmap,norm=norm,origin='lower')
 		mixZones=0
 		plt.xlabel(r"$\rm{Model\; number}$")
