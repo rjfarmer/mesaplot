@@ -130,13 +130,14 @@ class MESA(object):
 		self.prof_ind=""
 		self.log_fold=""
 	
-	def loadHistory(self,f=""):
+	def loadHistory(self,f="",filename_in=None):
 		"""
 		Reads a MESA history file.
 		
 		Optional:
 		f: Folder in which history.data exists, if not present uses self.log_fold, if thats
 		not set trys the folder LOGS/
+		filename_in: Reads the file given by name
 		
 		Returns:
 		self.hist.head: The header data in the history file as a structured dtype
@@ -154,9 +155,13 @@ class MESA(object):
 		else:
 			self.log_fold=f+"/"
 
-		filename=os.path.join(self.log_fold,'history.data')
+		if filename_in is None:               
+			filename=os.path.join(self.log_fold,'history.data')
+		else:
+			filename=filename_in
+
 		self.hist.loadFile(filename)
-			
+
 		#Inspired by http://www.mesastar.org/tools-utilities/python-based-stuff/history-log-scrubber/view
 		#to remove bad lines
 		while (np.any(np.diff(self.hist.data["model_number"])<=0.0)):
