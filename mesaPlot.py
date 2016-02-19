@@ -483,11 +483,12 @@ class plot(object):
 		return burnList
 		
 	def _listMix(self,data):
-		mixList=["log_D_conv","log_D_semi","log_D_ovr","log_D_th","log_D_minimum","log_D_anon"]
+		mixList=["log_D_conv","log_D_semi","log_D_ovr","log_D_th","log_D_thrm","log_D_minimum","log_D_anon","log_D_rayleigh_taylor","log_D_soft"]
+		mixListOut=[]		
 		for i in data.data_names:
 			if i in mixList:
-				mixList.append(i)
-		return mixList
+				mixListOut.append(i)
+		return mixListOut
 
 
 	def _setMixRegionsCol(self,kip=False,mix=False):		
@@ -1179,8 +1180,8 @@ class plot(object):
 		for i in mix_list:
 			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
-									annotate_line=annotate_line,label=i.split('_')[1],
-									points=points,ylog=True,num_labels=num_labels)
+									annotate_line=annotate_line,label=i.split('_')[2],
+									points=points,ylog=False,num_labels=num_labels)
 		
 		if show_burn:
 			self._plotBurnRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
