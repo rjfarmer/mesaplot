@@ -1637,7 +1637,7 @@ class plot(object):
 
 	def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
-				show_mass_loc=False,show_mix_labels=True):
+				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0):
 		if fig==None:
 			fig=plt.figure()
 			
@@ -1654,21 +1654,28 @@ class plot(object):
 			xx=m.hist.data['model_number']
 		except:
 			raise ValueError("Must call loadHistory first")
-			
+		
+		modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
+		modInd[::step]=True
+		modInd=modInd&(m.hist.model_number>=m.hist.model_number[m.hist.burn_type_1<0.0][0])
+		
+		
+		#Age in years does not have enogh digits to be able to distingush the final models in pre-sn progenitors
+		age=np.cumsum(10**np.longdouble(m.hist.log_dt))
+		age=age[-1]-age
+		#Fudge the last value not to be exactly 0.0
+		age[-1]=(age[-2]/2.0)
+		age=np.log10(age)
+		#age=age[::-1]
+		
+		age=age[modInd]
+		
 		if xrng[0]>=0:
-			modInd=(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
-		else:	
-			modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
-			modInd[:]=True
-			
-		if np.all(np.diff(m.hist.data["model_number"][modInd])) !=1:
-			raise ValueError("model_number must be monotomically increasing, ie set history_interval=1")
-
-			
-		q=np.linspace(0.0,np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
+			modInd=modInd&(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
+		q=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data["star_mass"])),np.max(m.hist.data["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
 
-		#burnZones=np.zeros((numModels,np.size(q)))
+		burnZones=np.zeros((numModels,np.size(q)))
 			
 		self.numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
 		self.numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
@@ -1683,62 +1690,140 @@ class plot(object):
 				self.numMixZones=j
 				break
 
-		vmin=99.0
-		vmax=-99.0
-		for j in range(1,self.numBurnZones+1):
-			vmin=np.minimum(vmin,np.nanmin(m.hist.data["burn_type_"+str(j)][m.hist.data["burn_type_"+str(j)]>-50.0]))
-			vmax=np.maximum(vmax,np.nanmax(m.hist.data["burn_type_"+str(j)][m.hist.data["burn_type_"+str(j)]>-50.0]))
-			
-		vmax=np.maximum(np.abs(vmax),np.abs(vmin))
-		vmin=-vmax
-		newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
-		
-		cNorm=colors.Normalize(vmin=vmin,vmax=vmax)
-		scalerMap=cm.ScalarMappable(norm=cNorm,cmap=newCm)
-		
-		syr=3600.0*24.0*365.0
-		logT=np.log10(m.hist.data["star_age"][-1]*syr)
-
 		k=0		
-		for i in range(np.size(m.hist.data["model_number"])):
-			if modInd[i]:
-				j=1
-				if m.hist.data["burn_qtop_"+str(j)][-1] > -1:
-					plt.plot([logT[i],logT[i]],[0.0,m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i]],
-					color=scalerMap.to_rgba(m.hist.data["burn_type_"+str(j)][i]))
+		for jj in m.hist.data["model_number"][modInd]:
+			ind2b=np.zeros(np.size(q),dtype='bool')
+			i=m.hist.data["model_number"]==jj
+			for j in range(1,self.numBurnZones+1):
+				indb=(q<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2b)
+				burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
+				ind2b=ind2b|indb
+			k=k+1
 
-				for j in range(2,self.numBurnZones+1):
-					if m.hist.data["burn_qtop_"+str(j)][i] > -1:
-						print(i,j,[m.hist.data["burn_qtop_"+str(j-1)][i]*m.hist.data['star_mass'][i],
-															m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i]],
-															scalerMap.to_rgba(m.hist.data["burn_type_"+str(j)][i]))
-						plt.plot([logT[i],logT[i]],[m.hist.data["burn_qtop_"+str(j-1)][i]*m.hist.data['star_mass'][i],
-															m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i]],
-															color=scalerMap.to_rgba(m.hist.data["burn_type_"+str(j)][i]))
+		Xmin=m.hist.data["model_number"][modInd][0]
+		Xmax=m.hist.data["model_number"][modInd][-1]
+			
+		Ymin=q[0]
+		Ymax=q[-1]
+		
+		burnZones[burnZones<-100]=0.0
+		
+		print(age[-1],age[-2])
+		ageGrid=np.linspace(age[0],age[-1],750)
+		massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),250)
+		
+		grid_xin,grid_yin=np.meshgrid(age,q,indexing='ij')
+		grid_x,grid_y=np.meshgrid(ageGrid,massGrid,indexing='ij')
 
+		grid_xin=[]
+		grid_yin=[]
+		grid_data=[]
+		
+		bt=burnZones.T
+		for i in range(len(q)):
+			for j in range(len(age)):
+				grid_xin.append(age[j])
+				grid_yin.append(q[i])
+				grid_data.append(bt[i,j])
 				
-		plt.xlabel(r"$\rm{Model\; number}$")
+		burnZones=0.0
+		grid_xin=np.array(grid_xin)
+		grid_yin=np.array(grid_yin)
+		grid_data=np.array(grid_data)
+		
+		grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
+		print(grid_z)
+		grid_z=np.double(grid_z)
+		extent=(ageGrid[0],ageGrid[-1],Ymin,Ymax)
+		extent=np.double(np.array(extent))
+
+		if cmin is None:
+			vmin=np.nanmin(grid_data)
+		else:
+			vmin=cmin
+			
+		if cmax is None:
+			vmax=np.nanmax(grid_data)
+		else:
+			vmax=cmax
+			
+		if vmin < 0:
+			vmax=np.maximum(np.abs(vmax),np.abs(vmin))
+			vmin=-vmax
+			newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
+		else:
+			vmin=0
+			newCm=burnMap[-1]
+
+		im1=ax.imshow(grid_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
+		#burnZones=0
+
+		
+		mixZones=np.zeros((numModels,np.size(q)))
+		k=0
+		for jj in m.hist.data["model_number"][modInd]:
+			ind2=np.zeros(np.size(q),dtype='bool')
+			i=m.hist.data["model_number"]==jj
+			for j in range(1,self.numMixZones+1):
+				ind=(q<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
+				if mix is None:
+					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+				elif mix ==-1 :
+					mixZones[k,ind]=0.0
+				elif m.hist.data["mix_type_"+str(j)][i] in mix:
+					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+				else:
+					mixZones[k,ind]=0.0
+				ind2=ind2|ind
+			k=k+1					
+				
+		mixZones[mixZones==0]=-np.nan
+		
+		mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
+		
+		grid_data=[]
+		mt=mixZones.T
+		for i in range(len(q)):
+			for j in range(len(age)):
+				grid_data.append(mt[i,j])
+				
+		mixZones=0.0
+		grid_data=np.array(grid_data)
+		
+		grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
+		print(grid_z)
+		grid_z=np.double(grid_z)
+		
+		ax.imshow(grid_z.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
+		##ax.contourf(XX,YY,mixZones.T,cmap=cmap,norm=norm,origin='lower')
+		#mixZones=0
+		plt.xlabel(r"$\log_{10}\;\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
 		plt.ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
 		
-		#ax.plot([0,0],[0,0])
-		#cb=mpl.colorbar.ColorbarBase(ax, cmap=newCm,norm=cNorm)
-		#cb.solids.set_edgecolor("face")
+		cb=plt.colorbar(im1)
+		cb.solids.set_edgecolor("face")
 
-		#cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
+		cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
 		fig.set_size_inches(12,9.45)
 		
-		#ax.locator_params(nbins=6)
-		#self._setTicks(ax)
-		#ax.set_tick_params(axis='both',which='both')
-		self._setYLim(ax,ax.get_ylim(),yrng)
+		#self._setYLim(ax,ax.get_ylim(),yrng)
 		
-		#Add line at outer mass location
+		##Add line at outer mass location
 		#ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],c='k')
 		
-		#lt=np.log10((m.hist.data['star_age'])*3600.0*24.0*365.0)
 		
-		#if show_mass_loc:
-			#self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
+		ageGrid=0
+		massGrid=0
+		
+		grid_x=0
+		grid_y=0.0
+		
+		grid_xin=[]
+		grid_yin=[]
+		grid_data=[]
+		
+		if show_mass_loc:
+			self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
 		
 		if show:
 			plt.show()
