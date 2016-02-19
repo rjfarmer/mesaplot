@@ -1519,6 +1519,8 @@ class plot(object):
 				indb=(q<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2b)
 				burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
 				ind2b=ind2b|indb
+				if m.hist.data["burn_qtop_"+str(j)][i] ==1.0:
+					break
 			k=k+1
 
 		#age=np.log10((m.hist.data["star_age"]-ageZero)/10**6)
@@ -1593,6 +1595,8 @@ class plot(object):
 				else:
 					mixZones[k,ind]=0.0
 				ind2=ind2|ind
+				if m.hist.data["mix_qtop_"+str(j)][i]==1.0:
+					break
 			k=k+1					
 				
 		mixZones[mixZones==0]=-np.nan
