@@ -107,7 +107,7 @@ class data(object):
 	def loadFile(self,filename):
 		numLines=self._filelines(filename)
 		self.head=np.genfromtxt(filename,skip_header=1,skip_footer=numLines-4,names=True)
-		self.data=np.genfromtxt(filename,skip_header=5,names=True,invalid_raise=False)
+		self.data=np.genfromtxt(filename,skip_header=5,names=True)
 		self.head_names=self.head.dtype.names
 		self.data_names=self.data.dtype.names
 
@@ -205,8 +205,8 @@ class MESA(object):
 				if num==0:
 				#Load first model
 					filename=f+"/profile"+str(int(self.prof_ind["profile"][0]))+".data"
-				elif num==-1:
-					filename=f+"/profile"+str(int(self.prof_ind["profile"][-1]))+".data"
+				elif num<0:
+					filename=f+"/profile"+str(int(self.prof_ind["profile"][num]))+".data"
 				else:
 				#Find profile with mode 'nearest','upper','lower','first','last'
 					pos = bisect.bisect_left(self.prof_ind["model"], num)
@@ -286,7 +286,7 @@ class MESA(object):
 				if x["model"] >=rng[0] and x["model"] <= rng[1] and np.remainder(x["model"]-rng[0],step)==0:
 					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data")
 				yield
-			elif len(rng)>=2 and rng[0]>0:
+			elif len(rng)>2 and rng[0]>0:
 				if x["model"] in rng:
 					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data")
 				yield
