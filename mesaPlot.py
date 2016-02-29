@@ -1460,7 +1460,7 @@ class plot(object):
 
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
-				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1):
+				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None):
 		if fig==None:
 			fig=plt.figure()
 			
@@ -1622,7 +1622,9 @@ class plot(object):
 		
 		lt=np.log10((m.hist.data['star_age'])*3600.0*24.0*365.0)
 		
-		xl=[]
+		if y2 is not None:
+			ax2=ax.twinx()
+			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],c='k')
 		
 		
 		if show_mass_loc:
