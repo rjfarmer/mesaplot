@@ -1636,7 +1636,8 @@ class plot(object):
 
 	def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
-				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0):
+				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
+				mod_out=None,megayears=False,xlabel=None):
 		if fig==None:
 			fig=plt.figure()
 			
@@ -1655,22 +1656,40 @@ class plot(object):
 			raise ValueError("Must call loadHistory first")
 		
 		modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
-		modInd[::step]=True
-		modInd=modInd&(m.hist.model_number>=m.hist.model_number[m.hist.burn_type_1<0.0][0])
+		modInd[:]=True
 		
+		modInd[::step]=False
+		modInd[:]=np.logical_not(modInd)
+		
+		if mod_out is not None:
+			modInd=modInd&mod_out
+			
+		if xrng[0]>=0:
+			modInd=modInd&(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
+		
+		#modInd=modInd&(m.hist.model_number>=m.hist.model_number[m.hist.burn_type_1<0.0][0])
+		print(m.hist.model_number[modInd])
 		
 		#Age in years does not have enogh digits to be able to distingush the final models in pre-sn progenitors
 		age=np.cumsum(10**np.longdouble(m.hist.log_dt))
-		age=age[-1]-age
-		#Fudge the last value not to be exactly 0.0
-		age[-1]=(age[-2]/2.0)
-		age=np.log10(age)
-		#age=age[::-1]
+		if age_collapse:
+			age=age[-1]-age
+			#Fudge the last value not to be exactly 0.0
+			age[-1]=(age[-2]/2.0)
 		
 		age=age[modInd]
 		
-		if xrng[0]>=0:
-			modInd=modInd&(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
+		if megayears:
+			age=age/10**6
+		
+		if age_log:
+			age=np.log10(age)
+		
+		if age_reverse:
+			age=age[::-1]
+			
+		print(age)
+		
 		q=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data["star_mass"])),np.max(m.hist.data["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
 
@@ -1707,9 +1726,9 @@ class plot(object):
 		
 		burnZones[burnZones<-100]=0.0
 		
-		print(age[-1],age[-2])
-		ageGrid=np.linspace(age[0],age[-1],750)
-		massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),250)
+		#print(age[-1],age[-2])
+		ageGrid=np.linspace(age[0],age[-1],1000)
+		massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),1000)
 		
 		grid_xin,grid_yin=np.meshgrid(age,q,indexing='ij')
 		grid_x,grid_y=np.meshgrid(ageGrid,massGrid,indexing='ij')
@@ -1731,7 +1750,7 @@ class plot(object):
 		grid_data=np.array(grid_data)
 		
 		grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
-		print(grid_z)
+		#print(grid_z)
 		grid_z=np.double(grid_z)
 		extent=(ageGrid[0],ageGrid[-1],Ymin,Ymax)
 		extent=np.double(np.array(extent))
@@ -1790,14 +1809,13 @@ class plot(object):
 		grid_data=np.array(grid_data)
 		
 		grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
-		print(grid_z)
+		#print(grid_z)
 		grid_z=np.double(grid_z)
 		
 		ax.imshow(grid_z.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
 		##ax.contourf(XX,YY,mixZones.T,cmap=cmap,norm=norm,origin='lower')
 		#mixZones=0
-		plt.xlabel(r"$\log_{10}\;\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
-		plt.ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
+		ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
 		
 		cb=plt.colorbar(im1)
 		cb.solids.set_edgecolor("face")
@@ -1810,6 +1828,22 @@ class plot(object):
 		##Add line at outer mass location
 		#ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],c='k')
 		
+		if xlabel is None:
+			if age_log:
+				if age_collapse:
+					ax.set_xlabel(r"$\log_{10}\;\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
+				else:
+					ax.set_xlabel(r"$\log\; \left(\tau/\rm{Myr}\right)$")
+			else:
+				if age_collapse:
+					if megayears:
+						ax.set_xlabel(r"$\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{Myr}]$")
+					else:
+						ax.set_xlabel(r"$\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
+				else:
+					ax.set_xlabel(r"$\tau\; \left(\rm{Myr}\right)$")
+		else:
+			ax.set_xlabel(xlabel)
 		
 		ageGrid=0
 		massGrid=0
@@ -1823,6 +1857,8 @@ class plot(object):
 		
 		if show_mass_loc:
 			self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
+		
+		self._setTicks(ax)
 		
 		if show:
 			plt.show()
