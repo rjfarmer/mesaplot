@@ -520,9 +520,9 @@ class plot(object):
 			else:
 				yy[:]=ylim[0]
 			size=240
-		if show_line:
-			yy=y
-			size=180
+
+		yy=y
+		size=180
 			
 		if ind is not None:
 			netEng=m.prof.data['net_nuclear_energy'][ind]
@@ -548,9 +548,9 @@ class plot(object):
 			else:
 				yy[:]=ylim[0]
 			size=90
-		if show_line:
-			yy=y
-			size=60
+
+		yy=y
+		size=60
 	
 		cmap,norm=self._setMixRegionsCol(mix=True)
 		
@@ -1329,12 +1329,9 @@ class plot(object):
 		if show_mix:
 			self._plotMixRegions(m,ax,px,py,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
 	
-		if show_burn and show_mix:
-			self._showBurnMixLegend(ax,burn=True,mix=True)
-		elif show_burn and not show_mix:
-			self._showBurnMixLegend(ax,burn=True,mix=False)
-		elif show_mix and not show_burn:
-			self._showBurnMixLegend(ax,burn=False,mix=True)
+		if show_burn or show_mix:
+			self._showBurnMixLegend(ax,burn=show_burn,mix=show_mix)
+
 	
 	
 		if show_core_loc:
