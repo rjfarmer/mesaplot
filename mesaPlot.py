@@ -795,8 +795,28 @@ class plot(object):
 			if np.any(y):
 				ax.plot(x,y,color=self.colors[j],linewidth=5)
 				
-		self._addExtraLabelsToAxis(fig,labels,[self.colors[i] for i in col],
-									num_left=0,num_right=len(labels),right_pad=50)
+		self._addExtraLabelsToAxis(fig,labels,[self.colors[i] for i in col],num_left=0,num_right=len(labels),right_pad=50)
+		
+	def _showMassLocHist(self,m,fig,ax,x,y,modInd):
+		coreMasses=['he_core_mass','c_core_mass','o_core_mass','si_core_mass','fe_core_mass']
+		labels=['He','C','O','Si','Fe']
+		col=['clr_Teal','clr_LightOliveGreen','clr_SeaGreen','clr_Lilac','clr_Crimson']
+		
+		out=[]
+		outc=[]
+		for i,j,l in zip(coreMasses,col,labels):
+			ind=m.hist.data[i][modInd]>0.0
+			if np.count_nonzero(ind):
+				ax.plot([x[ind][0],x[ind][0]],[np.nanmin(y),np.nanmax(y)],'--',color=self.colors[j],linewidth=2)
+				out.append(x[ind][0])
+				outc.append(l)
+		
+		ax2=ax.twiny()
+		ax2.plot(ax.get_xlim(),ax.get_ylim())
+		ax2.cla()
+		ax2.set_xlim(ax.get_xlim())
+		ax2.set_xticks(out)
+		ax2.set_xticklabels(outc)
 		
 	def _addExtraLabelsToAxis(self,fig,labels,colors=None,num_left=0,num_right=0,left_pad=85,right_pad=85):
 
@@ -969,6 +989,7 @@ class plot(object):
 		if show_mix:
 			self._plotMixRegions(m,ax,x,m.prof.mass,show_line=False,show_x=True,yrng=yrng,ind=mInd)
 			
+			
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		ax.set_ylabel(r'$\log_{10}$ Abundance')
 		
@@ -1051,7 +1072,6 @@ class plot(object):
 
 		if show_mix:
 			self._plotMixRegions(m,ax,m.prof.data[xaxis],m.prof.data['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
-		
 
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self._setTicks(ax)
@@ -1067,7 +1087,7 @@ class plot(object):
 
 	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,points=False):
+				show_title_name=False,show_title_model=False,show_title_age=False,points=False,show_core=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1094,6 +1114,9 @@ class plot(object):
 
 		if show_mix:
 			self._plotMixRegions(m,ax,px,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
+			
+		if show_core:
+			self._showMassLocHist(m,fig,ax,x,y,mInd)
 
 		if legend:
 			ax.legend(loc=0)
@@ -1185,6 +1208,7 @@ class plot(object):
 		
 		if show_burn:
 			self._plotBurnRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
+			
 		
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Mixing',m.prof.head["model_number"],m.prof.head["star_age"])
@@ -1195,7 +1219,7 @@ class plot(object):
 
 	def plotBurnSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
-				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,annotate_line=True):
+				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,annotate_line=True,show_core=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1227,6 +1251,9 @@ class plot(object):
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
+			
+		if show_core:
+			self._showMassLocHist(m,fig,ax,x,y,mInd)
 		
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		ax.set_ylabel(self.labels('log_lum'))
@@ -1236,7 +1263,8 @@ class plot(object):
 
 	def plotAbunSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,abun_random=False,points=False,
-				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-',colors=None):
+				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-',colors=None,
+				show_core=False):
 		if fig==None:
 			fig=plt.figure()
 		if ax==None:
@@ -1277,6 +1305,9 @@ class plot(object):
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
+			
+		if show_core:
+			self._showMassLocHist(m,fig,ax,x,y,mInd)
 		
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		ax.set_ylabel(self.labels('log_abundance'))
@@ -1332,8 +1363,6 @@ class plot(object):
 		if show_burn or show_mix:
 			self._showBurnMixLegend(ax,burn=show_burn,mix=show_mix)
 
-	
-	
 		if show_core_loc:
 			self._plotCoreLoc(m,ax,xaxis,px,ax.get_ylim()[0],ax.get_ylim()[1])
 	
@@ -1397,7 +1426,7 @@ class plot(object):
 					y2log=False,y1col='b',y2col='r',minMod=0,maxMod=-1,xrev=False,
 					y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,
 					y2label=None,fig=None,y1rng=[None,None],y2rng=[None,None],
-					fx=None,fy1=None,fy2=None):
+					fx=None,fy1=None,fy2=None,show_core=False):
 		
 		if fig==None:
 			fig=plt.figure()
@@ -1454,6 +1483,9 @@ class plot(object):
 				ax2.set_ylabel(y2label)
 			else:
 				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
+				
+		if show_core:
+			self._showMassLocHist(m,fig,ax,x,y,mInd)
 		
 		if show:
 			plt.show()
@@ -1860,6 +1892,7 @@ class plot(object):
 		
 		self._setTicks(ax)
 		
+		
 		if show:
 			plt.show()
 		
@@ -2057,3 +2090,6 @@ class plot(object):
 		if show==True:
 			plt.show()
 		
+
+
+
