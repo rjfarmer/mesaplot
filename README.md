@@ -25,6 +25,7 @@ But if you have a different folder to look at then you can either
 
 ````python
 m.log_fold='new_folder/LOGS/'
+m.loadHistory()
 ````
 or
 ````python
@@ -60,7 +61,7 @@ You can also set a mode
 m.loadProfile(num=MODEL_NUMBER,mode='first|lower|upper|nearest')
 ````
 This is for when the model you want isn't in the data. Either we load the first model, the model just before the one you, the model just after the one you want or the nearest (above or below) the model you want.
-There are also two special model numbers 0 for first model we have and -1 for the last.
+There are also two special model numbers 0 for first model and a negative number counts backwards (-1 is the last, -2 is last but one etc)
 
 Data can be accessed as m.prof.data['COLUMN_NAME'] or m.prof.COLUMN_NAME. The second option is 
 also tab completable. The header information is either m.prof.head['COL_NAME'] or m.prof.COL_NAME.
@@ -81,8 +82,7 @@ p=mp.plot()
 m.loadHistory()|m.loadProfile(num=NUM)
 p.plotSomething(m)
 ````
-So we want to make sure we load either the history or the profile data before calling the plot function and the only required argument
-is passing an instance of the mp.MESA() class with the data loaded.
+So we want to make sure we load either the history or the profile data before calling the plot function and the only required argument is passing an instance of the mp.MESA() class with the data loaded.
 
 Depending on the function some of these may not apply:
 ````python
@@ -197,6 +197,17 @@ burnCmap=[cm.Purples_r,cm.hot_r] #Creates a diverging colour map for the burn da
 ````
 ![Kippenhan plot 1M_pre_ms_to_wd](/examples/kip.png?raw=true "Kippenhan plot")
 
+#### Time based Kip plots
+````python
+plotKip2()
+````
+Plots a Kippenhan diagram in terms of a time x-axis instead of model number, BUT it is very memory consuming so you should,
+limit the xrng you wish to plot (defined as model numbers).
+````python
+age_collapse=False # Plots it as age_end-age where age_end is from the last model plotted
+age_log=True # Log10 the age
+age_reverse=False # Reverse the x-axis
+````
 
 ### log Rho log Teff
 Plots log rho-logTeff
