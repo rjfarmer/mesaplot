@@ -130,7 +130,7 @@ class MESA(object):
 		self.prof_ind=""
 		self.log_fold=""
 	
-	def loadHistory(self,f="",filename_in=None):
+	def loadHistory(self,f="",filename_in=None,max_model=-1):
 		"""
 		Reads a MESA history file.
 		
@@ -138,6 +138,7 @@ class MESA(object):
 		f: Folder in which history.data exists, if not present uses self.log_fold, if thats
 		not set trys the folder LOGS/
 		filename_in: Reads the file given by name
+		max_model: Maximum model to read into, may help when having to clean files with many retres, backups and restarts by not proccesing data beyond max_model
 		
 		Returns:
 		self.hist.head: The header data in the history file as a structured dtype
@@ -161,6 +162,9 @@ class MESA(object):
 			filename=filename_in
 
 		self.hist.loadFile(filename)
+		
+		if max_model>0:
+			self.hist.data=self.hist.data[np.concatenate(([True],self.hist.data["model_number"]<=max_model))]
 
 		#Inspired by http://www.mesastar.org/tools-utilities/python-based-stuff/history-log-scrubber/view
 		#to remove bad lines
