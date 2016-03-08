@@ -1533,16 +1533,6 @@ class plot(object):
 			
 		self.numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
 		self.numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
-		#print self.numMixZones
-		for j in range(1,self.numBurnZones+1):
-			if m.hist.data["burn_qtop_"+str(j)][-1] == -1:
-				self.numBurnZones=j
-				break
-				
-		for j in range(1,self.numMixZones+1):
-			if m.hist.data["mix_qtop_"+str(j)][0] == 1.0:
-				self.numMixZones=j
-				break
 
 		k=0		
 		for jj in m.hist.data["model_number"][modInd]:
@@ -1733,16 +1723,6 @@ class plot(object):
 			
 		self.numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
 		self.numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
-		#print self.numMixZones
-		for j in range(1,self.numBurnZones+1):
-			if m.hist.data["burn_qtop_"+str(j)][-1] == -1:
-				self.numBurnZones=j
-				break
-				
-		for j in range(1,self.numMixZones+1):
-			if m.hist.data["mix_qtop_"+str(j)][0] == 1.0:
-				self.numMixZones=j
-				break
 
 		k=0		
 		for jj in m.hist.data["model_number"][modInd]:
