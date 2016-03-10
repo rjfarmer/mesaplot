@@ -1531,17 +1531,18 @@ class plot(object):
 			
 		q=np.linspace(0.0,np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
+		#burnZones=np.zeros((numModels,np.size(q)))
+		#burnZones=np.zeros((np.size(q),numModels))
+			
+		numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
+		numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
 
 		burnZones=np.zeros((numModels,np.size(q)))
-			
-		self.numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
-		self.numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
-
 		k=0		
 		for jj in m.hist.data["model_number"][modInd]:
 			ind2b=np.zeros(np.size(q),dtype='bool')
 			i=m.hist.data["model_number"]==jj
-			for j in range(1,self.numBurnZones+1):
+			for j in range(1,numBurnZones+1):
 				indb=(q<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2b)
 				burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
 				ind2b=ind2b|indb
@@ -1549,39 +1550,23 @@ class plot(object):
 					break
 			k=k+1
 
-		#age=np.log10((m.hist.data["star_age"]-ageZero)/10**6)
+		#burnZones=np.zeros((np.size(q),numModels))
+		#burnZones[:,:]=m.hist.data["burn_type_1"][None,modInd]
+		#for j in range(2,numBurnZones+1):
+			#bqt1=m.hist.data["burn_qtop_"+str(j-1)][modInd]*m.hist.data['star_mass'][modInd]
+			#bqt2=m.hist.data["burn_qtop_"+str(j)][modInd]*m.hist.data['star_mass'][modInd]
+			#ind=(q[:,None]<=bqt2)&(q[:,None]>bqt1)
+			#burnZones=burnZones+ind*m.hist.data["burn_type_"+str(j)][modInd]
+
 		Xmin=m.hist.data["model_number"][modInd][0]
 		Xmax=m.hist.data["model_number"][modInd][-1]
-		#Xmin=age[0]
-		#Xmax=age[-1]
 			
 		Ymin=q[0]
 		Ymax=q[-1]
-		#XX,YY=np.meshgrid(np.linspace(Xmin,Xmax,numModels),q)
-		#XX,YY=np.meshgrid(m.hist.data["model_number"][modInd],q)
 		extent=(Xmin,Xmax,Ymin,Ymax)
 		
 		burnZones[burnZones<-100]=0.0
 
-		#bb=np.zeros(np.shape(burnZones))
-		#try:
-			#bb[burnZones<0]=-burnZones[burnZones<0]/np.min(burnZones[(burnZones<0)])
-		#except:
-			#pass
-		#try:
-			#bb[burnZones>0]=burnZones[burnZones>0]/np.max(burnZones[(burnZones>0)])
-		#except:
-			#pass
-		##burnZones=0.0
-		
-		##ax.imshow(bb.T,cmap=plt.get_cmap('seismic'),vmin=-1.0,vmax=1.0,extent=extent,interpolation='nearest',origin='lower',aspect='auto')
-		##ax.contourf(XX,YY,bb.T,cmap=plt.get_cmap('seismic'),vmin=-1.0,vmax=1.0,origin='lower')
-		#b1=np.copy(burnZones.T)
-		#b2=np.copy(burnZones.T)
-		#b1[b1<0.0]=np.nan
-		#b2[b2>0.0]=np.nan
-		
-		#im2=ax.imshow(b2,cmap=plt.get_cmap('Purples_r'),extent=extent,interpolation='nearest',origin='lower',aspect='auto')
 		if cmin is None:
 			vmin=np.nanmin(burnZones)
 		else:
@@ -1610,7 +1595,7 @@ class plot(object):
 		for jj in m.hist.data["model_number"][modInd]:
 			ind2=np.zeros(np.size(q),dtype='bool')
 			i=m.hist.data["model_number"]==jj
-			for j in range(1,self.numMixZones+1):
+			for j in range(1,numMixZones+1):
 				ind=(q<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
 				if mix is None:
 					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
@@ -1623,7 +1608,21 @@ class plot(object):
 				ind2=ind2|ind
 				if m.hist.data["mix_qtop_"+str(j)][i]==1.0:
 					break
-			k=k+1					
+			k=k+1		
+			
+		#mixZones=np.zeros((np.size(q),numModels))
+		#mixZones[:,:]=m.hist.data["mix_type_1"][None,modInd]
+		#for j in range(2,numBurnZones+1):
+			#bqt1=m.hist.data["mix_qtop_"+str(j-1)][modInd]*m.hist.data['star_mass'][modInd]
+			#bqt2=m.hist.data["mix_qtop_"+str(j)][modInd]*m.hist.data['star_mass'][modInd]
+			#ind=(q[:,None]<=bqt2)&(q[:,None]>bqt1)
+			#mixZones=mixZones+ind*m.hist.data["mix_type_"+str(j)][modInd]
+			
+		#if mix==-1:
+			#mixZones[:,:]=0.0
+		#elif type(mix) is list or type(mix) is tuple:
+			#mixZones[np.in1d(mixZones,mix,invert=True)]=0.0
+			
 				
 		mixZones[mixZones==0]=-np.nan
 		
