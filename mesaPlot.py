@@ -2110,10 +2110,8 @@ class debug(object):
 			self.solve_data[-1]=np.reshape(x,self.solve_size).T
 	
 	def plot_solve_log(self,name='',save=False,folder=None):
-		try:
-			idx=self.solve_names.index(name)
-		except:
-			raise("No name ",name," avaiable")
+
+		idx=self.solve_names.index(name)
 		
 		if folder is None:
 			folder=self.solve_logs_default
@@ -2129,7 +2127,13 @@ class debug(object):
 		else:
 			vmax=np.abs(vmin)
 		
-		plt.imshow(self.solve_data[idx],extent=(1,self.solve_size[0],1,self.solve_size[1]),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax)
+		plt.imshow(self.solve_data[idx],extent=(1,self.solve_size[0],1,self.solve_size[1]),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
+			 interpolation='nearest',origin='lower')
+		plt.plot([1,1],[1,self.solve_size[1]],color='k')
+		plt.plot([self.solve_size[0],self.solve_size[0]],[1,self.solve_size[1]],color='k')
+		plt.plot([1,self.solve_size[0]],[1,1],color='k')
+		plt.plot([1,self.solve_size[0]],[self.solve_size[1],self.solve_size[1]],color='k')
+		
 		plt.xlabel('Zone')
 		plt.ylabel('Iter')
 		cb=plt.colorbar()
