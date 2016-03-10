@@ -1496,9 +1496,12 @@ class plot(object):
 
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
-				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None):
+				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None):
 		if fig==None:
 			fig=plt.figure()
+		
+		if title is not None:
+			fig.suptitle(title)
 			
 		if show_mix_labels:
 			self._addMixLabelsAxis(fig)
