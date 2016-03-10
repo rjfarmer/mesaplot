@@ -2077,5 +2077,80 @@ class plot(object):
 			plt.show()
 		
 
-
+class debug(object):
+	def __init__(self):
+		self.solve_logs_default=os.path.join('plot_data','solve_logs')
+		
+	def _load_solve_log_size(self,folder):
+		with open(os.path.join(folder,'size.data')) as f:
+				for line in f:
+					self.solve_size=[int(i) for i in line.strip('\n').split()]
+					break
+		
+	def _load_solve_log_names(self,folder):
+		with open(os.path.join(folder,'names.data')) as f:
+			for line in f:
+				self.solve_names.append(line.strip(' \n'))
+	
+	def load_all_solve_logs(self,folder=None):
+		self.solve_names=[]
+		#num_cols num_rows
+		self.solve_size=[]
+		self.solve_data=[]
+		
+		if folder is None:
+			folder=self.solve_logs_default
+		
+		self._load_solve_log_names(folder)
+		self._load_solve_log_size(folder)
+		
+		for i in self.solve_names:
+			self.solve_data.append([])
+			x=np.genfromtxt(os.path.join(folder,i+'.log'))
+			self.solve_data[-1]=np.reshape(x,self.solve_size).T
+	
+	def plot_solve_log(self,name='',save=False,folder=None):
+		try:
+			idx=self.solve_names.index(name)
+		except:
+			raise("No name ",name," avaiable")
+		
+		if folder is None:
+			folder=self.solve_logs_default
+		
+		plt.figure()
+		plt.title(name.replace('_',' '))
+		
+		vmin=np.nanmin(self.solve_data[idx])
+		vmax=np.nanmax(self.solve_data[idx])
+		
+		if np.abs(vmin) < np.abs(vmax):
+			vmin=-vmax
+		else:
+			vmax=np.abs(vmin)
+		
+		plt.imshow(self.solve_data[idx],extent=(1,self.solve_size[0],1,self.solve_size[1]),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax)
+		plt.xlabel('Zone')
+		plt.ylabel('Iter')
+		cb=plt.colorbar()
+		cb.solids.set_edgecolor("face")
+		
+		if save:
+			plt.savefig(os.path.join(folder,name+'.pdf'))
+		else:
+			plt.show()
+		
+		plt.close()
+		
+	
+	def plot_all_solve_logs(self,folder=None):
+		if folder is None:
+			folder=self.solve_logs_default
+		for i in self.solve_names:
+			self.plot_solve_log(name=i,save=True,folder=folder)
+			print("Done ",i)
+	
+	
+	
+	
 
