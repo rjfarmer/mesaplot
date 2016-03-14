@@ -2107,7 +2107,7 @@ class debug(object):
 		for i in self.solve_names:
 			self.solve_data.append([])
 			x=np.genfromtxt(os.path.join(folder,i+'.log'))
-			self.solve_data[-1]=np.reshape(x,self.solve_size).T
+			self.solve_data[-1]=x.reshape(self.solve_size[::-1])
 	
 	def plot_solve_log(self,name='',save=False,folder=None):
 
@@ -2133,7 +2133,8 @@ class debug(object):
 		plt.plot([self.solve_size[0],self.solve_size[0]],[1,self.solve_size[1]],color='k')
 		plt.plot([1,self.solve_size[0]],[1,1],color='k')
 		plt.plot([1,self.solve_size[0]],[self.solve_size[1],self.solve_size[1]],color='k')
-		
+		plt.xlim(self.solve_size[0],1)
+		plt.ylim(1,self.solve_size[1])
 		plt.xlabel('Zone')
 		plt.ylabel('Iter')
 		cb=plt.colorbar()
