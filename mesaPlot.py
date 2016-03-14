@@ -1528,6 +1528,9 @@ class plot(object):
 		#if np.all(modDiff) !=modDiff[0]:
 			#raise ValueError("model_number must be monotomically increasing, ie set history_interval=1")
 
+		if np.count_nonzero(modInd) > 40000:
+			print("Warning attempting to plot more than 40,000 models")
+			print("This may take a long time")
 			
 		q=np.linspace(0.0,np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
@@ -1665,9 +1668,12 @@ class plot(object):
 	def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
-				mod_out=None,megayears=False,xlabel=None):
+				mod_out=None,megayears=False,xlabel=None,title=None):
 		if fig==None:
 			fig=plt.figure()
+			
+		if title is not None:
+			fig.suptitle(title)
 			
 		if show_mix_labels:
 			self._addMixLabelsAxis(fig)
@@ -1696,7 +1702,7 @@ class plot(object):
 			modInd=modInd&(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
 		
 		#modInd=modInd&(m.hist.model_number>=m.hist.model_number[m.hist.burn_type_1<0.0][0])
-		print(m.hist.model_number[modInd])
+		#print(m.hist.model_number[modInd])
 		
 		#Age in years does not have enogh digits to be able to distingush the final models in pre-sn progenitors
 		age=np.cumsum(10**np.longdouble(m.hist.log_dt))
@@ -1716,7 +1722,10 @@ class plot(object):
 		if age_reverse:
 			age=age[::-1]
 			
-		print(age)
+		#print(age)
+		if np.count_nonzero(modInd) > 20000:
+			print("Warning attempting to plot more than 20,000 models")
+			print("This may take a long time and/or crash your pc from memeory usage")
 		
 		q=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data["star_mass"])),np.max(m.hist.data["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
@@ -1745,7 +1754,7 @@ class plot(object):
 		burnZones[burnZones<-100]=0.0
 		
 		#print(age[-1],age[-2])
-		ageGrid=np.linspace(age[0],age[-1],1000)
+		ageGrid=np.linspace(age[0],age[-1],500)
 		massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),1000)
 		
 		grid_xin,grid_yin=np.meshgrid(age,q,indexing='ij')
