@@ -764,7 +764,7 @@ class plot(object):
 		xlim=ax.get_xlim()
 		ylim=ax.get_ylim()
 		for i,j, in zip(label,color):
-			ax.plot([0,0],[0,0],c='w',label=i,alpha=0.0)
+			ax.plot([0,0],[0,0],color='w',label=i,alpha=0.0)
 				
 		leg=ax.legend(framealpha = 0,labelspacing=0.0,numpoints=1,loc=4,handlelength=1)
 		for text,i,j in zip(leg.get_texts(),label,color):
@@ -843,7 +843,7 @@ class plot(object):
 				axis.yaxis.set_minor_locator(plt.NullLocator())
 				axis.xaxis.set_minor_locator(plt.NullLocator())
 				axis.patch.set_facecolor('None')
-				axis.plot(0,0,c='w')
+				axis.plot(0,0,color='w')
 				scale=2.0
 				text=axis.set_ylabel(labels[i],color=colors[i], labelpad=left_pad,fontsize=16)
 				text.set_path_effects([path_effects.Stroke(linewidth=3, foreground='black'),
@@ -863,7 +863,7 @@ class plot(object):
 				axis.yaxis.set_minor_locator(plt.NullLocator())
 				axis.xaxis.set_minor_locator(plt.NullLocator())
 				axis.patch.set_facecolor('None')
-				axis.plot(0,0,c='w')
+				axis.plot(0,0,color='w')
 				axis2=axis.twinx()
 				axis2.spines['top'].set_visible(False)
 				axis2.spines['right'].set_visible(False)
@@ -920,7 +920,7 @@ class plot(object):
 			if linecol is None:
 				line, =ax.plot(x,y,linestyle=linestyle,linewidth=linewidth)
 			else:
-				line, =ax.plot(x,y,linestyle=linestyle,c=linecol,linewidth=linewidth)
+				line, =ax.plot(x,y,linestyle=linestyle,color=linecol,linewidth=linewidth)
 			if points:
 				ax.scatter(x,y)
 			if annotate_line:
@@ -1032,10 +1032,10 @@ class plot(object):
 			i.patch.set_facecolor('None')
 		
 		
-		ax1_1.plot(0,0,c='w')
-		ax1_2.plot(0,0,c='w')
-		ax2_1.plot(0,0,c='w')
-		ax2_2.plot(0,0,c='w')
+		ax1_1.plot(0,0,color='w')
+		ax1_2.plot(0,0,color='w')
+		ax2_1.plot(0,0,color='w')
+		ax2_2.plot(0,0,color='w')
 		
 		if ax==None:
 			ax=fig.add_subplot(111)
@@ -1052,14 +1052,14 @@ class plot(object):
 		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 		
 		#ind=(m.prof.data['dynamo_log_B_r']>-90)
-		ax.plot(m.prof.data[xaxis],m.prof.data['dynamo_log_B_r'],label=r'$B_r$',linewidth=2,c='g')
+		ax.plot(m.prof.data[xaxis],m.prof.data['dynamo_log_B_r'],label=r'$B_r$',linewidth=2,color='g')
 		#ind=mInd&(m.prof.data['dynamo_log_B_phi']>-90)
-		ax.plot(m.prof.data[xaxis],m.prof.data['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2,c='b')
+		ax.plot(m.prof.data[xaxis],m.prof.data['dynamo_log_B_phi'],label=r'$B_{\phi}$',linewidth=2,color='b')
 		
 		if show_rotation:
-			ax2.plot(m.prof.data[xaxis],np.log10(m.prof.data['omega']),'--',label=r'$\log_{10} \omega$',linewidth=2,c='r')
+			ax2.plot(m.prof.data[xaxis],np.log10(m.prof.data['omega']),'--',label=r'$\log_{10} \omega$',linewidth=2,color='r')
 		#ind=mInd&(m.prof.data['dynamo_log_B_phi']>-90)
-			ax2.plot(m.prof.data[xaxis],np.log10(m.prof.data['j_rot'])-20.0,'--',label=r'$\log_{10} j [10^{20}]$',linewidth=2,c='k')
+			ax2.plot(m.prof.data[xaxis],np.log10(m.prof.data['j_rot'])-20.0,'--',label=r'$\log_{10} j [10^{20}]$',linewidth=2,color='k')
 
 
 		scale=2.1
@@ -1646,13 +1646,13 @@ class plot(object):
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		
 		#Add line at outer mass location
-		ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],c='k')
+		ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],color='k')
 		
 		lt=np.log10((m.hist.data['star_age'])*3600.0*24.0*365.0)
 		
 		if y2 is not None:
 			ax2=ax.twinx()
-			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],c='k')
+			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],color='k')
 		
 		
 		if show_mass_loc:
