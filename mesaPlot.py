@@ -2089,6 +2089,7 @@ class plot(object):
 class debug(object):
 	def __init__(self):
 		self.solve_logs_default=os.path.join('plot_data','solve_logs')
+		self.jacobian_default='plot_data'
 		
 	def _load_solve_log_size(self,folder):
 		with open(os.path.join(folder,'size.data')) as f:
@@ -2164,7 +2165,119 @@ class debug(object):
 			self.plot_solve_log(name=i,save=True,folder=folder)
 			print("Done ",i)
 	
+###################################
 	
+	def _load_jacobian_size(self,folder):
+		cols=0
+		rows=0
+		with open(os.path.join(folder,'jacobian_cols.data')) as f:
+			for i,l in enumerate(f):
+				pass
+			cols=i+1
+		with open(os.path.join(folder,'jacobian_rows.data')) as f:
+			for i,l in enumerate(f):
+				pass
+			rows=i+1
+		return cols,rows
+		
+	def _load_jacobian_names(self,folder):
+		names=[]
+		with open(os.path.join(folder,'names.data')) as f:
+			for line in f:
+				names.append(line.strip(' \n'))
+		return names
+				
+	def _get_index(self,jacob,name):
+		idx=None
+		jdx=None
+		try:
+			idx=self.jacobian_folds.index(jacob)
+			jdx=self.jacobian_names[idx].index(name)
+		except:
+			print("call load_all_jacobian")
+			raise
+		return (idx,jdx)
+	
+	def _load_all_jacobian_names(self,folder):
+		subfolders=["jacobian_data","jacobian_diff_data","jacobian_rel_diff_data","numerical_jacobian"]
+		self.jacobian_names=[]
+		self.jacobian_folds=[]
+		self.jacobian_size=[]
+		for i in subfolders:
+			try:
+				self.jacobian_names.append(self._load_jacobian_names(os.path.join(folder,i)))
+				self.jacobian_folds.append(i)
+				print("Reading ",i)
+				c,r=self._load_jacobian_size(os.path.join(folder,i))
+				self.jacobian_size.append([r,c])
+			except:
+				pass
+	
+	def load_all_jacobian(self,folder=None):
+		if folder is None:
+			folder=self.jacobian_default
+		
+		self._load_all_jacobian_names(folder)
+		
+		self.jacobian_data=[]
+		for idx,i in enumerate(self.jacobian_folds):
+			self.jacobian_data.append([])
+			for jdx,j in enumerate(self.jacobian_names[idx]):
+				print("Reading ",i,j)
+				x=np.genfromtxt(os.path.join(folder,i,j+'.data'))
+				self.jacobian_data[-1].append(x)
+	
+	def list_avail_jacobians(self):
+		try:
+			print(self.jacobian_folds)
+		except:
+			print("call load_all_jacobian")
+			raise
+			
+	def list_avail_names(self,name):
+		try:
+			idx=self.jacobian_folds.index(name)
+			print(self.jacobian_names[idx])
+		except:
+			print("call load_all_jacobian")
+			raise
+	
+	def get_jacob_data(self,jacob,name):
+		idx,jdx=self._get_index(jacob,name)
+		return self.jacobian_data[idx][jdx]
+	
+	def plot_jacob_data(self,jacob,name,save=False,folder=None):
+		if folder is None:
+			folder=self.jacobian_default
+		
+		idx,jdx=self._get_index(jacob,name)
+		data=self.get_jacob_data(jacob,name)
+		
+		plt.figure()
+		plt.title(name.replace('_',' '))
+		
+		vmin=np.nanmin(data)
+		vmax=np.nanmax(data)
+		
+		if np.abs(vmin) < np.abs(vmax):
+			vmin=-vmax
+		else:
+			vmax=np.abs(vmin)
+		
+		shp=np.shape(data)
+		plt.imshow(data,extent=(1,shp[1],-1,1),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
+			 interpolation='nearest',origin='lower')
+		plt.xlabel('Zone')
+		plt.ylabel('Iter')
+		cb=plt.colorbar()
+		cb.solids.set_edgecolor("face")
+		
+		if save:
+			plt.savefig(os.path.join(jacob,folder,name+'.pdf'))
+		else:
+			plt.show()
+		
+		plt.close()
 	
 	
 
