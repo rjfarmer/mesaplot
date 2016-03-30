@@ -2169,6 +2169,20 @@ class debug(object):
 		for i in self.solve_names:
 			self.plot_solve_log(name=i,save=True,folder=folder)
 			print("Done ",i)
+
+	def summary(self,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
+		print("Name Max Min Mean")
+		for i in range(len(self.solve_names)):
+			shp=np.shape(self.solve_data[i])
+			iter_min=max(iter_min,0)
+			iter_max=min(iter_max,shp[0])
+			zone_min=max(zone_min,0)
+			zone_max=min(zone_max,shp[1])
+			print(self.solve_names[i],end=' ')
+			print(np.log10(np.abs(np.nanmax(self.solve_data[i][iter_min:iter_max,zone_min:zone_max]))),end=' ')
+			print(np.log10(np.abs(np.nanmin(self.solve_data[i][iter_min:iter_max,zone_min:zone_max]))),end=' ')
+			print(np.log10(np.abs(np.nanmean(self.solve_data[i][iter_min:iter_max,zone_min:zone_max]))))
+
 	
 ###################################
 	
