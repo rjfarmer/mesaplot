@@ -2120,7 +2120,7 @@ class debug(object):
 			x=np.genfromtxt(os.path.join(folder,i+'.log'))
 			self.solve_data[-1]=x.reshape(self.solve_size[::-1])
 	
-	def plot_solve_log(self,name='',save=False,folder=None):
+	def plot_solve_log(self,name='',save=False,folder=None,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
 
 		idx=self.solve_names.index(name)
 		
@@ -2130,22 +2130,26 @@ class debug(object):
 		plt.figure()
 		plt.title(name.replace('_',' '))
 		
-		vmin=np.nanmin(self.solve_data[idx])
-		vmax=np.nanmax(self.solve_data[idx])
+		shp=np.shape(self.solve_data[idx])
 		
+		iter_min=max(iter_min,0)
+		iter_max=min(iter_max,shp[0])
+		zone_min=max(zone_min,0)
+		zone_max=min(zone_max,shp[1])
+
+		vmin=np.nanmin(self.solve_data[idx][iter_min:iter_max,zone_min:zone_max])
+		vmax=np.nanmax(self.solve_data[idx][iter_min:iter_max,zone_min:zone_max])
+
 		if np.abs(vmin) < np.abs(vmax):
 			vmin=-vmax
 		else:
 			vmax=np.abs(vmin)
-		
-		plt.imshow(self.solve_data[idx],extent=(1,self.solve_size[0],1,self.solve_size[1]),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
+
+		plt.imshow(self.solve_data[idx][iter_min:iter_max,zone_min:zone_max],extent=(zone_min,zone_max,iter_min,iter_max),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
 			 interpolation='nearest',origin='lower')
-		plt.plot([1,1],[1,self.solve_size[1]],color='k')
-		plt.plot([self.solve_size[0],self.solve_size[0]],[1,self.solve_size[1]],color='k')
-		plt.plot([1,self.solve_size[0]],[1,1],color='k')
-		plt.plot([1,self.solve_size[0]],[self.solve_size[1],self.solve_size[1]],color='k')
-		plt.xlim(self.solve_size[0],1)
-		plt.ylim(1,self.solve_size[1])
+
+		plt.xlim(zone_max,zone_min)
+		plt.ylim(iter_min,iter_max)
 		plt.xlabel('Zone')
 		plt.ylabel('Iter')
 		cb=plt.colorbar()
@@ -2247,7 +2251,7 @@ class debug(object):
 		idx,jdx=self._get_index(jacob,name)
 		return self.jacobian_data[idx][jdx]
 	
-	def plot_jacob_data(self,jacob,name,save=False,folder=None):
+	def plot_jacob_data(self,jacob,name,save=False,folder=None,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
 		if folder is None:
 			folder=self.jacobian_default
 		
@@ -2257,17 +2261,27 @@ class debug(object):
 		plt.figure()
 		plt.title(name.replace('_',' '))
 		
-		vmin=np.nanmin(data)
-		vmax=np.nanmax(data)
+		shp=np.shape(data)
+
+		iter_min=max(iter_min,0)
+		iter_max=min(iter_max,shp[0])
+		zone_min=max(zone_min,0)
+		zone_max=min(zone_max,shp[1])
+
+
+		vmin=np.nanmin(data[iter_min:iter_max,zone_min:zone_max])
+		vmax=np.nanmax(data[iter_min:iter_max,zone_min:zone_max])
 		
 		if np.abs(vmin) < np.abs(vmax):
 			vmin=-vmax
 		else:
 			vmax=np.abs(vmin)
-		
-		shp=np.shape(data)
-		plt.imshow(data,extent=(1,shp[1],-1,1),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
+
+		plt.imshow(data[iter_min:iter_max,zone_min:zone_max],extent=(zone_min,zone_max,iter_min,iter_max),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
 			 interpolation='nearest',origin='lower')
+
+		plt.xlim(zone_max,zone_min)
+		plt.ylim(iter_min,iter_max)
 		plt.xlabel('Zone')
 		plt.ylabel('Iter')
 		cb=plt.colorbar()
