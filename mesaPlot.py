@@ -811,7 +811,7 @@ class plot(object):
 		for i,j,l in zip(coreMasses,col,labels):
 			ind=m.hist.data[i][modInd]>0.0
 			if np.count_nonzero(ind):
-				ax.plot([x[ind][0],x[ind][0]],[np.nanmin(y),np.nanmax(y)],'--',color=self.colors[j],linewidth=2)
+				ax.plot([x[ind][0],x[ind][0]],ax.get_ylim(),'--',color=self.colors[j],linewidth=2)
 				out.append(x[ind][0])
 				outc.append(l)
 		
@@ -821,6 +821,7 @@ class plot(object):
 		ax2.set_xlim(ax.get_xlim())
 		ax2.set_xticks(out)
 		ax2.set_xticklabels(outc)
+		plt.sca(ax)
 		
 	def _addExtraLabelsToAxis(self,fig,labels,colors=None,num_left=0,num_right=0,left_pad=85,right_pad=85):
 
@@ -1395,7 +1396,7 @@ class plot(object):
 				y2_is_valid=True
 			except:
 				pass
-
+		plt.sca(ax)
 		self._setTicks(ax)
 		
 
@@ -1463,7 +1464,7 @@ class plot(object):
 			except:
 				pass
 
-
+		plt.sca(ax)
 		if xlabel is not None:
 			ax.set_xlabel(xlabel)
 		else:
