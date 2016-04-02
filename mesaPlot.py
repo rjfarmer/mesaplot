@@ -2087,65 +2087,65 @@ class plot(object):
 			plt.show()
 		
 
-class debug(object):
-	def __init__(self):
-		self.solve_logs_default=os.path.join('plot_data','solve_logs')
-		self.jacobian_default='plot_data'
-		
-	def _load_solve_log_size(self,folder):
-		with open(os.path.join(folder,'size.data')) as f:
-				for line in f:
-					self.solve_size=[int(i) for i in line.strip('\n').split()]
-					break
-		
-	def _load_solve_log_names(self,folder):
-		with open(os.path.join(folder,'names.data')) as f:
-			for line in f:
-				self.solve_names.append(line.strip(' \n'))
-	
-	def load_all_solve_logs(self,folder=None):
-		self.solve_names=[]
-		#num_cols num_rows
-		self.solve_size=[]
-		self.solve_data=[]
-		
-		if folder is None:
-			folder=self.solve_logs_default
-		
-		self._load_solve_log_names(folder)
-		self._load_solve_log_size(folder)
-		
-		for i in self.solve_names:
-			self.solve_data.append([])
-			x=np.genfromtxt(os.path.join(folder,i+'.log'))
-			self.solve_data[-1]=x.reshape(self.solve_size[::-1])
-	
-	def plot_solve_log(self,name='',save=False,folder=None,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
 
-		idx=self.solve_names.index(name)
+class debug_logs(object):
+	def __init__(self,folder):
+		self.folder=folder
+		self.names=[]
+		self.size=[]
+		self.data=[]	
+
+	def _load_log_size(self):
+		with open(os.path.join(self.folder,'size.data')) as f:
+			for line in f:
+				self.size=[int(i) for i in line.strip('\n').split()]
+				break
 		
-		if folder is None:
-			folder=self.solve_logs_default
+	def _load_log_names(self):
+		with open(os.path.join(self.folder,'names.data')) as f:
+			for line in f:
+				self.names.append(line.strip(' \n'))
+	
+	def load_all_logs(self):		
+		self._load_log_names()
+		self._load_log_size()
+		
+		for i in self.names:
+			self.data.append([])
+			x=np.genfromtxt(os.path.join(self.folder,i+'.log'))
+			self.data[-1]=x.reshape(self.size[::-1])
+	
+	def plot_log(self,name='',save=False,folder=None,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
+
+		idx=self.names.index(name)
+
+		if np.all(self.data[idx]==0.0):
+			print('Empty ',name)
+			return
+		
+		if folder is not None:
+			self.folder=folder
 		
 		plt.figure()
 		plt.title(name.replace('_',' '))
+
 		
-		shp=np.shape(self.solve_data[idx])
+		shp=np.shape(self.data[idx])
 		
 		iter_min=max(iter_min,0)
 		iter_max=min(iter_max,shp[0])
 		zone_min=max(zone_min,0)
 		zone_max=min(zone_max,shp[1])
 
-		vmin=np.nanmin(self.solve_data[idx][iter_min:iter_max,zone_min:zone_max])
-		vmax=np.nanmax(self.solve_data[idx][iter_min:iter_max,zone_min:zone_max])
+		vmin=np.nanmin(self.data[idx][iter_min:iter_max,zone_min:zone_max])
+		vmax=np.nanmax(self.data[idx][iter_min:iter_max,zone_min:zone_max])
 
 		if np.abs(vmin) < np.abs(vmax):
 			vmin=-vmax
 		else:
 			vmax=np.abs(vmin)
 
-		plt.imshow(self.solve_data[idx][iter_min:iter_max,zone_min:zone_max],extent=(zone_min,zone_max,iter_min,iter_max),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
+		plt.imshow(self.data[idx][iter_min:iter_max,zone_min:zone_max],extent=(zone_min,zone_max,iter_min,iter_max),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
 			 interpolation='nearest',origin='lower')
 
 		plt.xlim(zone_max,zone_min)
@@ -2156,33 +2156,53 @@ class debug(object):
 		cb.solids.set_edgecolor("face")
 		
 		if save:
-			plt.savefig(os.path.join(folder,name+'.pdf'))
+			plt.savefig(os.path.join(self.folder,name+'.pdf'))
 		else:
 			plt.show()
 		
 		plt.close()
 		
 	
-	def plot_all_solve_logs(self,folder=None):
-		if folder is None:
-			folder=self.solve_logs_default
-		for i in self.solve_names:
-			self.plot_solve_log(name=i,save=True,folder=folder)
+	def plot_all_logs(self,folder=None):
+		if folder is not None:
+			self.folder=folder
+		for i in self.names:
+			self.plot_log(name=i,save=True,folder=self.folder)
 			print("Done ",i)
 
 	def summary(self,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
 		print("Name Max Min Mean")
-		for i in range(len(self.solve_names)):
-			shp=np.shape(self.solve_data[i])
-			iter_min=max(iter_min,0)
-			iter_max=min(iter_max,shp[0])
-			zone_min=max(zone_min,0)
-			zone_max=min(zone_max,shp[1])
-			print(self.solve_names[i],end=' ')
-			print(np.log10(np.abs(np.nanmax(self.solve_data[i][iter_min:iter_max,zone_min:zone_max]))),end=' ')
-			print(np.log10(np.abs(np.nanmin(self.solve_data[i][iter_min:iter_max,zone_min:zone_max]))),end=' ')
-			print(np.log10(np.abs(np.nanmean(self.solve_data[i][iter_min:iter_max,zone_min:zone_max]))))
+		for i in range(len(self.names)):
+			if ("corr_" in self.names[i] or "equ_" in self.names[i]) and "delta_" not in self.names[i]:
+				shp=np.shape(self.data[i])
+				iter_min=max(iter_min,0)
+				iter_max=min(iter_max,shp[0])
+				zone_min=max(zone_min,0)
+				zone_max=min(zone_max,shp[1])
+				print(self.names[i],end=' ')
+				print(np.log10(np.abs(np.nanmax(self.data[i][iter_min:iter_max,zone_min:zone_max]))),end=' ')
+				print(np.log10(np.abs(np.nanmin(self.data[i][iter_min:iter_max,zone_min:zone_max]))),end=' ')
+				print(np.log10(np.abs(np.nanmean(self.data[i][iter_min:iter_max,zone_min:zone_max]))))
 
+	
+class debug(object):
+	def __init__(self):
+		self.solve=debug_logs(os.path.join('plot_data','solve_logs'))
+		self.res=debug_logs(os.path.join('plot_data','residual_logs'))
+
+		self.jacobian_default='plot_data'
+
+	def load_res(self):
+		self.res.load_all_logs()
+
+	def load_solve(self):
+		self.solve.load_all_logs()
+
+	def plot_res(self):
+		self.res.plot_all_logs()
+		
+	def plot_solve(self):
+		self.solve.plot_all_logs()
 	
 ###################################
 	
@@ -2218,11 +2238,11 @@ class debug(object):
 		return (idx,jdx)
 	
 	def _load_all_jacobian_names(self,folder):
-		subfolders=["jacobian_data","jacobian_diff_data","jacobian_rel_diff_data","numerical_jacobian"]
+		self.jacob_type=["jacobian_data","jacobian_diff_data","jacobian_rel_diff_data","numerical_jacobian"]
 		self.jacobian_names=[]
 		self.jacobian_folds=[]
 		self.jacobian_size=[]
-		for i in subfolders:
+		for i in self.jacob_type:
 			try:
 				self.jacobian_names.append(self._load_jacobian_names(os.path.join(folder,i)))
 				self.jacobian_folds.append(i)
@@ -2232,7 +2252,7 @@ class debug(object):
 			except:
 				pass
 	
-	def load_all_jacobian(self,folder=None):
+	def load_all_all_jacobian(self,folder=None):
 		if folder is None:
 			folder=self.jacobian_default
 		
@@ -2246,9 +2266,22 @@ class debug(object):
 				x=np.genfromtxt(os.path.join(folder,i,j+'.data'))
 				self.jacobian_data[-1].append(x)
 	
+	def load_all_jacobian(self,jacob='jacobian_data',folder=None):
+		if folder is None:
+			folder=self.jacobian_default
+		
+		self._load_all_jacobian_names(folder)
+		
+		self.jacobian_data=[[],[],[],[],[]]
+		idx=self.jacobian_folds.index(jacob)
+		for jdx,j in enumerate(self.jacobian_names[idx]):
+			print("Reading ",jacob,j)
+			x=np.genfromtxt(os.path.join(folder,jacob,j+'.data'))
+			self.jacobian_data[idx].append(x)
+	
 	def list_avail_jacobians(self):
 		try:
-			print(self.jacobian_folds)
+			return self.jacobian_folds
 		except:
 			print("call load_all_jacobian")
 			raise
@@ -2256,7 +2289,7 @@ class debug(object):
 	def list_avail_names(self,name):
 		try:
 			idx=self.jacobian_folds.index(name)
-			print(self.jacobian_names[idx])
+			return self.jacobian_names[idx]
 		except:
 			print("call load_all_jacobian")
 			raise
@@ -2265,6 +2298,23 @@ class debug(object):
 		idx,jdx=self._get_index(jacob,name)
 		return self.jacobian_data[idx][jdx]
 	
+	def plot_all_all_jacob_data(self,folder=None):
+		if folder is not None:
+			folder=self.jacobian_default
+
+		for j in self.jacob_type:
+			for i in iter(self.list_avail_names(j)):
+				self.plot_jacob_data(jacob=j,name=i,save=True,folder=folder)
+				print("Plotting ",j,i)
+				
+	def plot_all_jacob_data(self,jacob='jacobian_data',folder=None):
+		if folder is not None:
+			folder=self.jacobian_default
+
+		for i in iter(self.list_avail_names(jacob)):
+			self.plot_jacob_data(jacob=jacob,name=i,save=True,folder=folder)
+			print("Plotting ",jacob,i)
+
 	def plot_jacob_data(self,jacob,name,save=False,folder=None,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
 		if folder is None:
 			folder=self.jacobian_default
@@ -2272,41 +2322,45 @@ class debug(object):
 		idx,jdx=self._get_index(jacob,name)
 		data=self.get_jacob_data(jacob,name)
 		
+		if np.all(data[idx]==0.0):
+			print('Empty ',jacob,name)
+			return
+
 		plt.figure()
 		plt.title(name.replace('_',' '))
 		
 		shp=np.shape(data)
-
-		iter_min=max(iter_min,0)
-		iter_max=min(iter_max,shp[0])
 		zone_min=max(zone_min,0)
 		zone_max=min(zone_max,shp[1])
 
-
-		vmin=np.nanmin(data[iter_min:iter_max,zone_min:zone_max])
-		vmax=np.nanmax(data[iter_min:iter_max,zone_min:zone_max])
+		vmin=np.nanmin(data[:,zone_min:zone_max])
+		vmax=np.nanmax(data[:,zone_min:zone_max])
 		
 		if np.abs(vmin) < np.abs(vmax):
 			vmin=-vmax
 		else:
 			vmax=np.abs(vmin)
 
-		plt.imshow(data[iter_min:iter_max,zone_min:zone_max],extent=(zone_min,zone_max,iter_min,iter_max),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
+		plt.imshow(data[:,zone_min:zone_max],extent=(zone_min,zone_max,-1,1),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
 			 interpolation='nearest',origin='lower')
 
-		plt.xlim(zone_max,zone_min)
-		plt.ylim(iter_min,iter_max)
+		plt.xlim(zone_min,zone_max)
+		plt.yticks([-1,0.0,1.0],['mm','00','pm'])
 		plt.xlabel('Zone')
 		plt.ylabel('Iter')
 		cb=plt.colorbar()
 		cb.solids.set_edgecolor("face")
 		
 		if save:
-			plt.savefig(os.path.join(jacob,folder,name+'.pdf'))
+			plt.savefig(os.path.join(folder,jacob,name+'.pdf'))
 		else:
 			plt.show()
 		
 		plt.close()
-	
+
+	def find_bad_data(self,jacob):
+		for name in iter(self.list_avail_names(jacob)):
+			x=self.get_jacob_data(jacob,name)
+			print(name,np.maximum(np.abs(np.nanmax(x[1])),np.abs(np.nanmin(x[1]))),np.nanmax(x[1]),np.nanmin(x[1]),np.nanargmax(x[1]),np.nanargmin(x[1]))
 	
 
