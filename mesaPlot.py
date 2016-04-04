@@ -2115,7 +2115,7 @@ class debug_logs(object):
 			x=np.genfromtxt(os.path.join(self.folder,i+'.log'))
 			self.data[-1]=x.reshape(self.size[::-1])
 	
-	def plot_log(self,name='',save=False,folder=None,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
+	def plot_log(self,name='',save=False,folder=None,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999,log=False):
 
 		idx=self.names.index(name)
 
@@ -2126,7 +2126,7 @@ class debug_logs(object):
 		if folder is not None:
 			self.folder=folder
 		
-		plt.figure()
+		plt.figure(figsize=(12,12))
 		plt.title(name.replace('_',' '))
 
 		
@@ -2140,12 +2140,23 @@ class debug_logs(object):
 		vmin=np.nanmin(self.data[idx][iter_min:iter_max,zone_min:zone_max])
 		vmax=np.nanmax(self.data[idx][iter_min:iter_max,zone_min:zone_max])
 
-		if np.abs(vmin) < np.abs(vmax):
-			vmin=-vmax
+		if vmin>=0.0:
+			vmin=0.0
+			cmap='Reds'
 		else:
-			vmax=np.abs(vmin)
+			cmap='seismic'
+			if np.abs(vmin) < np.abs(vmax):
+				vmin=-vmax
+			else:
+				vmax=np.abs(vmin)
+				
+		d=self.data[idx][iter_min:iter_max,zone_min:zone_max]
+		if log:
+			d=np.log10(np.abs(d))
+			vmin=np.nanmin(d)
+			vmax=np.nanmax(d)
 
-		plt.imshow(self.data[idx][iter_min:iter_max,zone_min:zone_max],extent=(zone_min,zone_max,iter_min,iter_max),aspect='auto',cmap='seismic',vmin=vmin,vmax=vmax,
+		plt.imshow(d,extent=(zone_min,zone_max,iter_min,iter_max),aspect='auto',cmap=cmap,vmin=vmin,vmax=vmax,
 			 interpolation='nearest',origin='lower')
 
 		plt.xlim(zone_max,zone_min)
@@ -2154,6 +2165,8 @@ class debug_logs(object):
 		plt.ylabel('Iter')
 		cb=plt.colorbar()
 		cb.solids.set_edgecolor("face")
+		if log:
+			cb.set_label('log abs')
 		
 		if save:
 			plt.savefig(os.path.join(self.folder,name+'.pdf'))
@@ -2163,11 +2176,11 @@ class debug_logs(object):
 		plt.close()
 		
 	
-	def plot_all_logs(self,folder=None):
+	def plot_all_logs(self,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999,folder=None):
 		if folder is not None:
 			self.folder=folder
 		for i in self.names:
-			self.plot_log(name=i,save=True,folder=self.folder)
+			self.plot_log(name=i,save=True,folder=self.folder,iter_min=iter_min,iter_max=iter_max,zone_min=zone_min,zone_max=zone_max)
 			print("Done ",i)
 
 	def summary(self,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
@@ -2198,11 +2211,11 @@ class debug(object):
 	def load_solve(self):
 		self.solve.load_all_logs()
 
-	def plot_res(self):
-		self.res.plot_all_logs()
+	def plot_res(self,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
+		self.res.plot_all_logs(iter_min=iter_min,iter_max=iter_max,zone_min=zone_min,zone_max=zone_max)
 		
-	def plot_solve(self):
-		self.solve.plot_all_logs()
+	def plot_solve(self,iter_min=-1,iter_max=99999999,zone_min=-1,zone_max=99999999):
+		self.solve.plot_all_logs(iter_min=iter_min,iter_max=iter_max,zone_min=zone_min,zone_max=zone_max)
 	
 ###################################
 	
