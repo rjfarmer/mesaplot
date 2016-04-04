@@ -1457,7 +1457,7 @@ class plot(object):
 			try:
 				ax2 = ax.twinx()
 				y=m.hist.data[y2][modelIndex][mInd]
-				self._plotAnnotatedLine(ax,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],
+				self._plotAnnotatedLine(ax2,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],
 										y2rng[1],annotate_line=False,
 										label=self.safeLabel(y1label,y1),points=points,
 										xlog=xlog,ylog=y2log,xrev=xrev,yrev=y2rev,linecol=y2col)  
