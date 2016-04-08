@@ -28,6 +28,7 @@ from matplotlib.ticker import MaxNLocator,AutoMinorLocator
 import matplotlib.patheffects as path_effects
 import os
 import random
+import glob
 
 try:
    #Can be a problem on mac's
@@ -2377,3 +2378,79 @@ class debug(object):
 			print(name,np.maximum(np.abs(np.nanmax(x[1])),np.abs(np.nanmin(x[1]))),np.nanmax(x[1]),np.nanmin(x[1]),np.nanargmax(x[1]),np.nanargmin(x[1]))
 	
 
+class plotEOS(object):
+   
+	def __init__(self):
+		self.data=[]
+		self.name=[]
+		self.teff=0
+		self.rho=0
+
+	def load(self,folder='plot_data_DT'):
+		self.folder=folder
+		self.teff=np.genfromtxt(folder+'/logT.data')
+		self.rho=np.genfromtxt(folder+'/logRho.data')
+		
+		for i in glob.glob(folder+'/*.data'):
+			if '/logT.data' not in i and '/logRho.data' not in i and '/params.data' not in i:
+				print('Load',i)
+				self.name.append(i.replace(folder,'').replace('.data','').replace('/',''))
+				x=np.genfromtxt(i)
+				self.data.append(x.reshape((np.size(self.rho),np.size(self.teff))))
+		
+	def plot(self,name,save=False,only_neg=False):
+		idx=self.name.index(name)
+
+		if np.all(self.data[idx]==0.0):
+			print('Empty ',name)
+			return
+		
+		plt.figure(figsize=(12,12))
+		plt.title(name.replace('_',' '))
+
+		data=self.data[idx]
+	
+		vmin=np.nanmin(data)
+		vmax=np.nanmax(data)
+
+		if vmin>=0.0:
+			vmin=0.0
+			cmap='Reds'
+		else:
+			cmap='seismic'
+			if np.abs(vmin) < np.abs(vmax):
+				vmin=-vmax
+			else:
+				vmax=np.abs(vmin)
+				
+		if only_neg:
+			vmax=0.0
+			vmin=np.nanmin(data)
+			cmap='Reds_r'
+			data[data>0.0]=np.nan
+			
+
+		plt.imshow(data,extent=(np.nanmin(self.rho),np.nanmax(self.rho),np.nanmin(self.teff),np.nanmax(self.teff)),aspect='auto',cmap=cmap,vmin=vmin,vmax=vmax,
+				interpolation='nearest',origin='lower')
+
+		plt.xlim(np.nanmin(self.rho),np.nanmax(self.rho))
+		plt.ylim(np.nanmin(self.teff),np.nanmax(self.teff))
+		plt.xlabel('LogRho')
+		plt.ylabel('LogT')
+		cb=plt.colorbar()
+		cb.solids.set_edgecolor("face")
+		
+		if save:
+			plt.savefig(os.path.join(self.folder,name+'.pdf'))
+		else:
+			plt.show()
+		
+		plt.close()
+		
+
+
+	def plot_all(self,only_neg=False):
+		for i in names:
+			print('Plot',i)
+			self.plot(name=i,save=True,only_neg=only_neg)
+	
