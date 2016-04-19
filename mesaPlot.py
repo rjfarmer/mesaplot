@@ -1500,7 +1500,7 @@ class plot(object):
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		
 		if title is not None:
 			fig.suptitle(title)
@@ -1590,8 +1590,11 @@ class plot(object):
 			vmin=0
 			newCm=burnMap[-1]
 
-		im1=ax.imshow(burnZones.T,cmap=newCm,extent=extent,interpolation='nearest',
-						origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
+		im1=ax.imshow(burnZones.T,cmap=newCm,extent=extent,
+				interpolation='nearest',
+				origin='lower',aspect='auto',
+				vmin=vmin,
+				vmax=vmax)		
 		burnZones=0
 
 		
@@ -1636,14 +1639,14 @@ class plot(object):
 		ax.imshow(mixZones.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
 		#ax.contourf(XX,YY,mixZones.T,cmap=cmap,norm=norm,origin='lower')
 		mixZones=0
-		plt.xlabel(r"$\rm{Model\; number}$")
-		plt.ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
+		ax.set_xlabel(r"$\rm{Model\; number}$")
+		ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
 		
-		cb=plt.colorbar(im1)
+		cb=fig.colorbar(im1,ax=ax)
 		cb.solids.set_edgecolor("face")
 
 		cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
-		fig.set_size_inches(12,9.45)
+		#fig.set_size_inches(12,9.45)
 		
 		#ax.locator_params(nbins=6)
 		#self._setTicks(ax)
@@ -1652,9 +1655,7 @@ class plot(object):
 		
 		#Add line at outer mass location
 		ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],color='k')
-		
-		lt=np.log10((m.hist.data['star_age'])*3600.0*24.0*365.0)
-		
+				
 		if y2 is not None:
 			ax2=ax.twinx()
 			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],color='k')
