@@ -323,6 +323,16 @@ class MESA(object):
 		#else:
 			#f=np.float(x.decode().replace('D','E'))
 		#return f
+		
+	def abun(self,element):
+		xx=0
+		for ii in range(0,1000):
+			try:
+				xx=xx+np.sum(self.prof.data[element+str(ii)]*10**m.prof.logdq)
+			except:
+				pass
+		return xx
+
 			
 class plot(object):
 	def __init__(self):
@@ -450,7 +460,7 @@ class plot(object):
 			
 		return l
 		
-	def safeLabel(self,label,axis):
+	def safeLabel(self,label,axis,strip=None):
 		outLabel=''
 		if label is not None:
 			outLabel=label
@@ -460,24 +470,21 @@ class plot(object):
 				outLabel=outLabel
 			else:
 				outLabel=axis.replace('_',' ')
+				
+		if strip is not None:
+			outLabel=outLabel.replace(strip,'')
 		return outLabel
 		
-	def _listAbun(self,data):
+	def _listAbun(self,data,prefix=''):
 		abun_list=[]
 		names=data.data_names
 		for j in names:
-			if "log_" in j:
-				i=j[4:]
-				l="log_"
-			else:
-				i=j
-				l=""
-			if len(i)<=5 and len(i)>=2:
+			i=j[len(prefix):]
+			if len(i)<=5 and len(i)>=2 and 'burn_' not in j:
 				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
 					if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
-						abun_list.append(l+i)
-						lout=l
-		return abun_list,lout
+						abun_list.append(prefix+i)
+		return abun_list
 
 	def _listBurn(self,data):
 		burnList=[]
@@ -1006,6 +1013,46 @@ class plot(object):
 		if show:
 			plt.show()
 			
+	def plotCenterAbun(self,m,model=None,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[-3.0,1.0],
+					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun_random=False,
+				fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,
+				show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False):
+		
+		
+		if fig==None:
+			fig=plt.figure()
+		if ax==None:
+			ax=fig.add_subplot(111)
+			
+		if maxMod<0:
+			maxMod=m.hist.data["model_number"][-1]
+		modelIndex=(m.hist.data["model_number"]>=minMod)&(m.hist.data["model_number"]<=maxMod)
+		
+		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
+
+			
+		abun_list=self._listAbun(m.hist,prefix='center_')
+		num_plots=len(abun_list)
+		
+		if abun_random:
+			random.shuffle(abun_list)
+				
+		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+			
+		for i in abun_list:
+			self._plotAnnotatedLine(ax=ax,x=x,y=m.hist.data[i],fy=fy,xmin=xrngL[0],
+									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
+									annotate_line=annotate_line,label=self.safeLabel(None,i,'center'),
+									points=points,ylog=True,num_labels=num_labels)
+			
+		if show_core:
+			self._showMassLocHist(m,fig,ax,x,y,mInd)
+		
+		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		ax.set_ylabel(self.labels('Abundance'))
+
+		if show:
+			plt.show()
 
 	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=None,y2rng=None,
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
