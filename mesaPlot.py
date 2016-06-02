@@ -1724,7 +1724,7 @@ class plot(object):
 	def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
-				mod_out=None,megayears=False,xlabel=None,title=None):
+				mod_out=None,megayears=False,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None):
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 			
@@ -1814,8 +1814,8 @@ class plot(object):
 		burnZones[burnZones<-100]=0.0
 		
 		#print(age[-1],age[-2])
-		ageGrid=np.linspace(age[0],age[-1],500)
-		massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),1000)
+		ageGrid=np.linspace(age[0],age[-1],3000)
+		massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),600)
 		
 		grid_xin,grid_yin=np.meshgrid(age,q,indexing='ij')
 		grid_x,grid_y=np.meshgrid(ageGrid,massGrid,indexing='ij')
@@ -1860,7 +1860,8 @@ class plot(object):
 			vmin=0
 			newCm=burnMap[-1]
 
-		im1=ax.imshow(grid_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
+		if burn:
+			im1=ax.imshow(grid_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
 		#burnZones=0
 
 		
@@ -1902,13 +1903,17 @@ class plot(object):
 		ax.imshow(grid_z.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
 		##ax.contourf(XX,YY,mixZones.T,cmap=cmap,norm=norm,origin='lower')
 		#mixZones=0
-		ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
+		if ylabel is not None:
+			ax.set_ylabel(ylabel)
+		else:
+			ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
 		
-		cb=plt.colorbar(im1)
-		cb.solids.set_edgecolor("face")
+		if colorbar and burn:
+			cb=ax.colorbar(im1)
+			cb.solids.set_edgecolor("face")
 
-		cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
-		fig.set_size_inches(12,9.45)
+			cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
+			fig.set_size_inches(12,9.45)
 		
 		#self._setYLim(ax,ax.get_ylim(),yrng)
 		
