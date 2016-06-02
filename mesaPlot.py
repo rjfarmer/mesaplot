@@ -189,7 +189,7 @@ class MESA(object):
 				print(' '.join([str(self.hist.data[i][j]) for i in self.hist.data_names]),file=f)	
 	
 		
-	def loadProfile(self,f='',num=None,prof=-1,mode='nearest'):
+	def loadProfile(self,f='',num=None,prof=-1,mode='nearest',silent=False):
 		if num==None and prof==-1:
 			self._readProfile(f) #f is a filename
 			return
@@ -233,7 +233,8 @@ class MESA(object):
 							filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
 					else:
 						raise(ValueError,"Invalid mode")
-			print(filename)
+			if not silent:
+				print(filename)
 			self._readProfile(filename)
 			return
 			
