@@ -957,7 +957,7 @@ class plot(object):
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
 				colors=None):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 		#m.loadProfile(num=int(model))
@@ -1024,7 +1024,7 @@ class plot(object):
 		
 		
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
@@ -1062,7 +1062,7 @@ class plot(object):
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,show_rotation=True):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 			
 		ax1_1=fig.add_subplot(231)
 		ax1_2=fig.add_subplot(234)
@@ -1146,7 +1146,7 @@ class plot(object):
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,points=False,show_core=False):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
@@ -1190,7 +1190,7 @@ class plot(object):
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
@@ -1236,7 +1236,7 @@ class plot(object):
 				show_burn=False,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
@@ -1278,7 +1278,7 @@ class plot(object):
 				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,annotate_line=True,show_core=False):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
@@ -1323,7 +1323,7 @@ class plot(object):
 				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-',colors=None,
 				show_core=False):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
@@ -1383,7 +1383,7 @@ class plot(object):
 						show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
 						y1linelabel=None,show_core_loc=False):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
@@ -1486,7 +1486,7 @@ class plot(object):
 					fx=None,fy1=None,fy2=None,show_core=False):
 		
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 		
@@ -1724,7 +1724,7 @@ class plot(object):
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
 				mod_out=None,megayears=False,xlabel=None,title=None):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 			
 		if title is not None:
 			fig.suptitle(title)
@@ -1954,7 +1954,7 @@ class plot(object):
 				showGamma=False,showEOS=False,logT=False,logRho=False,
 				ycol='k'):
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 			
@@ -2086,7 +2086,7 @@ class plot(object):
 							show_mix=False,show_burn=True):
 		"""Plots mulitple profiles either given as a list of mod numbers or an index over the history data"""
 		if fig==None:
-			fig=plt.figure()
+			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
 		
@@ -2118,7 +2118,7 @@ class plot(object):
 			
 	def plotGrid2(self,m,show=True):
 		"""Why not grid1? trying to copy mesa's grids and grid2 is easier for now"""
-		fig=plt.figure()
+		fig=plt.figure(figsize=(12,12))
 		fig.subplots_adjust(wspace=.5)
 		fig.subplots_adjust(hspace=.5)
 		ax=plt.subplot(2,2,1)
@@ -2392,7 +2392,7 @@ class debug(object):
 			print('Empty ',jacob,name)
 			return
 
-		plt.figure()
+		plt.figure(figsize=(12,12))
 		plt.title(name.replace('_',' '))
 		
 		shp=np.shape(data)
