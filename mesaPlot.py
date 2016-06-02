@@ -974,8 +974,10 @@ class plot(object):
 		else:
 			x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 
+		
 		if abun is None:
-			abun_list,log=self._listAbun(m.prof)
+			abun_list=self._listAbun(m.prof)
+			log=''
 		else:
 			abun_list=abun
 			log=""
@@ -1760,8 +1762,12 @@ class plot(object):
 		
 		#Age in years does not have enogh digits to be able to distingush the final models in pre-sn progenitors
 		age=np.cumsum(10**np.longdouble(m.hist.log_dt))
+		
 		if age_collapse:
-			age=age[-1]-age
+			xx=age[-1]
+			if end_time is not None:
+				xx=end_time
+			age=xx-age
 			#Fudge the last value not to be exactly 0.0
 			age[-1]=(age[-2]/2.0)
 		
@@ -2502,7 +2508,7 @@ class plotEOS(object):
 
 
 	def plot_all(self,only_neg=False):
-		for i in names:
+		for i in self.name:
 			print('Plot',i)
 			self.plot(name=i,save=True,only_neg=only_neg)
 	
