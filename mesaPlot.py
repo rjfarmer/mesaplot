@@ -105,10 +105,13 @@ class data(object):
 		else:
 			raise NameError
 
-	def loadFile(self,filename):
+	def loadFile(self,filename,max_num_lines=-1):
 		numLines=self._filelines(filename)
 		self.head=np.genfromtxt(filename,skip_header=1,skip_footer=numLines-4,names=True)
-		self.data=np.genfromtxt(filename,skip_header=5,names=True)
+		skip_lines=0
+		if max_num_lines > 0 and max_num_lines<numLines:
+			skip_lines=numLines-max_num_lines
+		self.data=np.genfromtxt(filename,skip_header=5,names=True,skip_footer=skip_lines)
 		self.head_names=self.head.dtype.names
 		self.data_names=self.data.dtype.names
 
@@ -131,7 +134,7 @@ class MESA(object):
 		self.prof_ind=""
 		self.log_fold=""
 	
-	def loadHistory(self,f="",filename_in=None,max_model=-1):
+	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1):
 		"""
 		Reads a MESA history file.
 		
@@ -162,10 +165,10 @@ class MESA(object):
 		else:
 			filename=filename_in
 
-		self.hist.loadFile(filename)
+		self.hist.loadFile(filename,max_num_lines)
 		
 		if max_model>0:
-			self.hist.data=self.hist.data[np.concatenate(([True],self.hist.data["model_number"]<=max_model))]
+			self.hist.data=self.hist.data[self.hist.model_number<=max_model]
 
 		#Inspired by http://www.mesastar.org/tools-utilities/python-based-stuff/history-log-scrubber/view
 		#to remove bad lines
