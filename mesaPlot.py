@@ -376,9 +376,9 @@ class plot(object):
 					  self.colors['clr_LightSteelBlue'], #Softened convection
 					  self.colors['clr_SlateGray'], # Overshoot
 					  self.colors['clr_Lilac'], #Semi convection
-					  self.colors['clr_Beige'], #Thermohaline
+					  self.colors['clr_Coral'], #Thermohaline
 					  self.colors['clr_BrightBlue'], #Rotation
-					  self.colors['clr_Coral'], #Minimum
+					  self.colors['clr_Beige'], #Minimum
 					  self.colors['clr_Tan'] #Anonymous
 					  ]
 					
