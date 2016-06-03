@@ -489,6 +489,17 @@ class plot(object):
 					if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
 						abun_list.append(prefix+i)
 		return abun_list
+	
+	def _splitIso(self,iso):
+		name=''
+		mass=''
+		for i in iso:
+			if i.isdigit():
+				mass+=i
+			else:
+				name+=i
+		return name,int(mass)
+
 
 	def _listBurn(self,data):
 		burnList=[]
@@ -1018,6 +1029,90 @@ class plot(object):
 		
 		if show:
 			plt.show()
+			
+	def plotAbunByA(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,mass_range=None,
+					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
+				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
+				colors=None):
+		
+		if fig==None:
+			fig=plt.figure(figsize=(12,12))
+		if ax==None:
+			ax=fig.add_subplot(111)
+		#m.loadProfile(num=int(model))
+		
+		if model is not None:
+			try:
+				if m.prof.head["model_number"]!=model:
+					m.loadProfile(num=int(model))
+			except:
+				m.loadProfile(num=int(model))
+				
+		if mass_range is None:
+			ymin=0.0
+			ymax=m.prof.star_mass
+		else:
+			ymin=mass_range[0]
+			ymax=mass_range[1]
+		
+		if abun is None:
+			abun_list=self._listAbun(m.prof)
+			log=''
+		else:
+			abun_list=abun
+			log=""
+			
+		abun_log=True
+		if len(log)>0:
+			abun_log=False
+			
+		massInd=(m.prof.mass>=ymin)&(m.prof.mass<=ymax)
+		
+		if xmin is None:
+			xmin=-1
+		if xmax is None:
+			xmax=999999
+		
+	
+
+		name_all=[]
+		for i in abun_list:
+			name,mass=self._splitIso(i)
+			if mass >= xmin and mass <= xmax:
+				total_mass=np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd]))
+				ax.scatter(mass,np.log10(total_mass))
+				name_all.append(name)
+			#self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
+									#ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
+									#label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,linestyle=linestyle)
+		
+		name_all=set(name_all)
+		for i in name_all:
+			xx=[]
+			yy=[]
+			for j in abun_list:
+				name,mass=self._splitIso(j)
+				if name==i and mass >=xmin and mass <=xmax:
+					xx.append(mass)
+					yy.append(np.sum(m.prof.data[j][massInd]*10**(m.prof.logdq[massInd])))
+			ind=np.argsort(xx)
+			if np.size(ind)>1:
+				ax.plot(np.array(xx)[ind],np.log10(np.array(yy)[ind]),color='k',linewidth=1)
+				
+		
+		
+		ax.set_xlabel("A")
+		ax.set_ylabel(r'$\log_{10}$ Abundance')
+		
+		if show_title_name or show_title_model or show_title_age:
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Abundances',m.prof.head["model_number"],m.prof.head["star_age"])
+		
+		ax.set_xlim(0,ax.get_xlim()[1])
+		
+		if show:
+			plt.show()
+			
 			
 	def plotCenterAbun(self,m,model=None,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[-3.0,1.0],
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun_random=False,
