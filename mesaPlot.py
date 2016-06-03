@@ -1031,7 +1031,8 @@ class plot(object):
 			plt.show()
 			
 	def plotAbunByA(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
-					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False):
+					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
+					cmap=plt.cm.gist_ncar,colors=None,abun_random=False):
 		
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
@@ -1082,8 +1083,20 @@ class plot(object):
 			#self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 									#ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
 									#label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,linestyle=linestyle)
-		
+	
+		#Helps when we have many elements not on the plot that stretch the colormap
+		if abun_random:
+			random.shuffle(name_all)
+	
 		name_all=set(name_all)
+		num_plots=len(name_all)
+		
+	
+		if colors is None:
+			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		else:
+			plt.gca().set_color_cycle(colors)
+	
 		for i in name_all:
 			xx=[]
 			yy=[]
@@ -1094,8 +1107,10 @@ class plot(object):
 					yy.append(np.sum(m.prof.data[j][massInd]*10**(m.prof.logdq[massInd])))
 			ind=np.argsort(xx)
 			if np.size(ind)>1:
-				ax.plot(np.array(xx)[ind],np.log10(np.array(yy)[ind]),color='k',linewidth=1)
-				
+				line,=ax.plot(np.array(xx)[ind],np.log10(np.array(yy)[ind]),linewidth=1)
+			zz=np.zeros(np.size(ind))
+			self._annotateLine(ax,np.array(xx)[ind],zz*1.0,1,np.min(np.array(xx)[ind]),np.max(np.array(xx)[ind]),i,line)
+			
 		
 		
 		ax.set_xlabel("A")
@@ -1105,6 +1120,7 @@ class plot(object):
 			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Abundances',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		ax.set_xlim(0,ax.get_xlim()[1])
+		ax.set_ylim(ax.get_ylim()[0],ax.get_ylim()[1]+0.5)
 		
 		if show:
 			plt.show()
