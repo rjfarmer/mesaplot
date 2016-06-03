@@ -1030,17 +1030,13 @@ class plot(object):
 		if show:
 			plt.show()
 			
-	def plotAbunByA(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,mass_range=None,
-					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
-				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None):
+	def plotAbunByA(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
+					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False):
 		
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 		if ax==None:
 			ax=fig.add_subplot(111)
-		#m.loadProfile(num=int(model))
 		
 		if model is not None:
 			try:
