@@ -1040,7 +1040,7 @@ class plot(object):
 			
 	def plotAbunByA(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
 					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
-					cmap=plt.cm.gist_ncar,colors=None,abun_random=False):
+					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,abun_scaler=None,line_labels=True):
 		
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
@@ -1086,11 +1086,12 @@ class plot(object):
 			name,mass=self._splitIso(i)
 			if mass >= xmin and mass <= xmax:
 				total_mass=np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd]))
-				ax.scatter(mass,np.log10(total_mass))
+				y=np.log10(total_mass)
+				if abun_scaler is not None:
+					massIndAS=(abun_scaler.prof.mass>=ymin)&(abun_scaler.prof.mass<=ymax)
+					y=y-np.log10(np.sum(abun_scaler.prof.data[i][massIndAS]*10**(abun_scaler.prof.logdq[massIndAS])))
+				ax.scatter(mass,y,color='k')
 				name_all.append(name)
-			#self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
-									#ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-									#label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,linestyle=linestyle)
 	
 		#Helps when we have many elements not on the plot that stretch the colormap
 		if abun_random:
@@ -1112,23 +1113,37 @@ class plot(object):
 				name,mass=self._splitIso(j)
 				if name==i and mass >=xmin and mass <=xmax:
 					xx.append(mass)
-					yy.append(np.sum(m.prof.data[j][massInd]*10**(m.prof.logdq[massInd])))
+					total_mass=np.sum(m.prof.data[j][massInd]*10**(m.prof.logdq[massInd]))
+					y=np.log10(total_mass)
+					if abun_scaler is not None:
+						massIndAS=(abun_scaler.prof.mass>=ymin)&(abun_scaler.prof.mass<=ymax)
+						y=y-np.log10(np.sum(abun_scaler.prof.data[j][massIndAS]*10**(abun_scaler.prof.logdq[massIndAS])))
+					yy.append(y)
 			ind=np.argsort(xx)
-			if np.size(ind)>1:
-				line,=ax.plot(np.array(xx)[ind],np.log10(np.array(yy)[ind]),linewidth=1)
 			zz=np.zeros(np.size(ind))
-			self._annotateLine(ax,np.array(xx)[ind],zz*1.0,1,np.min(np.array(xx)[ind]),np.max(np.array(xx)[ind]),i,line)
+			if np.size(ind)>1:
+				line,=ax.plot(np.array(xx)[ind],np.array(yy)[ind],linewidth=1)
+				col=line.get_color()
+			else:
+				##TODO: Fix
+				col='k'
+			if line_labels:
+				self._annotateLine(ax,np.array(xx)[ind],zz*1.0,1,np.min(np.array(xx)[ind]),np.max(np.array(xx)[ind]),i,color=col)
 			
 		
 		
 		ax.set_xlabel("A")
-		ax.set_ylabel(r'$\log_{10}$ Abundance')
+		if abun_scaler is None:
+			ax.set_ylabel(r'$\log_{10}$ Abundance')
+		else:
+			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}_1}{\rm{Abun}_2}\right)$')
 		
 		if show_title_name or show_title_model or show_title_age:
 			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Abundances',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		ax.set_xlim(0,ax.get_xlim()[1])
-		ax.set_ylim(ax.get_ylim()[0],ax.get_ylim()[1]+0.5)
+		if line_labels:
+			ax.set_ylim(ax.get_ylim()[0],ax.get_ylim()[1]+0.5)
 		
 		if show:
 			plt.show()
