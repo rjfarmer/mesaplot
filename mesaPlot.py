@@ -600,16 +600,24 @@ class plot(object):
 	
 		ax.set_ylim(ylim)
 	
-	def _annotateLine(self,ax,x,y,num_labels,xmin,xmax,text,line,fontsize=mpl.rcParams['font.size']-12):
+	def _annotateLine(self,ax,x,y,num_labels,xmin,xmax,text,line=None,color=None,fontsize=mpl.rcParams['font.size']-12):
 		ind=np.argsort(x)
 		xx=x[ind]
 		yy=y[ind]
 		for ii in range(1,num_labels+1):
 			ind=(xx>=xmin)&(xx<=xmax)
-			f = interpolate.interp1d(xx[ind],yy[ind])
-			xp1=((xmax-xmin)*(ii/(num_labels+1.0)))+xmin
-			yp1=f(xp1)
-			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=line.get_color(),fontsize=fontsize)
+			if np.size(xx[ind])>1:
+				f = interpolate.interp1d(xx[ind],yy[ind])
+				xp1=((xmax-xmin)*(ii/(num_labels+1.0)))+xmin
+				yp1=f(xp1)
+			else:
+				xp1=xx[ind]
+				yp1=yy[ind]
+			if line is None:
+				col=color
+			else:
+				col=line.get_color()
+			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize)
 	
 	def _setYLim(self,ax,yrngIn,yrngOut,rev=False,log=False):
 		yrng=[]
