@@ -41,7 +41,7 @@ m.scrubHistory(fileOut='newFile')
 ````
 
 Data can be accessed as m.hist.data['COLUMN_NAME'] or m.hist.COLUMN_NAME. The second option is 
-also tab completable. The header information is either m.hist.head['COL_NAME'] or m.hist.COL_NAME.
+also tab completable. The header information is either m.hist.head['COLUMN_NAME'] or m.hist.COLUMN_NAME.
 
 ### Profile files
 To load a profile file its:
@@ -60,20 +60,173 @@ You can also set a mode
 ````python
 m.loadProfile(num=MODEL_NUMBER,mode='first|lower|upper|nearest')
 ````
-This is for when the model you want isn't in the data. Either we load the first model, the model just before the one you, the model just after the one you want or the nearest (above or below) the model you want.
-There are also two special model numbers 0 for first model and a negative number counts backwards (-1 is the last, -2 is last but one etc)
+This is for when the model you want isn't in the data. Either we load the first model, the model just before the one you want, the model just after the one you want or the nearest (above or below) the model you want.
+There are also two special model numbers 0 for first model and a negative number that counts backwards (-1 is the last model, -2 is last but one etc)
 
 Data can be accessed as m.prof.data['COLUMN_NAME'] or m.prof.COLUMN_NAME. The second option is 
-also tab completable. The header information is either m.prof.head['COL_NAME'] or m.prof.COL_NAME.
-
-### Mod files
-To load a mod file its:
-````python
-m.loadMod(FILENAME)
-```` 
+also tab completable. The header information is either m.prof.head['COLUMN_NAME'] or m.prof.COLUMN_NAME.
 
 
 ## Plotting
+
+Here we'll show the basics of plotting, there are more complex examples for each section. Commands will assume you are in a MESA work folder, such that the data is in a LOGS/ folder.
+
+
+### History data
+
+[More on history plots](docs/history.md)
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadHistory()
+p.plotHistory(m,xaxis='star_age',y1='log_center_T',y2='he_core_mass')
+````
+
+### Profile data
+
+[More on profile plots](docs/profile.md)
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadProfile(num=-1)
+p.plotProfile(m,xaxis='mass',y1='logT',y2='ye')
+````
+
+### HR
+
+[More on HR plots](docs/hr.md)
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadHistory()
+p.plotHR(m)
+````
+
+### Kippenhan's
+
+[More on Kippenhan plots](docs/kipp.md)
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadHistory()
+p.plotKip(m,show_mass_loc=True)
+````
+
+![Kippenhan plot 1M_pre_ms_to_wd](/examples/kip.png?raw=true "Kippenhan plot")
+
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadHistory()
+p.plotKip2(m)
+````
+
+### Abundances
+
+[More on abundance plots](docs/abun.md)
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadProfile(num=-1)
+p.plotAbun(m)
+````
+
+![Abundance plot 20M_si_burn](/examples/abundances.png?raw=true "Abundance plot")
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadProfile(num=-1)
+p.plotAbunByA(m)
+````
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadHistory()
+p.plotAbunSummary(m)
+````
+
+### Burn data
+
+[More on burn plots](docs/burn.md)
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadProfile(num=-1)
+p.plotBurn(m)
+````
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadHistory()
+p.plotBurnSummary(m)
+````
+
+### Dynamos
+
+[More on dynamo plots](docs/dynamo.md)
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadProfile(num=-1)
+p.plotDynamo(m)
+````
+
+![Dynamo  50M_z2m2_high_rotation](/examples/dynamo1.png?raw=true "Dynamo 1 plot")
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadProfile(num=-1)
+p.plotDyanmo2(m)
+````
+
+![Dyanmo 2 50M_z2m2_high_rotation](/examples/dynamo2.png?raw=true "Dynamo 2 plot")
+
+### Angular momentum mixing
+
+[More on angular momentum plots](docs/angmom.md)
+
+````python
+import mesaPlot as mp
+p=mp.plot()
+m.loadProfile(num=-1)
+p.plotAngMom(m)
+````
+
+### Stacked plots
+
+[More on stacked plots](docs/stacked.md)
+
+### Multi profile plots
+
+[More on multi profile plots](docs/multi.md)
+
+### Grid plotting
+
+[More on grid plots](docs/grid.md)
+
+
+
+
+
+
+
+
+
+
+<!--
+
 
 ### Intro
 Generally the plotting routines follow this structure:
@@ -259,7 +412,7 @@ plotGrid2()
 ````
 Note stackPlots() can't currently be added to a grid plot
 	
-	
+	-->
 
 
 
