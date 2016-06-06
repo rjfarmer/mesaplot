@@ -495,6 +495,8 @@ class plot(object):
 				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
 					if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
 						abun_list.append(prefix+i)
+			if i=='neut':
+				abun_list.append(prefix+i)
 		return abun_list
 	
 	def _splitIso(self,iso):
@@ -505,6 +507,8 @@ class plot(object):
 				mass+=i
 			else:
 				name+=i
+		if name=='neut':
+			mass=1
 		return name,int(mass)
 	
 	def _getIso(self,iso)
