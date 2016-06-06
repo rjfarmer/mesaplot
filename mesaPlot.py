@@ -383,7 +383,7 @@ class plot(object):
 					  ]
 		
 		#Conviently the index of this list is the proton number
-		self.elementsPretty=['n','H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo',]
+		self.elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
 		self.elements=[x.lower() for x in self.elementsPretty]
 					
 		self._getMESAPath()
@@ -511,11 +511,11 @@ class plot(object):
 			mass=1
 		return name,int(mass)
 	
-	def _getIso(self,iso)
-		name,m=self._splitIso(iso)
-		p=self.elements.index(p)
+	def _getIso(self,iso):
+		name,mass=self._splitIso(iso)
+		p=self.elements.index(name)
 		n=mass-p
-		return p,n
+		return name,p,n
 
 
 	def _listBurn(self,data):
@@ -1057,7 +1057,8 @@ class plot(object):
 			
 	def plotAbunByA(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
 					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
-					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,abun_scaler=None,line_labels=True):
+					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,abun_scaler=None,
+					line_labels=True,yrng=None):
 		
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
@@ -1161,7 +1162,88 @@ class plot(object):
 		ax.set_xlim(0,ax.get_xlim()[1])
 		if line_labels:
 			ax.set_ylim(ax.get_ylim()[0],ax.get_ylim()[1]+0.5)
+			
+		if yrng is not None:
+			ax.set_ylim(yrng)
 		
+		if show:
+			plt.show()
+			
+	def plotAbunPAndN(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
+					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
+					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,abun_scaler=None,line_labels=True):
+		
+		if fig==None:
+			fig=plt.figure(figsize=(12,12))
+		if ax==None:
+			ax=fig.add_subplot(111)
+		
+		if model is not None:
+			try:
+				if m.prof.head["model_number"]!=model:
+					m.loadProfile(num=int(model))
+			except:
+				m.loadProfile(num=int(model))
+				
+		if mass_range is None:
+			ymin=0.0
+			ymax=m.prof.star_mass
+		else:
+			ymin=mass_range[0]
+			ymax=mass_range[1]
+		
+		if abun is None:
+			abun_list=self._listAbun(m.prof)
+			log=''
+		else:
+			abun_list=abun
+			log=""
+			
+		abun_log=True
+		if len(log)>0:
+			abun_log=False
+			
+		massInd=(m.prof.mass>=ymin)&(m.prof.mass<=ymax)
+		
+		if xmin is None:
+			xmin=-1
+		if xmax is None:
+			xmax=999999
+		
+		name_all=[]
+		name=[]
+		proton=[]
+		neutron=[]
+		for i in abun_list:
+			na,pr,ne=self._getIso(i)
+			name.append(na)
+			proton.append(pr)
+			neutron.append(ne)
+
+	
+		proton=np.array(proton)
+		neutron=np.array(neutron)
+		outArr=np.zeros((neutron.max()+1,proton.max()+1))
+
+		outArr[:]=np.nan
+		for i in abun_list:
+			na,pr,ne=self._getIso(i)
+			idx=name.index(na)
+			massFrac=np.log10(np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd])))
+			outArr[ne,pr]=massFrac
+			
+		im1=ax.imshow(outArr.T,cmap=cmap,extent=(neutron.min(),neutron.max(),proton.min(),proton.max()),
+				interpolation='nearest',
+				origin='lower',aspect='auto')
+
+		cb=fig.colorbar(im1,ax=ax)
+		cb.solids.set_edgecolor("face")
+
+		cb.set_label('Mass Frac')
+
+		ax.set_xlabel('Neutrons')
+		ax.set_ylabel('Protons')
+
 		if show:
 			plt.show()
 			
