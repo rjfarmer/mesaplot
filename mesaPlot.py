@@ -381,6 +381,10 @@ class plot(object):
 					  self.colors['clr_Beige'], #Minimum
 					  self.colors['clr_Tan'] #Anonymous
 					  ]
+		
+		#Conviently the index of this list is the proton number
+		self.elementsPretty=['n','H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo',]
+		self.elements=[x.lower() for x in self.elementsPretty]
 					
 	
 	def _getMESAPath(self):
@@ -499,6 +503,12 @@ class plot(object):
 			else:
 				name+=i
 		return name,int(mass)
+	
+	def _getIso(self,iso)
+		name,m=self._splitIso(iso)
+		p=self.elements.index(p)
+		n=mass-p
+		return p,n
 
 
 	def _listBurn(self,data):
