@@ -1953,7 +1953,7 @@ class plot(object):
 	def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
-				mod_out=None,megayears=False,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None):
+				mod_out=None,megayears=False,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None):
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 			
@@ -1999,6 +1999,11 @@ class plot(object):
 			age=xx-age
 			#Fudge the last value not to be exactly 0.0
 			age[-1]=(age[-2]/2.0)
+			
+		if age_zero is not None:
+			age=age-age_zero
+			#Fudge the first value not to be exactly 0.0
+			age[0]=age[1]/2.0
 		
 		age=age[modInd]
 		
@@ -2010,6 +2015,7 @@ class plot(object):
 		
 		if age_reverse:
 			age=age[::-1]
+			
 			
 		#print(age)
 		if np.count_nonzero(modInd) > 20000:
@@ -2138,7 +2144,7 @@ class plot(object):
 			ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
 		
 		if colorbar and burn:
-			cb=ax.colorbar(im1)
+			cb=fig.colorbar(im1)
 			cb.solids.set_edgecolor("face")
 
 			cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
