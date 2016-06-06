@@ -149,6 +149,13 @@ p.plotAbunByA(m)
 ````python
 import mesaPlot as mp
 p=mp.plot()
+m.loadProfile(num=-1)
+p.plotAbunPAndN(m)
+````
+
+````python
+import mesaPlot as mp
+p=mp.plot()
 m.loadHistory()
 p.plotAbunSummary(m)
 ````
