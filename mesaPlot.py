@@ -1171,7 +1171,7 @@ class plot(object):
 			
 	def plotAbunPAndN(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
 					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
-					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,abun_scaler=None,line_labels=True):
+					cmap=plt.cm.jet,colors=None,abun_random=False,abun_scaler=None,line_labels=True,mass_frac_lim=10**-10):
 		
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
@@ -1223,26 +1223,34 @@ class plot(object):
 	
 		proton=np.array(proton)
 		neutron=np.array(neutron)
-		outArr=np.zeros((neutron.max()+1,proton.max()+1))
-
+		
+		outArr=np.zeros((10,10))
 		outArr[:]=np.nan
+		
+		min_col=np.log10(mass_frac_lim)
+		max_col=0.0
+
 		for i in abun_list:
 			na,pr,ne=self._getIso(i)
 			idx=name.index(na)
 			massFrac=np.log10(np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd])))
-			outArr[ne,pr]=massFrac
+			if massFrac >=np.log10(mass_frac_lim):
+				ax.add_patch(mpl.patches.Rectangle((float(ne-0.5),float(pr-0.5)),1.0,1.0,facecolor=cmap((massFrac-min_col)/(max_col-min_col))))
+			else:
+				ax.add_patch(mpl.patches.Rectangle((float(ne-0.5),float(pr-0.5)),1.0,1.0,fill=False))
+			#outArr[ne,pr]=massFrac
 			
-		im1=ax.imshow(outArr.T,cmap=cmap,extent=(neutron.min(),neutron.max(),proton.min(),proton.max()),
-				interpolation='nearest',
-				origin='lower',aspect='auto')
-
-		cb=fig.colorbar(im1,ax=ax)
+			
+		norm = mpl.colors.Normalize(vmin=min_col, vmax=max_col)
+		im=ax.imshow(outArr, aspect='auto',cmap=cmap, norm=norm)
+		cb = fig.colorbar(im,ax=ax,cmap=cmap,norm=norm)
 		cb.solids.set_edgecolor("face")
-
-		cb.set_label('Mass Frac')
+		cb.set_label('Log Mass Frac')
 
 		ax.set_xlabel('Neutrons')
 		ax.set_ylabel('Protons')
+		ax.set_xlim(neutron.min()-1,neutron.max()+1)
+		ax.set_ylim(proton.min()-1,proton.max()+1)
 
 		if show:
 			plt.show()
