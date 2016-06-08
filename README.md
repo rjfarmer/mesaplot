@@ -31,7 +31,7 @@ or
 ````python
 m.loadHistory(f='new_folder/LOGS/')
 ````
-Note this will automatically clean the history data of retries, backups and restarts. To write that data back to disk 
+Note this will automatically clean the history data of retries, backups and restarts. To write that data back to disk
 ````python
 m.scrubHistory()
 ````
@@ -40,7 +40,7 @@ Which will create a file "LOGS/history.data.scrubbed" if you don't want that the
 m.scrubHistory(fileOut='newFile')
 ````
 
-Data can be accessed as m.hist.data['COLUMN_NAME'] or m.hist.COLUMN_NAME. The second option is 
+Data can be accessed as m.hist.data['COLUMN_NAME'] or m.hist.COLUMN_NAME. The second option is
 also tab completable. The header information is either m.hist.head['COLUMN_NAME'] or m.hist.COLUMN_NAME.
 
 ### Profile files
@@ -63,7 +63,7 @@ m.loadProfile(num=MODEL_NUMBER,mode='first|lower|upper|nearest')
 This is for when the model you want isn't in the data. Either we load the first model, the model just before the one you want, the model just after the one you want or the nearest (above or below) the model you want.
 There are also two special model numbers 0 for first model and a negative number that counts backwards (-1 is the last model, -2 is last but one etc)
 
-Data can be accessed as m.prof.data['COLUMN_NAME'] or m.prof.COLUMN_NAME. The second option is 
+Data can be accessed as m.prof.data['COLUMN_NAME'] or m.prof.COLUMN_NAME. The second option is
 also tab completable. The header information is either m.prof.head['COLUMN_NAME'] or m.prof.COLUMN_NAME.
 
 
@@ -137,7 +137,7 @@ m.loadProfile(num=-1)
 p.plotAbun(m)
 ````
 
-![Abundance plot 20M_si_burn](/examples/abundances.png?raw=true "Abundance plot")
+![Basic abundance plot](/examples/abun_basic.pdf?raw=true "Abundance plot")
 
 ````python
 import mesaPlot as mp
@@ -146,12 +146,18 @@ m.loadProfile(num=-1)
 p.plotAbunByA(m)
 ````
 
+![Production plot](/examples/abun_bya.pdf?raw=true "Production plot")
+
+
 ````python
 import mesaPlot as mp
 p=mp.plot()
 m.loadProfile(num=-1)
 p.plotAbunPAndN(m)
 ````
+
+![Nuclear abundances] plot](/examples/abun_bypan.pdf?raw=true "Nuclear chart")
+
 
 ````python
 import mesaPlot as mp
@@ -340,7 +346,7 @@ mod=NUM
 ````
 To load model number NUM
 
-### Kippenhan 
+### Kippenhan
 Plots a Kippenhan diagram for the star from the history data, requires the history data has mixing_regions and burn_regions. Mixing regions shown with same colours as MESA.
 ````python
 plotKip()
@@ -405,7 +411,7 @@ y2label=[] #same as for plotProfile and plotHistory, except as a list, starting 
 ### Multi profiles
 Plots multiple profiles on one plot
 ````python
-plotMultiProfiles() 
+plotMultiProfiles()
 ````
 ````python
 mods=None #Either set mods or index, mods must be list of model_numbers
@@ -418,8 +424,5 @@ Plots the plotTRho, plotHR, history plot and abundance plots on one plot. Demons
 plotGrid2()
 ````
 Note stackPlots() can't currently be added to a grid plot
-	
+
 	-->
-
-
-
