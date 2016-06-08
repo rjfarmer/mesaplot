@@ -137,7 +137,7 @@ m.loadProfile(num=-1)
 p.plotAbun(m)
 ````
 
-![Basic abundance plot](/examples/abun_basic.pdf?raw=true "Abundance plot")
+![Basic abundance plot](/examples/abun_basic.png?raw=true "Abundance plot")
 
 ````python
 import mesaPlot as mp
@@ -146,7 +146,7 @@ m.loadProfile(num=-1)
 p.plotAbunByA(m)
 ````
 
-![Production plot](/examples/abun_bya.pdf?raw=true "Production plot")
+![Production plot](/examples/abun_bya.png?raw=true "Production plot")
 
 
 ````python
@@ -156,7 +156,7 @@ m.loadProfile(num=-1)
 p.plotAbunPAndN(m)
 ````
 
-![Nuclear abundances] plot](/examples/abun_bypan.pdf?raw=true "Nuclear chart")
+![Nuclear abundances plot](/examples/abun_bypandn.png?raw=true "Nuclear chart")
 
 
 ````python
