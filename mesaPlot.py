@@ -1937,6 +1937,10 @@ class plot(object):
 		ax.set_xlabel(r"$\rm{Model\; number}$")
 		ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
 		
+		if y2 is not None:
+			ax2=ax.twinx()
+			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],color='k')
+		
 		cb=fig.colorbar(im1,ax=ax)
 		cb.solids.set_edgecolor("face")
 
@@ -1950,10 +1954,6 @@ class plot(object):
 		
 		#Add line at outer mass location
 		ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],color='k')
-				
-		if y2 is not None:
-			ax2=ax.twinx()
-			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],color='k')
 		
 		
 		if show_mass_loc:
@@ -2014,9 +2014,16 @@ class plot(object):
 			age[-1]=(age[-2]/2.0)
 			
 		if age_zero is not None:
-			age=age-age_zero
+			age=age_zero-age
 			#Fudge the first value not to be exactly 0.0
 			age[0]=age[1]/2.0
+		
+		modInd2=np.zeros(np.shape(modInd),dtype='bool')
+		modInd2[0]=modInd[0]
+		modInd2[1:]=(np.diff(age)!=0.0)
+		print(modInd)
+		print(modInd2)
+		modInd=modInd&modInd2
 		
 		age=age[modInd]
 		
@@ -2029,11 +2036,7 @@ class plot(object):
 		if age_reverse:
 			age=age[::-1]
 			
-			
-		#print(age)
-		if np.count_nonzero(modInd) > 20000:
-			print("Warning attempting to plot more than 20,000 models")
-			print("This may take a long time and/or crash your pc from memeory usage")
+		print(age)
 		
 		q=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data["star_mass"])),np.max(m.hist.data["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
@@ -2061,42 +2064,49 @@ class plot(object):
 		
 		burnZones[burnZones<-100]=0.0
 		
-		#print(age[-1],age[-2])
-		ageGrid=np.linspace(age[0],age[-1],3000)
-		massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),600)
+		##print(age[-1],age[-2])
+		#ageGrid=np.linspace(age[0],age[-1],3000)
+		#massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),600)
 		
-		grid_xin,grid_yin=np.meshgrid(age,q,indexing='ij')
-		grid_x,grid_y=np.meshgrid(ageGrid,massGrid,indexing='ij')
+		#grid_xin,grid_yin=np.meshgrid(age,q,indexing='ij')
+		#grid_x,grid_y=np.meshgrid(ageGrid,massGrid,indexing='ij')
 
-		grid_xin=[]
-		grid_yin=[]
-		grid_data=[]
+		#grid_xin=[]
+		#grid_yin=[]
+		#grid_data=[]
 		
-		bt=burnZones.T
-		for i in range(len(q)):
-			for j in range(len(age)):
-				grid_xin.append(age[j])
-				grid_yin.append(q[i])
-				grid_data.append(bt[i,j])
+		#bt=burnZones.T
+		#for i in range(len(q)):
+			#for j in range(len(age)):
+				#grid_xin.append(age[j])
+				#grid_yin.append(q[i])
+				#grid_data.append(bt[i,j])
 				
-		burnZones=0.0
-		grid_xin=np.array(grid_xin)
-		grid_yin=np.array(grid_yin)
-		grid_data=np.array(grid_data)
+		#burnZones=0.0
+		#grid_xin=np.array(grid_xin)
+		#grid_yin=np.array(grid_yin)
+		#grid_data=np.array(grid_data)
 		
-		grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
-		#print(grid_z)
-		grid_z=np.double(grid_z)
+		#grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
+		##print(grid_z)
+		#grid_z=np.double(grid_z)
+		#extent=(ageGrid[0],ageGrid[-1],Ymin,Ymax)
+		#extent=np.double(np.array(extent))
+
+			
+		ageGrid=np.linspace(age[0],age[-1],3000)
+		massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),3000)
+
 		extent=(ageGrid[0],ageGrid[-1],Ymin,Ymax)
 		extent=np.double(np.array(extent))
 
 		if cmin is None:
-			vmin=np.nanmin(grid_data)
+			vmin=np.nanmin(burnZones)
 		else:
 			vmin=cmin
 			
 		if cmax is None:
-			vmax=np.nanmax(grid_data)
+			vmax=np.nanmax(burnZones)
 		else:
 			vmax=cmax
 			
@@ -2107,11 +2117,21 @@ class plot(object):
 		else:
 			vmin=0
 			newCm=burnMap[-1]
-
+		
+		
 		if burn:
-			im1=ax.imshow(grid_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
-		#burnZones=0
+			for i in np.unique(burnZones):
+				burnZones2=np.zeros(np.shape(burnZones))
+				burnZones2[burnZones==i]=1.0
+				spl=interpolate.RectBivariateSpline(age[::-1],q,burnZones2[::-1,:], kx=1, ky=1, s=0)
+				grid_z=spl(ageGrid[::-1],massGrid)
+				grid_z=grid_z[::-1,:]
+				grid_z[grid_z>0.0]=1.0
+				grid_z[grid_z<1]=-np.nan
+				grid_z[grid_z==1]=i
+				im1=ax.imshow(grid_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)
 
+		mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
 		
 		mixZones=np.zeros((numModels,np.size(q)))
 		k=0
@@ -2131,26 +2151,35 @@ class plot(object):
 				ind2=ind2|ind
 			k=k+1					
 				
-		mixZones[mixZones==0]=-np.nan
+		#mixZones[mixZones==0]=np.nan
 		
-		mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
-		
-		grid_data=[]
-		mt=mixZones.T
-		for i in range(len(q)):
-			for j in range(len(age)):
-				grid_data.append(mt[i,j])
+		#grid_data=[]
+		#mt=mixZones.T
+		#for i in range(len(q)):
+			#for j in range(len(age)):
+				#grid_data.append(mt[i,j])
 				
-		mixZones=0.0
-		grid_data=np.array(grid_data)
+		#mixZones=0.0
+		#grid_data=np.array(grid_data)
 		
-		grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
-		#print(grid_z)
-		grid_z=np.double(grid_z)
-		
-		ax.imshow(grid_z.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
-		##ax.contourf(XX,YY,mixZones.T,cmap=cmap,norm=norm,origin='lower')
-		#mixZones=0
+		#grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
+		##print(grid_z)
+		#grid_z=np.double(grid_z)
+		if mix != -1:
+			for i in np.unique(mixZones):
+				if i==0:
+					continue
+				mixZones2=np.zeros(np.shape(mixZones))
+				mixZones2[mixZones==i]=1.0
+				spl=interpolate.RectBivariateSpline(age[::-1],q,mixZones2[::-1,:], kx=1, ky=1, s=0)
+				grid_z=spl(ageGrid[::-1],massGrid)
+				grid_z=grid_z[::-1,:]
+				grid_z=np.rint(grid_z)
+				grid_z[grid_z<1]=-np.nan
+				grid_z[grid_z==1]=i
+				ax.imshow(grid_z.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
+
+
 		if ylabel is not None:
 			ax.set_ylabel(ylabel)
 		else:
