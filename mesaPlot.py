@@ -495,7 +495,7 @@ class plot(object):
 				if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
 					if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
 						abun_list.append(prefix+i)
-			if i=='neut':
+			if i=='neut' or i=='prot':
 				abun_list.append(prefix+i)
 		return abun_list
 	
@@ -533,6 +533,11 @@ class plot(object):
 			if i in mixList:
 				mixListOut.append(i)
 		return mixListOut
+	
+	def _abunSum(m,iso,mass_min=0.0,mass_max=9999.0):
+		ind=(m.prof.mass>=mass_min)&(m.prof.mass<=mass_max)
+		return np.sum(m.prof.data[iso][ind]*10**m.prof.logdq[ind])*m.prof.star_mass/np.minimum(m.prof.star_mass,mass_max-mass_min)
+
 
 
 	def _setMixRegionsCol(self,kip=False,mix=False):		
@@ -2333,11 +2338,14 @@ class plot(object):
 		if show:
 			plt.show()
 
-	def plotMultiProfiles(self,m,mods=None,index=None,xaxis='mass',y1='',show=True,
-							ax=None,xmin=None,xmax=None,xlog=False,y1log=False,
-							cmap=plt.cm.gist_ncar,xrev=False,y1rev=False,
-							points=False,xlabel=None,y1label=None,fig=None,
-							show_mix=False,show_burn=True):
+	def plotMultiProfiles(self,m,mods=None,index=None,xaxis='mass',y1='',
+					   show=True,ax=None,xmin=None,xmax=None,
+					   xlog=False,y1log=False,
+						cmap=plt.cm.gist_ncar,xrev=False,
+						y1rev=False,
+						points=False,xlabel=None,y1label=None,
+						fig=None,
+						show_mix=False,show_burn=True):
 		"""Plots mulitple profiles either given as a list of mod numbers or an index over the history data"""
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
