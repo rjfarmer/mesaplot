@@ -29,6 +29,8 @@ import matplotlib.patheffects as path_effects
 import os
 import random
 import glob
+import subprocess
+from io import BytesIO
 
 try:
    #Can be a problem on mac's
@@ -2797,3 +2799,66 @@ class plotEOS(object):
 			print('Plot',i)
 			self.plot(name=i,save=True,only_neg=only_neg)
 	
+
+class plotNet(object):
+	def __init__(self):
+		self.data=[]
+		self.name=[]
+		
+	def load(self,filename):
+		from io import BytesIO
+		d=subprocess.check_output("$MESA_DIR/rates/test/show_rates "+filename,shell=True)
+		
+		self.name.append(os.path.basename(filename))
+		if type(d) is not type('a'):
+			data=d.decode().replace('D','E')
+		
+		data=data.encode()
+		data=np.genfromtxt(BytesIO(data),names=['t8','rate'],skip_header=4)
+		
+		self.data.append(data)
+	
+	def load_all(self):
+		for i in glob.glob(os.path.expandvars('$MESA_DIR')+'/data/rates_data/cache/r_*.bin'):
+			print(i)
+			self.load(i)
+	
+	def plot(self,name,show=True,trng=None,rrng=None):
+		
+		for n,data in zip(self.name,self.data):
+			if n==name:
+				d=data
+				
+		fig=plt.figure(figsize=(12,12))
+		ax=fig.add_subplot(111)
+		ax.plot(np.log10(d['t8'])-1.0,np.log10(d['rate']),linewidth=2)
+		ax.scatter(np.log10(d['t8'])-1.0,np.log10(d['rate']))
+		ax.set_xlabel(r'$\log_{10}\,\rm{T}_9$')
+		ax.set_ylabel(r'$\rm{Rate}$')
+		ax.set_title(name.replace('_','\_'))
+		if trng is not None:
+			ax.set_xlim(trng)
+		if rrng is not None:
+			ax.set_ylim(rrng)
+			
+		if show:
+			plt.show()
+		else:
+			plt.savefig(name.replace('.bin','')+'.pdf')
+		plt.close(fig)
+		
+	def plot_all(self,show=False,trng=None,rrng=None):
+		for i in self.name:
+			print(i)
+			self.plot(i,show,trng,rrng)
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
