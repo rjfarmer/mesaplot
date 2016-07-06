@@ -172,11 +172,12 @@ class MESA(object):
 		if max_model>0:
 			self.hist.data=self.hist.data[self.hist.model_number<=max_model]
 
-		#Inspired by http://www.mesastar.org/tools-utilities/python-based-stuff/history-log-scrubber/view
-		#to remove bad lines
-		while (np.any(np.diff(self.hist.data["model_number"])<=0.0)):
-			rev=np.copy(self.hist.data["model_number"][::-1])
-			self.hist.data=self.hist.data[np.concatenate(([True],np.diff(rev)<0))[::-1]]
+		# Reverse model numbers, we want the unique elements
+		# but keeping the last not the first.
+		mod_rev=self.hist.model_number[::-1]
+		mod_uniq,mod_ind=np.unique(mod_rev,return_index=True)
+		self.hist.data=self.hist.data[np.size(self.hist.model_number)-mod_ind-1]
+
 		
 	def scrubHistory(self,f="",fileOut="LOGS/history.data.scrubbed"):
 		self.loadHistory(f)
