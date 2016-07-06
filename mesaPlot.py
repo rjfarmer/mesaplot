@@ -1807,6 +1807,9 @@ class plot(object):
 
 		if ax==None:
 			ax=fig.add_subplot(111)
+			
+		if y2 is not None:
+			ax2=ax.twinx()
 		
 		if reloadHistory:
 			m.loadHistory()
@@ -1939,10 +1942,6 @@ class plot(object):
 		ax.set_xlabel(r"$\rm{Model\; number}$")
 		ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
 		
-		if y2 is not None:
-			ax2=ax.twinx()
-			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],color='k')
-		
 		cb=fig.colorbar(im1,ax=ax)
 		cb.solids.set_edgecolor("face")
 
@@ -1956,6 +1955,9 @@ class plot(object):
 		
 		#Add line at outer mass location
 		ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],color='k')
+		
+		if y2 is not None:
+			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],color='k')
 		
 		
 		if show_mass_loc:
