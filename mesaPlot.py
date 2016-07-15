@@ -999,7 +999,7 @@ class plot(object):
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None):
+				colors=None,ylabel=None,title=None):
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 		if ax==None:
@@ -1054,9 +1054,14 @@ class plot(object):
 			
 			
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
-		ax.set_ylabel(r'$\log_{10}$ Abundance')
+		if ylabel is not None:
+			ax.set_ylabel(ylabel)
+		else:
+			ax.set_ylabel(r'$\log_{10}$ Abundance')
 		
-		if show_title_name or show_title_model or show_title_age:
+		if title is not None:
+			ax.set_title(title)
+		elif show_title_name or show_title_model or show_title_age:
 			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Abundances',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		
@@ -2007,7 +2012,7 @@ class plot(object):
 		#modInd=modInd&(m.hist.model_number>=m.hist.model_number[m.hist.burn_type_1<0.0][0])
 		#print(m.hist.model_number[modInd])
 		
-		#Age in years does not have enogh digits to be able to distingush the final models in pre-sn progenitors
+		#Age in years does not have enough digits to be able to distingush the final models in pre-sn progenitors
 		age=np.cumsum(10**np.longdouble(m.hist.log_dt))
 		
 		if age_collapse:
@@ -2060,6 +2065,17 @@ class plot(object):
 				burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
 				ind2b=ind2b|indb
 			k=k+1
+
+		#k=0		
+		#for jj in m.hist.data["model_number"][modInd]:
+			#i=m.hist.data["model_number"]==jj
+			#indb=(q<= m.hist.data["burn_qtop_1"][i]*m.hist.data['star_mass'][i])
+			#burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
+			#for j in range(2,self.numBurnZones+1):
+				#indb=(q<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&(q>m.hist.data["burn_qtop_"+str(j-1)][i]*m.hist.data['star_mass'][i])
+				#burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
+			#k=k+1			
+			
 
 		Xmin=m.hist.data["model_number"][modInd][0]
 		Xmax=m.hist.data["model_number"][modInd][-1]
@@ -2844,6 +2860,7 @@ class plotNet(object):
 		if rrng is not None:
 			ax.set_ylim(rrng)
 			
+		ax.autoscale()
 		if show:
 			plt.show()
 		else:
