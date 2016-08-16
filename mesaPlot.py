@@ -31,6 +31,7 @@ import random
 import glob
 import subprocess
 from io import BytesIO
+from cycler import cycler
 
 try:
    #Can be a problem on mac's
@@ -676,6 +677,12 @@ class plot(object):
 		ind=(x>=xrngL[0])&(x<=xrngL[1])
 			
 		return x,xrngL,ind
+   
+	def _cycleColors(self,ax,colors=None,cmap='',num_plots=0):
+		if colors is None:
+			ax.set_prop_cycle(cycler('color',[cmap(i) for i in np.linspace(0.0,0.9,num_plots)]))
+		else:
+			ax.set_prop_cycle(cycler('color',colors))
 
 	def _showBurnData(self,ax):
 		self._loadBurnData()
@@ -1035,11 +1042,7 @@ class plot(object):
 		if abun_random:
 			random.shuffle(abun_list)
 
-		if colors is None:
-			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
-		else:
-			plt.gca().set_color_cycle(colors)
-		
+		self._cycleColors(ax,colors,cmap,num_plots)
 		
 		for i in abun_list:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
@@ -1132,10 +1135,7 @@ class plot(object):
 		num_plots=len(name_all)
 		
 	
-		if colors is None:
-			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
-		else:
-			plt.gca().set_color_cycle(colors)
+		self._cycleColors(ax,colors,cmap,num_plots)
 	
 		for i in name_all:
 			xx=[]
@@ -1293,7 +1293,7 @@ class plot(object):
 		if abun_random:
 			random.shuffle(abun_list)
 				
-		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		self._cycleColors(ax,colors,cmap,num_plots)
 			
 		for i in abun_list:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.hist.data[i],fy=fy,xmin=xrngL[0],
@@ -1462,7 +1462,7 @@ class plot(object):
 		if burn_random:
 			random.shuffle(burn_list)
 				
-		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		self._cycleColors(ax,colors,cmap,num_plots)
 			
 		for i in burn_list:
 			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
@@ -1507,7 +1507,7 @@ class plot(object):
 		if mix_random:
 			random.shuffle(mix_list)
 				
-		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		self._cycleColors(ax,colors,cmap,num_plots)
 			
 		for i in mix_list:
 			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
@@ -1547,7 +1547,7 @@ class plot(object):
 		if burn_random:
 			random.shuffle(burn_list)
 				
-		plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
+		self._cycleColors(ax,colors,cmap,num_plots)
 			
 		for i in burn_list:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
@@ -1596,10 +1596,7 @@ class plot(object):
 		if abun_random:
 			random.shuffle(abun_list)
 		
-		if colors is None:
-			plt.gca().set_color_cycle([cmap(i) for i in np.linspace(0.0,0.9,num_plots)])
-		else:
-			plt.gca().set_color_cycle([colors(i) for i in np.linspace(0.0,0.9,num_plots)])
+		self._cycleColors(ax,colors,cmap,num_plots)
 			
 		for i in abun_list:
 			y=m.hist.data["log_total_mass_"+i][mInd]
