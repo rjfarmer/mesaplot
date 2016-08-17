@@ -1002,12 +1002,20 @@ class plot(object):
 			self._setTicks(ax)
 	
 			return x,y
-	
-	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
-					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
-				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None,ylabel=None,title=None):
+		
+	def _setupHist(self,fig,ax,m,minMod,maxMod):
+		if fig==None:
+			fig=plt.figure(figsize=(12,12))
+		if ax==None:
+			ax=fig.add_subplot(111)
+		
+		if maxMod<0:
+			maxMod=m.hist.data["model_number"][-1]
+		modelIndex=(m.hist.data["model_number"]>=minMod)&(m.hist.data["model_number"]<=maxMod)		
+		
+		return fig,ax,modelIndex
+		
+	def _setupProf(self,fig,ax,m,model):
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 		if ax==None:
@@ -1020,6 +1028,15 @@ class plot(object):
 					m.loadProfile(num=int(model))
 			except:
 				m.loadProfile(num=int(model))
+		return fig,ax
+	
+	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
+					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
+				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
+				colors=None,ylabel=None,title=None):
+		
+		fig,ax=self._setupProf(fig,ax,m,model)
 			
 		if modFile:
 			x,xrngL,mInd=self._setXAxis(np.cumsum(m.mod_dat["dq"][::-1])*m._fds2f(m.mod_head[1]),xmin,xmax,fx)
@@ -1077,17 +1094,7 @@ class plot(object):
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,abun_scaler=None,
 					line_labels=True,yrng=None):
 		
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-		
-		if model is not None:
-			try:
-				if m.prof.head["model_number"]!=model:
-					m.loadProfile(num=int(model))
-			except:
-				m.loadProfile(num=int(model))
+		fig,ax=self._setupProf(fig,ax,m,model)
 				
 		if mass_range is None:
 			ymin=0.0
@@ -1187,17 +1194,7 @@ class plot(object):
 					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
 					cmap=plt.cm.jet,colors=None,abun_random=False,abun_scaler=None,line_labels=True,mass_frac_lim=10**-10):
 		
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-		
-		if model is not None:
-			try:
-				if m.prof.head["model_number"]!=model:
-					m.loadProfile(num=int(model))
-			except:
-				m.loadProfile(num=int(model))
+		fig,ax=self._setupProf(fig,ax,m,model)
 				
 		if mass_range is None:
 			ymin=0.0
@@ -1275,15 +1272,7 @@ class plot(object):
 				fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,
 				show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False):
 		
-		
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-			
-		if maxMod<0:
-			maxMod=m.hist.data["model_number"][-1]
-		modelIndex=(m.hist.data["model_number"]>=minMod)&(m.hist.data["model_number"]<=maxMod)
+		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
 		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
 
@@ -1314,8 +1303,9 @@ class plot(object):
 	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=None,y2rng=None,
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,show_rotation=True):
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
+
+
+		fig,ax=self._setupProf(fig,ax,m,model)
 			
 		ax1_1=fig.add_subplot(231)
 		ax1_2=fig.add_subplot(234)
@@ -1342,18 +1332,8 @@ class plot(object):
 		ax1_2.plot(0,0,color='w')
 		ax2_1.plot(0,0,color='w')
 		ax2_2.plot(0,0,color='w')
-		
-		if ax==None:
-			ax=fig.add_subplot(111)
 	
 		ax2=ax.twinx()
-	
-		if model is not None:
-			try:
-				if m.prof.head["model_number"]!=model:
-					m.loadProfile(num=int(model))
-			except:
-				m.loadProfile(num=int(model))
 			
 		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 		
@@ -1398,17 +1378,8 @@ class plot(object):
 	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,points=False,show_core=False):
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-			
-		if model is not None:
-			try:
-				if m.prof.head["model_number"]!=model:
-					m.loadProfile(num=int(model))
-			except:
-				m.loadProfile(num=int(model))
+		
+		fig,ax=self._setupProf(fig,ax,m,model)
 			
 		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 
@@ -1442,17 +1413,8 @@ class plot(object):
 				cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True):
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-			
-		if model is not None:
-			try:
-				if m.prof.head["model_number"]!=model:
-					m.loadProfile(num=int(model))
-			except:
-				m.loadProfile(num=int(model))
+		
+		fig,ax=self._setupProf(fig,ax,m,model)
 			
 		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 
@@ -1488,17 +1450,8 @@ class plot(object):
 				cmap=plt.cm.gist_ncar,yrng=[0.0,5.0],num_labels=7,mix_random=False,points=False,
 				show_burn=False,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True):
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-			
-		if model is not None:
-			try:
-				if m.prof.head["model_number"]!=model:
-					m.loadProfile(num=int(model))
-			except:
-				m.loadProfile(num=int(model))
+		
+		fig,ax=self._setupProf(fig,ax,m,model)
 			
 		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 
@@ -1530,14 +1483,8 @@ class plot(object):
 	def plotBurnSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,annotate_line=True,show_core=False):
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-			
-		if maxMod<0:
-			maxMod=m.hist.data["model_number"][-1]
-		modelIndex=(m.hist.data["model_number"]>=minMod)&(m.hist.data["model_number"]<=maxMod)
+		
+		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
 		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
 
@@ -1575,14 +1522,8 @@ class plot(object):
 				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,abun_random=False,points=False,
 				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-',colors=None,
 				show_core=False):
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-			
-		if maxMod<0:
-			maxMod=m.hist.data["model_number"][-1]
-		modelIndex=(m.hist.data["model_number"]>=minMod)&(m.hist.data["model_number"]<=maxMod)
+		
+		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
 		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
 
@@ -1632,17 +1573,8 @@ class plot(object):
 						fx=None,fy1=None,fy2=None,
 						show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
 						y1linelabel=None,show_core_loc=False):
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-			
-		if model is not None:
-			try:
-				if m.prof.head["model_number"]!=model:
-					m.loadProfile(num=int(model))
-			except:
-				m.loadProfile(num=int(model))
+		
+		fig,ax=self._setupProf(fig,ax,m,model)
 
 		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 		
@@ -1735,14 +1667,7 @@ class plot(object):
 					y2label=None,fig=None,y1rng=[None,None],y2rng=[None,None],
 					fx=None,fy1=None,fy2=None,show_core=False):
 		
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-		
-		if maxMod<0:
-			maxMod=m.hist.data["model_number"][-1]
-		modelIndex=(m.hist.data["model_number"]>=minMod)&(m.hist.data["model_number"]<=maxMod)
+		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
 		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
 			
@@ -2190,11 +2115,8 @@ class plot(object):
 				showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,
 				showGamma=False,showEOS=False,logT=False,logRho=False,
 				ycol='k'):
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
-			
+		
+		fig,ax=self._setupProf(fig,ax,m,model)
 			
 		try:
 			x=m.prof.logRho
@@ -2204,7 +2126,6 @@ class plot(object):
 			x=m.prof.Rho
 			xname='rho'
 			xlog=True
-			
 			
 		try:
 			y=m.prof.logT
