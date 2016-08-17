@@ -74,6 +74,7 @@ class data(object):
 	def __init__(self):
 		self.data={}
 		self.head={}
+		self.loaded=False
 		
 
 	def __getattr__(self, name):
@@ -81,17 +82,20 @@ class data(object):
 		
 		try:
 			x=self.data[name]
-		except ValueError:
+		except:
 			pass
 		try:
 			x=np.atleast_1d(self.head[name])[0]
-		except ValueError:
+		except:
 			pass
 		
 		if x is not None:
 			return x
 		else:
-			raise AttributeError("No value ",name," available")
+			if self.loaded:
+				raise AttributeError("No value "+name+" available")
+			else:
+				raise AttributeError("Must call loadHistory or loadProfile first")
 	
 	def __dir__(self):
 		x=[]
@@ -120,6 +124,7 @@ class data(object):
 		self.data=np.genfromtxt(filename,skip_header=5,names=True,skip_footer=skip_lines)
 		self.head_names=self.head.dtype.names
 		self.data_names=self.data.dtype.names
+		self.loaded=True
 
 	def _filelines(self,filename):
 		"""Get the number of lines in a file."""
