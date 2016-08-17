@@ -32,6 +32,7 @@ import glob
 import subprocess
 from io import BytesIO
 from cycler import cycler
+from scipy.interpolate import interp1d
 
 try:
    #Can be a problem on mac's
@@ -1969,11 +1970,11 @@ class plot(object):
 		if show:
 			plt.show()
 		
-
 	def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
-				mod_out=None,megayears=False,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None):
+				mod_out=None,megayears=False,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None,
+				num_x=None,num_y=None,y2=None):
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 			
@@ -2006,9 +2007,6 @@ class plot(object):
 		if xrng[0]>=0:
 			modInd=modInd&(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
 		
-		#modInd=modInd&(m.hist.model_number>=m.hist.model_number[m.hist.burn_type_1<0.0][0])
-		#print(m.hist.model_number[modInd])
-		
 		#Age in years does not have enough digits to be able to distingush the final models in pre-sn progenitors
 		age=np.cumsum(10**np.longdouble(m.hist.log_dt))
 		
@@ -2028,8 +2026,6 @@ class plot(object):
 		modInd2=np.zeros(np.shape(modInd),dtype='bool')
 		modInd2[0]=modInd[0]
 		modInd2[1:]=(np.diff(age)!=0.0)
-		print(modInd)
-		print(modInd2)
 		modInd=modInd&modInd2
 		
 		age=age[modInd]
@@ -2043,10 +2039,21 @@ class plot(object):
 		if age_reverse:
 			age=age[::-1]
 			
-		print(age)
-		
 		q=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data["star_mass"])),np.max(m.hist.data["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
+		
+		if num_x is None:
+			num_x=numModels
+			
+		if num_x<numModels:
+			print("Not supported for num_x< numModels, leave num_x as None or bigger than numModels")
+			return
+		
+		lin_age=np.linspace(age[0],age[-1],num_x)
+		
+		if num_y is None:
+			num_y=np.size(q)
+      
 
 		burnZones=np.zeros((numModels,np.size(q)))
 			
@@ -2063,17 +2070,6 @@ class plot(object):
 				ind2b=ind2b|indb
 			k=k+1
 
-		#k=0		
-		#for jj in m.hist.data["model_number"][modInd]:
-			#i=m.hist.data["model_number"]==jj
-			#indb=(q<= m.hist.data["burn_qtop_1"][i]*m.hist.data['star_mass'][i])
-			#burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
-			#for j in range(2,self.numBurnZones+1):
-				#indb=(q<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&(q>m.hist.data["burn_qtop_"+str(j-1)][i]*m.hist.data['star_mass'][i])
-				#burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
-			#k=k+1			
-			
-
 		Xmin=m.hist.data["model_number"][modInd][0]
 		Xmax=m.hist.data["model_number"][modInd][-1]
 			
@@ -2082,40 +2078,7 @@ class plot(object):
 		
 		burnZones[burnZones<-100]=0.0
 		
-		##print(age[-1],age[-2])
-		#ageGrid=np.linspace(age[0],age[-1],3000)
-		#massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),600)
-		
-		#grid_xin,grid_yin=np.meshgrid(age,q,indexing='ij')
-		#grid_x,grid_y=np.meshgrid(ageGrid,massGrid,indexing='ij')
-
-		#grid_xin=[]
-		#grid_yin=[]
-		#grid_data=[]
-		
-		#bt=burnZones.T
-		#for i in range(len(q)):
-			#for j in range(len(age)):
-				#grid_xin.append(age[j])
-				#grid_yin.append(q[i])
-				#grid_data.append(bt[i,j])
-				
-		#burnZones=0.0
-		#grid_xin=np.array(grid_xin)
-		#grid_yin=np.array(grid_yin)
-		#grid_data=np.array(grid_data)
-		
-		#grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
-		##print(grid_z)
-		#grid_z=np.double(grid_z)
-		#extent=(ageGrid[0],ageGrid[-1],Ymin,Ymax)
-		#extent=np.double(np.array(extent))
-
-			
-		ageGrid=np.linspace(age[0],age[-1],3000)
-		massGrid=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data['star_mass'])),3000)
-
-		extent=(ageGrid[0],ageGrid[-1],Ymin,Ymax)
+		extent=(age[0],age[-1],Ymin,Ymax)
 		extent=np.double(np.array(extent))
 
 		if cmin is None:
@@ -2136,68 +2099,42 @@ class plot(object):
 			vmin=0
 			newCm=burnMap[-1]
 		
-		
 		if burn:
-			for i in np.unique(burnZones):
-				burnZones2=np.zeros(np.shape(burnZones))
-				burnZones2[burnZones==i]=1.0
-				spl=interpolate.RectBivariateSpline(age[::-1],q,burnZones2[::-1,:], kx=1, ky=1, s=0)
-				grid_z=spl(ageGrid[::-1],massGrid)
-				grid_z=grid_z[::-1,:]
-				grid_z[grid_z>0.0]=1.0
-				grid_z[grid_z<1]=-np.nan
-				grid_z[grid_z==1]=i
-				im1=ax.imshow(grid_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)
-
+			burnZones2=np.zeros(np.shape(burnZones))
+			sorter=np.argsort(age)
+			ind=np.searchsorted(age,lin_age,sorter=sorter)
+			burnZones2[:,:]=burnZones[sorter[ind],:]
+			im1=ax.imshow(burnZones2.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)
+         
 		mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
-		
-		mixZones=np.zeros((numModels,np.size(q)))
-		k=0
-		for jj in m.hist.data["model_number"][modInd]:
-			ind2=np.zeros(np.size(q),dtype='bool')
-			i=m.hist.data["model_number"]==jj
-			for j in range(1,self.numMixZones+1):
-				ind=(q<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
-				if mix is None:
-					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-				elif mix ==-1 :
-					mixZones[k,ind]=0.0
-				elif m.hist.data["mix_type_"+str(j)][i] in mix:
-					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-				else:
-					mixZones[k,ind]=0.0
-				ind2=ind2|ind
-			k=k+1					
+					
 				
-		#mixZones[mixZones==0]=np.nan
-		
-		#grid_data=[]
-		#mt=mixZones.T
-		#for i in range(len(q)):
-			#for j in range(len(age)):
-				#grid_data.append(mt[i,j])
-				
-		#mixZones=0.0
-		#grid_data=np.array(grid_data)
-		
-		#grid_z=interpolate.griddata((grid_xin,grid_yin),grid_data,(grid_x,grid_y),method='nearest')
-		##print(grid_z)
-		#grid_z=np.double(grid_z)
 		if mix != -1:
-			for i in np.unique(mixZones):
-				if i==0:
-					continue
-				mixZones2=np.zeros(np.shape(mixZones))
-				mixZones2[mixZones==i]=1.0
-				spl=interpolate.RectBivariateSpline(age[::-1],q,mixZones2[::-1,:], kx=1, ky=1, s=0)
-				grid_z=spl(ageGrid[::-1],massGrid)
-				grid_z=grid_z[::-1,:]
-				grid_z=np.rint(grid_z)
-				grid_z[grid_z<1]=-np.nan
-				grid_z[grid_z==1]=i
-				ax.imshow(grid_z.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
-
-
+			mixZones=np.zeros((numModels,np.size(q)))
+			k=0
+			for jj in m.hist.data["model_number"][modInd]:
+				ind2=np.zeros(np.size(q),dtype='bool')
+				i=m.hist.data["model_number"]==jj
+				for j in range(1,self.numMixZones+1):
+					ind=(q<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
+					if mix is None:
+						mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+					elif mix ==-1 :
+						mixZones[k,ind]=0.0
+					elif m.hist.data["mix_type_"+str(j)][i] in mix:
+						mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+					else:
+						mixZones[k,ind]=0.0
+					ind2=ind2|ind
+				k=k+1		
+			
+			mixZones2=np.zeros(np.shape(mixZones))
+			sorter=np.argsort(age)
+			ind=np.searchsorted(age,lin_age,sorter=sorter)
+			mixZones2[:,:]=mixZones[sorter[ind],:]
+			mixZones2[mixZones2<1]=np.nan
+			ax.imshow(mixZones2.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
+			
 		if ylabel is not None:
 			ax.set_ylabel(ylabel)
 		else:
@@ -2209,11 +2146,15 @@ class plot(object):
 
 			cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
 			fig.set_size_inches(12,9.45)
-		
-		#self._setYLim(ax,ax.get_ylim(),yrng)
-		
+				
 		##Add line at outer mass location
-		#ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],c='k')
+		f = interp1d(age, m.hist.data['star_mass'][modInd])
+		ax.plot(lin_age,f(lin_age),c='k')
+		
+		if y2 is not None:
+			ax2=ax.twinx()
+			f = interp1d(age, m.hist.data[y2][modInd])
+			ax2.plot(lin_age,f(lin_age),c='k')
 		
 		if xlabel is None:
 			if age_log:
@@ -2231,26 +2172,16 @@ class plot(object):
 					ax.set_xlabel(r"$\tau\; \left(\rm{Myr}\right)$")
 		else:
 			ax.set_xlabel(xlabel)
-		
-		ageGrid=0
-		massGrid=0
-		
-		grid_x=0
-		grid_y=0.0
-		
-		grid_xin=[]
-		grid_yin=[]
-		grid_data=[]
-		
+	
 		if show_mass_loc:
 			self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
+	
+		self._setYLim(ax,ax.get_ylim(),yrng)
 		
 		self._setTicks(ax)
 		
-		
 		if show:
 			plt.show()
-		
 		
 		
 		
