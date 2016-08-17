@@ -81,15 +81,17 @@ class data(object):
 		
 		try:
 			x=self.data[name]
-		except:
-			try:
-				x=np.atleast_1d(self.head[name])[0]
-			except:
-				raise NameError
+		except ValueError:
+			pass
+		try:
+			x=np.atleast_1d(self.head[name])[0]
+		except ValueError:
+			pass
+		
 		if x is not None:
 			return x
 		else:
-			raise NameError
+			raise AttributeError("No value ",name," available")
 	
 	def __dir__(self):
 		x=[]
@@ -107,7 +109,7 @@ class data(object):
 		if len(x)>0:
 			return x
 		else:
-			raise NameError
+			raise AttributeError
 
 	def loadFile(self,filename,max_num_lines=-1):
 		numLines=self._filelines(filename)
