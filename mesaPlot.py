@@ -74,7 +74,7 @@ class data(object):
 	def __init__(self):
 		self.data={}
 		self.head={}
-		self.loaded=False
+		self._loaded=False
 		
 
 	def __getattr__(self, name):
@@ -124,7 +124,7 @@ class data(object):
 		self.data=np.genfromtxt(filename,skip_header=5,names=True,skip_footer=skip_lines)
 		self.head_names=self.head.dtype.names
 		self.data_names=self.data.dtype.names
-		self.loaded=True
+		self._loaded=True
 
 	def _filelines(self,filename):
 		"""Get the number of lines in a file."""
@@ -183,6 +183,11 @@ class MESA(object):
 
 		# Reverse model numbers, we want the unique elements
 		# but keeping the last not the first.
+		
+		#Fix case where we have at end of file numbers:
+		# 1 2 3 4 5 3, without this we get the extra 4 and 5
+		self.hist.data=self.hist.data[self.hist.model_number<=self.hist.model_number[-1]]
+		
 		mod_rev=self.hist.model_number[::-1]
 		mod_uniq,mod_ind=np.unique(mod_rev,return_index=True)
 		self.hist.data=self.hist.data[np.size(self.hist.model_number)-mod_ind-1]
@@ -1011,6 +1016,10 @@ class plot(object):
 			return x,y
 		
 	def _setupHist(self,fig,ax,m,minMod,maxMod):
+		
+		if m.hist._loaded is False:
+			raise ValueError("Must call loadHistory first")
+		
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 		if ax==None:
@@ -1023,6 +1032,10 @@ class plot(object):
 		return fig,ax,modelIndex
 		
 	def _setupProf(self,fig,ax,m,model):
+		
+		if m.prof._loaded is False:
+			raise ValueError("Must call loadProfile first")
+		
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 		if ax==None:
