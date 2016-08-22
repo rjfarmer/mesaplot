@@ -902,6 +902,31 @@ class plot(object):
 		ax2.set_xticklabels(outc)
 		plt.sca(ax)
 		
+	def _showShockLoc(self,prof,fig,ax,xaxis,yrng,ind):
+		# Show the location of the shock
+		
+		cs=prof.data['csound'][ind]
+		vel=prof.data['velocity'][ind]
+		#Find location of shock
+		s=np.count_nonzero(ind)
+		fs=False
+		for k in range(0,s):
+			if vel[k+1]>=cs[k] and vel[k]<cs[k]:
+				fs=True
+				break
+		
+		if not fs:
+			for k in range(s,0,-1):
+				if vel[k+1]>=-cs[k] and vel[k]<-cs[k]:
+					fs=True
+					break
+		
+		
+		#check we are either side of shock
+		if fs:
+			xx=[xaxis[ind][k],xaxis[ind][k]]
+			ax.plot(xx,yrng,'--',color=self.colors['clr_DarkGray'],linewidth=2)
+		
 	def _addExtraLabelsToAxis(self,fig,labels,colors=None,num_left=0,num_right=0,left_pad=85,right_pad=85):
 
 		total_num=len(labels)
@@ -1057,7 +1082,7 @@ class plot(object):
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None,ylabel=None,title=None):
+				colors=None,ylabel=None,title=None,show_shock=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 			
@@ -1096,6 +1121,8 @@ class plot(object):
 		if show_mix:
 			self._plotMixRegions(m,ax,x,m.prof.mass,show_line=False,show_x=True,yrng=yrng,ind=mInd)
 			
+		if show_shock:
+			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
 			
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		if ylabel is not None:
@@ -1325,7 +1352,7 @@ class plot(object):
 
 	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=None,y2rng=None,
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,show_rotation=True):
+				show_title_name=False,show_title_model=False,show_title_age=False,show_rotation=True,show_shock=False):
 
 
 		fig,ax=self._setupProf(fig,ax,m,model)
@@ -1386,6 +1413,9 @@ class plot(object):
 		if show_mix:
 			self._plotMixRegions(m,ax,m.prof.data[xaxis],m.prof.data['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 
+		if show_shock:
+			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
+			
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self._setTicks(ax)
 		self._setTicks(ax2)
@@ -1400,7 +1430,7 @@ class plot(object):
 
 	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,points=False,show_core=False):
+				show_title_name=False,show_title_model=False,show_title_age=False,points=False,show_core=False,show_shock=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 			
@@ -1421,6 +1451,9 @@ class plot(object):
 			
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
+			
+		if show_shock:
+			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
 
 		if legend:
 			ax.legend(loc=0)
@@ -1435,7 +1468,7 @@ class plot(object):
 	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True):
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,show_shock=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 			
@@ -1461,6 +1494,9 @@ class plot(object):
 
 		if show_mix:
 			self._plotMixRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
+			
+		if show_shock:
+			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
 		
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Burn',m.prof.head["model_number"],m.prof.head["star_age"])
@@ -1472,7 +1508,7 @@ class plot(object):
 	def plotMix(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.gist_ncar,yrng=[0.0,5.0],num_labels=7,mix_random=False,points=False,
 				show_burn=False,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True):
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,show_shock=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 			
@@ -1495,6 +1531,8 @@ class plot(object):
 		if show_burn:
 			self._plotBurnRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
 			
+		if show_shock:
+			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
 		
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Mixing',m.prof.head["model_number"],m.prof.head["star_age"])
@@ -1595,7 +1633,7 @@ class plot(object):
 						y1Textcol=None,y2Textcol=None,fig=None,y1rng=[None,None],y2rng=[None,None],
 						fx=None,fy1=None,fy2=None,
 						show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
-						y1linelabel=None,show_core_loc=False):
+						y1linelabel=None,show_core_loc=False,show_shock=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 
@@ -1628,6 +1666,8 @@ class plot(object):
 		if show_core_loc:
 			self._plotCoreLoc(m,ax,xaxis,px,ax.get_ylim()[0],ax.get_ylim()[1])
 	
+		if show_shock:
+			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
 	
 		y2_is_valid=False
 		if y2 is not None:
