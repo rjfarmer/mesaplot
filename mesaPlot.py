@@ -393,7 +393,7 @@ class plot(object):
 					  self.colors['clr_LightSteelBlue'], #Softened convection
 					  self.colors['clr_SlateGray'], # Overshoot
 					  self.colors['clr_Lilac'], #Semi convection
-					  self.colors['clr_Coral'], #Thermohaline
+					  self.colors['clr_LightSkyGreen'], #Thermohaline
 					  self.colors['clr_BrightBlue'], #Rotation
 					  self.colors['clr_Beige'], #Minimum
 					  self.colors['clr_Tan'] #Anonymous
@@ -524,7 +524,7 @@ class plot(object):
 				mass+=i
 			else:
 				name+=i
-		if name=='neut':
+		if name=='neut' or i=='prot':
 			mass=1
 		return name,int(mass)
 	
@@ -1814,7 +1814,7 @@ class plot(object):
 
 		Xmin=m.hist.data["model_number"][modInd][0]
 		Xmax=m.hist.data["model_number"][modInd][-1]
-			
+      
 		Ymin=q[0]
 		Ymax=q[-1]
 		extent=(Xmin,Xmax,Ymin,Ymax)
@@ -2157,9 +2157,9 @@ class plot(object):
 			ylog=True
 	
 		self.plotProfile(m,xaxis=xname,y1=yname,y1log=ylog,xlog=xlog,model=model,show=False,
-							show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,
-							xmin=xmin,xmax=xmax,ax=ax,y1label=self.labels('teff',log=True),
-							xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col=ycol)
+               show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,
+               xmin=xmin,xmax=xmax,ax=ax,y1label=self.labels('teff',log=True),
+               xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col=ycol)
 
 		if showBurn or showAll:
 			self._showBurnData(ax)
@@ -2695,7 +2695,7 @@ class plotNet(object):
 		
 	def load(self,filename):
 		from io import BytesIO
-		d=subprocess.check_output("$MESA_DIR/rates/test/show_rates "+filename,shell=True)
+		d=subprocess.check_output(os.path.expandvars('$MESA_DIR')+"/rates/test/show_rates "+filename,shell=True)
 		
 		self.name.append(os.path.basename(filename))
 		if type(d) is not type('a'):
@@ -2706,8 +2706,8 @@ class plotNet(object):
 		
 		self.data.append(data)
 	
-	def load_all(self):
-		for i in glob.glob(os.path.expandvars('$MESA_DIR')+'/data/rates_data/cache/r_*.bin'):
+	def load_all(self,folder='cache'):
+		for i in glob.glob(os.path.expandvars('$MESA_DIR')+'/data/rates_data/'+folder+'/r_*.bin'):
 			print(i)
 			self.load(i)
 	
@@ -2719,9 +2719,9 @@ class plotNet(object):
 				
 		fig=plt.figure(figsize=(12,12))
 		ax=fig.add_subplot(111)
-		ax.plot(np.log10(d['t8'])-1.0,np.log10(d['rate']),linewidth=2)
-		ax.scatter(np.log10(d['t8'])-1.0,np.log10(d['rate']))
-		ax.set_xlabel(r'$\log_{10}\,\rm{T}_9$')
+		ax.plot(np.log10(d['t8']*10**8),np.log10(d['rate']),linewidth=2)
+		ax.scatter(np.log10(d['t8']*10**8),np.log10(d['rate']))
+		ax.set_xlabel(r'$\rm{T}_8$')
 		ax.set_ylabel(r'$\rm{Rate}$')
 		ax.set_title(name.replace('_','\_'))
 		if trng is not None:
@@ -2740,14 +2740,4 @@ class plotNet(object):
 		for i in self.name:
 			print(i)
 			self.plot(i,show,trng,rrng)
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		
