@@ -414,7 +414,10 @@ class plot(object):
 		self.mesa_dir=mesa_dir
 			
 	def _loadBurnData(self):
-		dataDir=self.mesa_dir+"/data/star_data/plot_info/"
+		try:
+			dataDir=self.mesa_dir+"/data/star_data/plot_info/"
+		except TypeError:
+			raise ValueError("Must set $MESA_DIR or call setMESAPath(MESA_DIR)")
 		
 		self._hburn=np.genfromtxt(dataDir+"hydrogen_burn.data",names=["logRho","logT"])
 		self._heburn=np.genfromtxt(dataDir+"helium_burn.data",names=["logRho","logT"])
