@@ -921,7 +921,6 @@ class plot(object):
 					fs=True
 					break
 		
-		
 		#check we are either side of shock
 		if fs:
 			xx=[xaxis[ind][k],xaxis[ind][k]]
@@ -1627,13 +1626,13 @@ class plot(object):
 
 	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,
 					xlog=False,y1log=False,y2log=False,y1col='b',
-						y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
-						show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
-						show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,
-						y1Textcol=None,y2Textcol=None,fig=None,y1rng=[None,None],y2rng=[None,None],
-						fx=None,fy1=None,fy2=None,
-						show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
-						y1linelabel=None,show_core_loc=False,show_shock=False):
+					y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
+					show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
+					show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,
+					y1Textcol=None,y2Textcol=None,fig=None,y1rng=[None,None],y2rng=[None,None],
+					fx=None,fy1=None,fy2=None,
+					show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
+					y1linelabel=None,show_core_loc=False,show_shock=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 
@@ -1667,7 +1666,7 @@ class plot(object):
 			self._plotCoreLoc(m,ax,xaxis,px,ax.get_ylim()[0],ax.get_ylim()[1])
 	
 		if show_shock:
-			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
+			self._showShockLoc(m.prof,fig,ax,x,ax.get_ylim(),mInd)
 	
 		y2_is_valid=False
 		if y2 is not None:
