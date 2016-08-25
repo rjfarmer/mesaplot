@@ -1091,16 +1091,16 @@ class plot(object):
 			ax2.set_label('abun_ax2')
 			y=data[y2][mInd]
 			px,py=self._plotAnnotatedLine(ax2,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
-									annotate_line=False,label=self.safeLabel(y2label,y2),
-									points=points,xlog=xlog,ylog=y2log,xrev=xrev,
-									yrev=y2rev,linecol=y2col)  
+					annotate_line=False,label=self.safeLabel(y2label,y2),
+					points=points,xlog=xlog,ylog=y2log,xrev=xrev,
+					yrev=y2rev,linecol=y2col)  
 
 			if y2Textcol is None:
 				y2labcol=y2col
 			else:
 				y2labcol=y2Textcol
 			
-			self._setYLabel(fig,ax,y2label,y2, color=y2labcol)
+			self._setYLabel(fig,ax2,y2label,y2, color=y2labcol)
 
 		plt.sca(ax)
 
