@@ -1520,7 +1520,7 @@ class plot(object):
 		if burn_random:
 			random.shuffle(burn_list)
 				
-		self._cycleColors(ax,colors,cmap,num_plots)
+		self._cycleColors(ax,None,cmap,num_plots)
 			
 		for i in burn_list:
 			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
@@ -1563,7 +1563,7 @@ class plot(object):
 		if mix_random:
 			random.shuffle(mix_list)
 				
-		self._cycleColors(ax,colors,cmap,num_plots)
+		self._cycleColors(ax,None,cmap,num_plots)
 			
 		for i in mix_list:
 			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
