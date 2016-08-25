@@ -1058,7 +1058,7 @@ class plot(object):
 		
 		return fig,ax,modelIndex
 		
-	def _setupProf(self,fig,ax,m,model):
+	def _setupProf(self,fig,ax,m,model,label='plot'):
 		
 		if m.prof._loaded is False:
 			raise ValueError("Must call loadProfile first")
@@ -1066,7 +1066,7 @@ class plot(object):
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 		if ax==None:
-			ax=fig.add_subplot(111)
+			ax=fig.add_subplot(111,label=label)
 		#m.loadProfile(num=int(model))
 		
 		if model is not None:
@@ -1077,13 +1077,40 @@ class plot(object):
 				m.loadProfile(num=int(model))
 		return fig,ax
 	
+	def _plotY2(self,fig,ax,x,data,xrngL,xlog,xrev,mInd,y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',points=False):
+
+		if y2 is not None:
+			ax2=ax.twinx()
+			ax2.set_label('abun_ax2')
+			y=data[y2][mInd]
+			px,py=self._plotAnnotatedLine(ax2,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
+									annotate_line=False,label=self.safeLabel(y2label,y2),
+									points=points,xlog=xlog,ylog=y2log,xrev=xrev,
+									yrev=y2rev,linecol=y2col)  
+
+			if y2Textcol is None:
+				y2labcol=y2col
+			else:
+				y2labcol=y2Textcol
+			
+			ax2.set_ylabel(self.safeLabel(y2label,y2), color=y2labcol)
+			
+			if y2label is not None:
+				ax2.set_ylabel(y2label)
+			else:
+				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
+
+		plt.sca(ax)
+
+	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
-					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
+				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None,ylabel=None,title=None,show_shock=False):
+				colors=None,ylabel=None,title=None,show_shock=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
-		fig,ax=self._setupProf(fig,ax,m,model)
+		fig,ax=self._setupProf(fig,ax,m,model,label='abun_ax1')
 			
 		if modFile:
 			x,xrngL,mInd=self._setXAxis(np.cumsum(m.mod_dat["dq"][::-1])*m._fds2f(m.mod_head[1]),xmin,xmax,fx)
@@ -1112,7 +1139,7 @@ class plot(object):
 		for i in abun_list:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 									ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-									label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,linestyle=linestyle)
+									label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,linestyle=linestyle,xrev=xrev,xlog=xlog)
 			
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,m.prof.mass,show_line=False,show_x=True,yrng=yrng,ind=mInd)
@@ -1123,11 +1150,16 @@ class plot(object):
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
 			
+		if y2 is not None:
+			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
+
+			
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		if ylabel is not None:
 			ax.set_ylabel(ylabel)
 		else:
 			ax.set_ylabel(r'$\log_{10}$ Abundance')
+			
 		
 		if title is not None:
 			ax.set_title(title)
@@ -1319,7 +1351,8 @@ class plot(object):
 	def plotCenterAbun(self,m,model=None,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[-3.0,1.0],
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun_random=False,
 				fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,
-				show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False):
+				show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
@@ -1338,7 +1371,10 @@ class plot(object):
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.hist.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=self.safeLabel(None,i,'center'),
-									points=points,ylog=True,num_labels=num_labels)
+									points=points,ylog=True,num_labels=num_labels,xlog=xlog,xrev=xrev)
+			
+		if y2 is not None:
+			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 			
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
@@ -1429,7 +1465,8 @@ class plot(object):
 
 	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,points=False,show_core=False,show_shock=False):
+				show_title_name=False,show_title_model=False,show_title_age=False,points=False,show_core=False,show_shock=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 			
@@ -1440,7 +1477,7 @@ class plot(object):
 				px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 										ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
 										label=r"$D_{"+i.split('_')[3]+"}$",points=points,
-										ylog=True,num_labels=num_labels)
+										ylog=True,num_labels=num_labels,xrev=xrev,xlog=log)
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,px,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
@@ -1453,6 +1490,9 @@ class plot(object):
 			
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
+			
+		if y2 is not None:
+			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 
 		if legend:
 			ax.legend(loc=0)
@@ -1467,7 +1507,8 @@ class plot(object):
 	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,show_shock=False):
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,show_shock=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 			
@@ -1485,7 +1526,7 @@ class plot(object):
 		for i in burn_list:
 			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-									label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels)
+									label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog)
 
 		
 		if show_burn:
@@ -1496,6 +1537,9 @@ class plot(object):
 			
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
+			
+		if y2 is not None:
+			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 		
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Burn',m.prof.head["model_number"],m.prof.head["star_age"])
@@ -1507,7 +1551,8 @@ class plot(object):
 	def plotMix(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.gist_ncar,yrng=[0.0,5.0],num_labels=7,mix_random=False,points=False,
 				show_burn=False,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,show_shock=False):
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,show_shock=False,colors=None,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 			
@@ -1525,13 +1570,16 @@ class plot(object):
 			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=i.split('_')[2],
-									points=points,ylog=False,num_labels=num_labels)
+									points=points,ylog=False,num_labels=num_labels,xlog=xlog,xrev=xrev)
 		
 		if show_burn:
 			self._plotBurnRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
 			
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
+			
+		if y2 is not None:
+			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 		
 		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Mixing',m.prof.head["model_number"],m.prof.head["star_age"])
@@ -1542,7 +1590,8 @@ class plot(object):
 
 	def plotBurnSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
-				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,annotate_line=True,show_core=False):
+				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,annotate_line=True,show_core=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
@@ -1561,13 +1610,16 @@ class plot(object):
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=self.safeLabel(None,i),
-									points=points,ylog=True,num_labels=num_labels)
+									points=points,ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog)
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
+			
+		if y2 is not None:
+			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 			
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
@@ -1581,7 +1633,8 @@ class plot(object):
 	def plotAbunSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
 				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,abun_random=False,points=False,
 				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-',colors=None,
-				show_core=False):
+				show_core=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
@@ -1605,7 +1658,8 @@ class plot(object):
 			self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=self.safeLabel(None,i),
-									points=points,ylog=True,num_labels=num_labels,linestyle=linestyle)
+									points=points,ylog=True,num_labels=num_labels,linestyle=linestyle,
+									xrev=xrev,xlog=xlog)
 
 
 		if show_burn:
@@ -1613,6 +1667,9 @@ class plot(object):
 
 		if show_mix:
 			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
+			
+		if y2 is not None:
+			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 			
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
@@ -1668,31 +1725,9 @@ class plot(object):
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,ax.get_ylim(),mInd)
 	
-		y2_is_valid=False
 		if y2 is not None:
-			ax2=ax.twinx()
-			try:
-				y=m.prof.data[y2][mInd]
-				px,py=self._plotAnnotatedLine(ax2,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
-										annotate_line=False,label=self.safeLabel(y2label,y2),
-										points=points,xlog=xlog,ylog=y2log,xrev=xrev,
-										yrev=y2rev,linecol=y2col)  
-	
-				if y2Textcol is None:
-					y2labcol=y2col
-				else:
-					y2labcol=y2Textcol
-				
-				ax2.set_ylabel(self.safeLabel(y2label,y2), color=y2labcol)
-				if show_burn_2:
-					self._plotBurnRegions(m,ax2,px,py,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
-				if show_mix_2:
-					self._plotMixRegions(m,ax2,px,py,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
-				
-				y2_is_valid=True
-			except:
-				pass
-		plt.sca(ax)
+			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
+
 		self._setTicks(ax)
 		
 
@@ -1709,13 +1744,7 @@ class plot(object):
 			ax.set_ylabel(y1label)
 		else:
 			ax.set_ylabel(y1.replace('_',' '), color=y1col)
-			
-		if y2 is not None and y2_is_valid:
-			if y2label is not None:
-				ax2.set_ylabel(y2label)
-			else:
-				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
-				
+		
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,title_name,m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		
@@ -1743,17 +1772,8 @@ class plot(object):
 
 
 		if y2 is not None:
-			try:
-				ax2 = ax.twinx()
-				y=m.hist.data[y2][modelIndex][mInd]
-				self._plotAnnotatedLine(ax2,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],
-										y2rng[1],annotate_line=False,
-										label=self.safeLabel(y1label,y1),points=points,
-										xlog=xlog,ylog=y2log,xrev=xrev,yrev=y2rev,linecol=y2col)  
-			except:
-				pass
+			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 
-		plt.sca(ax)
 		if xlabel is not None:
 			ax.set_xlabel(xlabel)
 		else:
@@ -1772,12 +1792,6 @@ class plot(object):
 				y1textcol=y1col
 			ax.set_ylabel(y1.replace('_',' '), color=y1textcol)
 			
-		if y2 is not None:
-			if y2label is not None:
-				ax2.set_ylabel(y2label)
-			else:
-				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
-				
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
 		
