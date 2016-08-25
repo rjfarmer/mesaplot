@@ -433,6 +433,10 @@ class plot(object):
 
 	def labels(self,label,log=False,center=False):
 		l=''
+		
+		if '$' in label:
+			return label
+		
 		if log or 'log' in label:
 			l=r'$\log_{10}\;$'
 		if label=='mass':
@@ -487,7 +491,10 @@ class plot(object):
 			l=l+r'$\chi\; [M_{\odot}]$'
 				
 		if len(l)==0:
-			l=None
+			if '$' not in label:
+				l=label.replace('_',' ')
+			else:
+				l=label
 			
 		return l
 		
@@ -497,11 +504,6 @@ class plot(object):
 			outLabel=label
 		else:
 			outLabel=self.labels(axis)
-			if outLabel is not None:
-				outLabel=outLabel
-			else:
-				outLabel=axis.replace('_',' ')
-				
 		if strip is not None:
 			outLabel=outLabel.replace(strip,'')
 		return outLabel
@@ -824,8 +826,7 @@ class plot(object):
 		
 		label=[]
 		color=[]
-		
-		
+
 		if burn:
 			label.append(r'$>1\; \rm{erg}^{-1}\;s^{-1}$')
 			color.append(self.colors['clr_Gold'])
@@ -1003,7 +1004,7 @@ class plot(object):
 			ax.set_title(s,loc="left",fontsize=fontOther)
 			
 
-	def _plotAnnotatedLine(self,ax,x,y,fy,xmin,xmax,ymin=None,ymax=None,annotate_line=False,label='',
+	def _plotAnnotatedLine(self,ax,x,y,fy,xmin,xmax,ymin=None,ymax=None,annotate_line=False,label=None,
 							points=False,xlog=False,ylog=False,xrev=False,yrev=False,linecol=None,
 							linewidth=2,num_labels=5,linestyle='-'):
 			if xlog:
@@ -1077,6 +1078,12 @@ class plot(object):
 				m.loadProfile(num=int(model))
 		return fig,ax
 	
+	def _setYLabel(self,fig,ax,ylabel,default=None,color='k'):
+		ax.set_ylabel(self.safeLabel(ylabel,default),color=color)
+			
+	def _setXLabel(self,fig,ax,xlabel,default=None,color='k'):	
+		ax.set_xlabel(self.safeLabel(xlabel,default),color=color)
+	
 	def _plotY2(self,fig,ax,x,data,xrngL,xlog,xrev,mInd,y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',points=False):
 
 		if y2 is not None:
@@ -1093,12 +1100,7 @@ class plot(object):
 			else:
 				y2labcol=y2Textcol
 			
-			ax2.set_ylabel(self.safeLabel(y2label,y2), color=y2labcol)
-			
-			if y2label is not None:
-				ax2.set_ylabel(y2label)
-			else:
-				ax2.set_ylabel(y2.replace('_',' '), color=y2col)
+			self._setYLabel(fig,ax,y2label,y2, color=y2labcol)
 
 		plt.sca(ax)
 
@@ -1154,11 +1156,8 @@ class plot(object):
 			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 
 			
-		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
-		if ylabel is not None:
-			ax.set_ylabel(ylabel)
-		else:
-			ax.set_ylabel(r'$\log_{10}$ Abundance')
+		self._setXLabel(fig,ax,xlabel,xaxis)
+		self._setYLabel(fig,ax,ylabel,r'$\log_{10}$ Abundance')
 			
 		
 		if title is not None:
@@ -1379,7 +1378,7 @@ class plot(object):
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
 		
-		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self._setXLabel(fig,ax,xlabel,xaxis)
 		ax.set_ylabel(self.labels('Abundance'))
 
 		if show:
@@ -1451,7 +1450,7 @@ class plot(object):
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
 			
-		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self._setXLabel(fig,ax,xlabel,xaxis)
 		self._setTicks(ax)
 		self._setTicks(ax2)
 		ax.set_xlim(xrngL)
@@ -1497,7 +1496,7 @@ class plot(object):
 		if legend:
 			ax.legend(loc=0)
 
-		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self._setXLabel(fig,ax,xlabel,xaxis)
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Ang mom',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		
@@ -1541,7 +1540,7 @@ class plot(object):
 		if y2 is not None:
 			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 		
-		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self._setXLabel(fig,ax,xlabel,xaxis)
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Burn',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		
@@ -1581,7 +1580,7 @@ class plot(object):
 		if y2 is not None:
 			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 		
-		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self._setXLabel(fig,ax,xlabel,xaxis)
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Mixing',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		
@@ -1624,7 +1623,7 @@ class plot(object):
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
 		
-		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self._setXLabel(fig,ax,xlabel,xaxis)
 		ax.set_ylabel(self.labels('log_lum'))
 
 		if show:
@@ -1674,7 +1673,7 @@ class plot(object):
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
 		
-		ax.set_xlabel(self.safeLabel(xlabel,xaxis))
+		self._setXLabel(fig,ax,xlabel,xaxis)
 		ax.set_ylabel(self.labels('log_abundance'))
 
 		if show:
@@ -1729,21 +1728,9 @@ class plot(object):
 			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 
 		self._setTicks(ax)
-		
-
-		if xlabel is not None:
-			ax.set_xlabel(xlabel)
-		else:
-			l=self.labels(xaxis)
-			if l is not None:
-				ax.set_xlabel(l)
-			else:
-				ax.set_xlabel(xaxis.replace('_',' '))
-			
-		if y1label is not None:
-			ax.set_ylabel(y1label)
-		else:
-			ax.set_ylabel(y1.replace('_',' '), color=y1col)
+	
+		self._setXLabel(fig,ax,xlabel,xaxis)
+		self._setYLabel(fig,ax,y1label,self.safe_label(y1),y1col)
 		
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,title_name,m.prof.head["model_number"],m.prof.head["star_age"])
 		
@@ -1774,23 +1761,8 @@ class plot(object):
 		if y2 is not None:
 			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 
-		if xlabel is not None:
-			ax.set_xlabel(xlabel)
-		else:
-			l=self.labels(xaxis)
-			if l is not None:
-				ax.set_xlabel(l)
-			else:
-				ax.set_xlabel(xaxis.replace('_',' '))
-			
-		if y1label is not None:
-			ax.set_ylabel(y1label)
-		else:
-			if y2 is None:
-				y1textcol='k'
-			else:
-				y1textcol=y1col
-			ax.set_ylabel(y1.replace('_',' '), color=y1textcol)
+		self._setXLabel(fig,ax,xlabel,xaxis)
+		self._setYLabel(fig,ax,y1label,self.safe_label(y1),y1col)
 			
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
@@ -2796,4 +2768,84 @@ class plotNet(object):
 		for i in self.name:
 			print(i)
 			self.plot(i,show,trng,rrng)
-		
+			
+	
+# Adds a slider at bottom of the plot to iterate over model numbers
+# need to merge into main code
+# Discrete slider from https://stackoverflow.com/questions/13656387/can-i-make-matplotlib-sliders-more-discrete
+#import mesaPlot as mp
+#import numpy as np
+#import matplotlib.pyplot as plt
+#from matplotlib.widgets import Slider, Button, RadioButtons
+
+#m=mp.MESA()
+#p=mp.plot()
+
+
+#class DiscreteSlider(Slider):
+	#"""A matplotlib slider widget with discrete steps."""
+	#def __init__(self, *args, **kwargs):
+		#"""
+		#Identical to Slider.__init__, except for the new keyword 'allowed_vals'.
+		#This keyword specifies the allowed positions of the slider
+		#"""
+		#self.allowed_vals = kwargs.pop('allowed_vals',None)
+		#self.previous_val = kwargs['valinit']
+		#Slider.__init__(self, *args, **kwargs)
+		#if self.allowed_vals is None:
+			#self.allowed_vals = [self.valmin,self.valmax]
+
+	#def set_val(self, val):
+		#discrete_val = self.allowed_vals[abs(val-self.allowed_vals).argmin()]
+		#xy = self.poly.xy
+		#xy[2] = discrete_val, 1
+		#xy[3] = discrete_val, 0
+		#self.poly.xy = xy
+		#self.valtext.set_text(self.valfmt % discrete_val)
+		#if self.drawon: 
+			#self.ax.figure.canvas.draw()
+		#self.val = discrete_val
+		#if self.previous_val!=discrete_val:
+			#self.previous_val = discrete_val
+			#if not self.eventson: 
+				#return
+			#for cid, func in self.observers.items():
+				#func(discrete_val)
+
+
+#m.loadProfile(num=-1)
+
+#fig=plt.figure()
+#ax=plt.axes([0.1,0.15,0.7,0.75])
+
+#p.plotAbun(m,fig=fig,ax=ax,xmax=2.0,show=False,show_title_model=True,y2='velocity')
+
+#axcolor = 'white'
+#axmodels = plt.axes([0.15, 0.025, 0.75, 0.03], axisbg=axcolor,label='slider')
+
+#num_models=np.size(m.prof_ind['model'])
+
+#smodels=DiscreteSlider(axmodels,'Model',0.0,1.0*num_models-1.0,valinit=0.0,allowed_vals=np.arange(0.0,num_models,1.0))
+
+#smodels.set_val(np.argmin(np.abs(m.prof_ind['model']-m.prof.model_number)))
+
+#smodels.ax.set_xticks(np.arange(0.0,num_models,1.0))
+#smodels.ax.set_xticklabels([])
+#smodels.valtext.set_visible(False)
+
+#def update(val):
+	#mo = smodels.val
+	#m.loadProfile(num=m.prof_ind['model'][int(mo)])
+	#xmin,xmax=ax.get_xlim()
+	#ymin,ymax=ax.get_ylim()
+	#for i in fig.axes:
+		#if '_ax2' in i.get_label():
+			#fig.delaxes(i)
+
+	#p.plotAbun(m,fig=fig,ax=ax,show=False,show_title_model=True,xmin=xmin,xmax=xmax,yrng=[ymin,ymax],y2='velocity')
+	##fig.canvas.draw_idle()
+	#fig.canvas.draw()
+
+#smodels.on_changed(update)
+
+#plt.show()
