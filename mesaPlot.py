@@ -1,18 +1,18 @@
-#Copyright (c) 2015, Robert Farmer rjfarmer@asu.edu
+# Copyright (c) 2015, Robert Farmer rjfarmer@asu.edu
 
-#This program is free software; you can redistribute it and/or
-#modify it under the terms of the GNU General Public License
-#as published by the Free Software Foundation; either version 2
-#of the License, or (at your option) any later version.
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
 
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 
 from __future__ import print_function
@@ -66,9 +66,6 @@ mpl.rcParams['xtick.major.width']=0.8      # major tick size in points
 mpl.rcParams['xtick.minor.width']=0.6      # minor tick size in points
 mpl.rcParams['ytick.major.width']=0.8      # major tick size in points
 mpl.rcParams['ytick.minor.width']=0.6      # minor tick size in points
-
-def randf(N,a,b):
-	return a + (b - a) * (np.random.random_integers(N) - 1) / (N - 1.)
 
 class data(object):
 	def __init__(self):
@@ -407,6 +404,194 @@ class plot(object):
 		self._getMESAPath()
 		
 		self.msun=1.9892*10**33
+		
+		#..names of the stable isotopes
+		self.stable_isos = [
+	      	'h1','h2','he3','he4','li6','li7','be9','b10',
+			'b11','c12','c13','n14','n15','o16','o17','o18',
+			'f19','ne20','ne21','ne22','na23','mg24','mg25','mg26',
+			'al27','si28','si29','si30','p31','s32','s33','s34',
+			's36','cl35','cl37','ar36','ar38','ar40','k39','k40',
+			'k41','ca40','ca42','ca43','ca44','ca46','ca48','sc45',
+			'ti46','ti47','ti48','ti49','ti50','v50','v51','cr50',
+			'cr52','cr53','cr54','mn55','fe54','fe56','fe57','fe58',
+			'co59','ni58','ni60','ni61','ni62','ni64','cu63','cu65',
+			'zn64','zn66','zn67','zn68','zn70','ga69','ga71','ge70',
+			'ge72','ge73','ge74','ge76','as75','se74','se76','se77',
+			'se78','se80','se82','br79','br81','kr78','kr80','kr82',
+			'kr83','kr84','kr86','rb85','rb87','sr84','sr86','sr87',
+			'sr88','y89','zr90','zr91','zr92','zr94','zr96','nb93',
+			'mo92','mo94','mo95','mo96','mo97','mo98','mo100','ru96',
+			'ru98','ru99','ru100','ru101','ru102','ru104','rh103','pd102',
+			'pd104','pd105','pd106','pd108','pd110','ag107','ag109','cd106',
+			'cd108','cd110','cd111','cd112','cd113','cd114','cd116','in113',
+			'in115','sn112','sn114','sn115','sn116','sn117','sn118','sn119',
+			'sn120','sn122','sn124','sb121','sb123','te120','te122','te123',
+			'te124','te125','te126','te128','te130','i127','xe124','xe126',
+			'xe128','xe129','xe130','xe131','xe132','xe134','xe136','cs133',
+			'ba130','ba132','ba134','ba135','ba136','ba137','ba138','la138',
+			'la139','ce136','ce138','ce140','ce142','pr141','nd142','nd143',
+			'nd144','nd145','nd146','nd148','nd150','sm144','sm147','sm148',
+			'sm149','sm150','sm152','sm154','eu151','eu153','gd152','gd154',
+			'gd155','gd156','gd157','gd158','gd160','tb159','dy156','dy158',
+			'dy160','dy161','dy162','dy163','dy164','ho165','er162','er164',
+			'er166','er167','er168','er170','tm169','yb168','yb170','yb171',
+			'yb172','yb173','yb174','yb176','lu175','lu176','hf174','hf176',
+			'hf177','hf178','hf179','hf180','ta180','ta181','w180','w182',
+			'w183','w184','w186','re185','re187','os184','os186','os187',
+			'os188','os189','os190','os192','ir191','ir193','pt190','pt192',
+			'pt194','pt195','pt196','pt198','au197','hg196','hg198','hg199',
+			'hg200','hg201','hg202','hg204','tl203','tl205','pb204','pb206',
+			'pb207','pb208','bi209','th232','u235','u238']
+
+
+		#..anders & grevesse 1989 solar mass fractions
+		self._sol_comp_ag89 =[
+			7.0573E-01, 4.8010E-05, 2.9291E-05, 2.7521E-01, 6.4957E-10, 
+			9.3490E-09, 1.6619E-10, 1.0674E-09, 4.7301E-09, 3.0324E-03, 
+			3.6501E-05, 1.1049E-03, 4.3634E-06, 9.5918E-03, 3.8873E-06, 
+			2.1673E-05, 4.0515E-07, 1.6189E-03, 4.1274E-06, 1.3022E-04, 
+			3.3394E-05, 5.1480E-04, 6.7664E-05, 7.7605E-05, 5.8052E-05, 
+			6.5301E-04, 3.4257E-05, 2.3524E-05, 8.1551E-06, 3.9581E-04, 
+			3.2221E-06, 1.8663E-05, 9.3793E-08, 2.5320E-06, 8.5449E-07, 
+			7.7402E-05, 1.5379E-05, 2.6307E-08, 3.4725E-06, 4.4519E-10, 
+			2.6342E-07, 5.9898E-05, 4.1964E-07, 8.9734E-07, 1.4135E-06,
+			2.7926E-09, 1.3841E-07, 3.8929E-08, 2.2340E-07, 2.0805E-07, 
+			2.1491E-06, 1.6361E-07, 1.6442E-07, 9.2579E-10, 3.7669E-07, 
+			7.4240E-07, 1.4863E-05, 1.7160E-06, 4.3573E-07, 1.3286E-05, 
+			7.1301E-05, 1.1686E-03, 2.8548E-05, 3.6971E-06, 3.3579E-06, 
+			4.9441E-05, 1.9578E-05, 8.5944E-07, 2.7759E-06, 7.2687E-07, 
+			5.7528E-07, 2.6471E-07, 9.9237E-07, 5.8765E-07, 8.7619E-08, 
+			4.0593E-07, 1.3811E-08, 3.9619E-08, 2.7119E-08, 4.3204E-08, 
+			5.9372E-08, 1.7136E-08, 8.1237E-08, 1.7840E-08, 1.2445E-08, 
+			1.0295E-09, 1.0766E-08, 9.1542E-09, 2.9003E-08, 6.2529E-08, 
+			1.1823E-08, 1.1950E-08, 1.2006E-08, 3.0187E-10, 2.0216E-09, 
+			1.0682E-08, 1.0833E-08, 5.4607E-08, 1.7055E-08, 1.1008E-08, 
+			4.3353E-09, 2.8047E-10, 5.0468E-09, 3.6091E-09, 4.3183E-08, 
+			1.0446E-08, 1.3363E-08, 2.9463E-09, 4.5612E-09, 4.7079E-09, 
+			7.7706E-10, 1.6420E-09, 8.7966E-10, 5.6114E-10, 9.7562E-10, 
+			1.0320E-09, 5.9868E-10, 1.5245E-09, 6.2225E-10, 2.5012E-10, 
+			8.6761E-11, 5.9099E-10, 5.9190E-10, 8.0731E-10, 1.5171E-09, 
+			9.1547E-10, 8.9625E-10, 3.6637E-11, 4.0775E-10, 8.2335E-10, 
+			1.0189E-09, 1.0053E-09, 4.5354E-10, 6.8205E-10, 6.4517E-10, 
+			5.3893E-11, 3.9065E-11, 5.5927E-10, 5.7839E-10, 1.0992E-09, 
+			5.6309E-10, 1.3351E-09, 3.5504E-10, 2.2581E-11, 5.1197E-10, 
+			1.0539E-10, 7.1802E-11, 3.9852E-11, 1.6285E-09, 8.6713E-10, 
+			2.7609E-09, 9.8731E-10, 3.7639E-09, 5.4622E-10, 6.9318E-10, 
+			5.4174E-10, 4.1069E-10, 1.3052E-11, 3.8266E-10, 1.3316E-10, 
+			7.1827E-10, 1.0814E-09, 3.1553E-09, 4.9538E-09, 5.3600E-09, 
+			2.8912E-09, 1.7910E-11, 1.6223E-11, 3.3349E-10, 4.1767E-09, 
+			6.7411E-10, 3.3799E-09, 4.1403E-09, 1.5558E-09, 1.2832E-09, 
+			1.2515E-09, 1.5652E-11, 1.5125E-11, 3.6946E-10, 1.0108E-09, 
+			1.2144E-09, 1.7466E-09, 1.1240E-08, 1.3858E-12, 1.5681E-09, 
+			7.4306E-12, 9.9136E-12, 3.5767E-09, 4.5258E-10, 5.9562E-10, 
+			8.0817E-10, 3.6533E-10, 7.1757E-10, 2.5198E-10, 5.2441E-10, 
+			1.7857E-10, 1.7719E-10, 2.9140E-11, 1.4390E-10, 1.0931E-10, 
+			1.3417E-10, 7.2470E-11, 2.6491E-10, 2.2827E-10, 1.7761E-10, 
+			1.9660E-10, 2.5376E-12, 2.8008E-11, 1.9133E-10, 2.6675E-10, 
+			2.0492E-10, 3.2772E-10, 2.9180E-10, 2.8274E-10, 8.6812E-13, 
+			1.4787E-12, 3.7315E-11, 3.0340E-10, 4.1387E-10, 4.0489E-10, 
+			4.6047E-10, 3.7104E-10, 1.4342E-12, 1.6759E-11, 3.5397E-10,
+			2.4332E-10, 2.8557E-10, 1.6082E-10, 1.6159E-10, 1.3599E-12, 
+			3.2509E-11, 1.5312E-10, 2.3624E-10, 1.7504E-10, 3.4682E-10, 
+			1.4023E-10, 1.5803E-10, 4.2293E-12, 1.0783E-12, 3.4992E-11, 
+			1.2581E-10, 1.8550E-10, 9.3272E-11, 2.4131E-10, 1.1292E-14, 
+			9.4772E-11, 7.8768E-13, 1.6113E-10, 8.7950E-11, 1.8989E-10, 
+			1.7878E-10, 9.0315E-11, 1.5326E-10, 5.6782E-13, 5.0342E-11, 
+			5.1086E-11, 4.2704E-10, 5.2110E-10, 8.5547E-10, 1.3453E-09, 
+			1.1933E-09, 2.0211E-09, 8.1702E-13, 5.0994E-11, 2.1641E-09, 
+			2.2344E-09, 1.6757E-09, 4.8231E-10, 9.3184E-10, 2.3797E-12,
+			1.7079E-10, 2.8843E-10, 3.9764E-10, 2.2828E-10, 5.1607E-10, 
+			1.2023E-10, 2.7882E-10, 6.7411E-10, 3.1529E-10, 3.1369E-09, 
+			3.4034E-09, 9.6809E-09, 7.6127E-10, 1.9659E-10, 3.8519E-13, 
+			5.3760E-11]
+
+		self.sol_comp=self._sol_comp_ag89
+
+#..charge of the stable isotopes
+
+		self._stable_charge  =[
+        1,   1,   2,   2,   3,   3,   4,   5,   5,   6,   6,   7,   7, 
+         8,   8,   8,   9,  10,  10,  10,  11,  12,  12,  12,  13,  14, 
+        14,  14,  15,  16,  16,  16,  16,  17,  17,  18,  18,  18,  19, 
+        19,  19,  20,  20,  20,  20,  20,  20,  21,  22,  22,  22,  22, 
+        22,  23,  23,  24,  24,  24,  24,  25,  26,  26,  26,  26,  27, 
+        28,  28,  28,  28,  28,  29,  29,  30,  30,  30,  30,  30,  31, 
+        31,  32,  32,  32,  32,  32,  33,  34,  34,  34,  34,  34,  34, 
+        35,  35,  36,  36,  36,  36,  36,  36,  37,  37,  38,  38,  38, 
+        38,  39,  40,  40,  40,  40,  40,  41,  42,  42,  42,  42,  42 ,
+        42,  42,  44,  44,  44,  44,  44,  44,  44,  45,  46,  46,  46, 
+        46,  46,  46,  47,  47,  48,  48,  48,  48,  48,  48,  48,  48, 
+        49,  49,  50,  50,  50,  50,  50,  50,  50,  50,  50,  50,  51, 
+        51,  52,  52,  52,  52,  52,  52,  52,  52,  53,  54,  54,  54, 
+        54,  54,  54,  54,  54,  54,  55,  56,  56,  56,  56,  56,  56, 
+        56,  57,  57,  58,  58,  58,  58,  59,  60,  60,  60,  60,  60, 
+        60,  60,  62,  62,  62,  62,  62,  62,  62,  63,  63,  64,  64, 
+        64,  64,  64,  64,  64,  65,  66,  66,  66,  66,  66,  66,  66, 
+        67,  68,  68,  68,  68,  68,  68,  69,  70,  70,  70,  70,  70 ,
+        70,  70,  71,  71,  72,  72,  72,  72,  72,  72,  73,  73,  74, 
+        74,  74,  74,  74,  75,  75,  76,  76,  76,  76,  76,  76,  76, 
+        77,  77,  78,  78,  78,  78,  78,  78,  79,  80,  80,  80,  80, 
+        80,  80,  80,  81,  81,  82,  82,  82,  82,  83,  90,  92,  92]
+
+
+#..number of nucleons (protons and neutrons) in the stable isotopes
+
+		self._stable_a= [ 
+         1,   2,   3,   4,   6,   7,   9,  10,  11,  12,  13,  14,  15, 
+        16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28, 
+        29,  30,  31,  32,  33,  34,  36,  35,  37,  36,  38,  40,  39, 
+        40,  41,  40,  42,  43,  44,  46,  48,  45,  46,  47,  48,  49, 
+        50,  50,  51,  50,  52,  53,  54,  55,  54,  56,  57,  58,  59, 
+        58,  60,  61,  62,  64,  63,  65,  64,  66,  67,  68,  70,  69, 
+        71,  70,  72,  73,  74,  76,  75,  74,  76,  77,  78,  80,  82, 
+        79,  81,  78,  80,  82,  83,  84,  86,  85,  87,  84,  86,  87, 
+        88,  89,  90,  91,  92,  94,  96,  93,  92,  94,  95,  96,  97,
+        98, 100,  96,  98,  99, 100, 101, 102, 104, 103, 102, 104, 105, 
+       106, 108, 110, 107, 109, 106, 108, 110, 111, 112, 113, 114, 116, 
+       113, 115, 112, 114, 115, 116, 117, 118, 119, 120, 122, 124, 121, 
+       123, 120, 122, 123, 124, 125, 126, 128, 130, 127, 124, 126, 128, 
+       129, 130, 131, 132, 134, 136, 133, 130, 132, 134, 135, 136, 137, 
+       138, 138, 139, 136, 138, 140, 142, 141, 142, 143, 144, 145, 146, 
+       148, 150, 144, 147, 148, 149, 150, 152, 154, 151, 153, 152, 154, 
+       155, 156, 157, 158, 160, 159, 156, 158, 160, 161, 162, 163, 164, 
+       165, 162, 164, 166, 167, 168, 170, 169, 168, 170, 171, 172, 173,
+       174, 176, 175, 176, 174, 176, 177, 178, 179, 180, 180, 181, 180, 
+       182, 183, 184, 186, 185, 187, 184, 186, 187, 188, 189, 190, 192, 
+       191, 193, 190, 192, 194, 195, 196, 198, 197, 196, 198, 199, 200, 
+       201, 202, 204, 203, 205, 204, 206, 207, 208, 209, 232, 235, 238]
+
+
+# jcode tells the type progenitors each stable species can have.
+# jcode = 0 if the species is the only stable one of that a
+#       = 1 if the species can have proton-rich progenitors
+#       = 2 if the species can have neutron-rich progenitors
+#       = 3 if the species can only be made as itself (eg k40)
+
+		self._jcode = [
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
+         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
+         0,   0,   0,   0,   0,   0,   2,   0,   0,   1,   0,   2,   0, 
+         3,   0,   1,   0,   0,   0,   2,   2,   0,   1,   0,   1,   0, 
+         2,   3,   0,   1,   0,   0,   2,   0,   1,   0,   0,   2,   0, 
+         1,   0,   0,   0,   2,   0,   0,   1,   0,   0,   0,   2,   0, 
+         0,   1,   0,   0,   2,   2,   0,   1,   1,   0,   2,   2,   2, 
+         0,   0,   1,   1,   1,   0,   2,   2,   0,   2,   1,   1,   1, 
+         0,   0,   0,   0,   2,   2,   2,   0,   1,   1,   0,   3,   0, 
+         2,   2,   1,   1,   0,   1,   0,   2,   2,   0,   1,   1,   0, 
+         2,   2,   2,   0,   0,   1,   1,   1,   0,   2,   2,   2,   2, 
+         1,   2,   1,   1,   1,   1,   0,   0,   0,   2,   2,   2,   0, 
+         2,   1,   1,   1,   3,   0,   2,   2,   2,   0,   1,   1,   1, 
+         0,   3,   0,   2,   2,   2,   0,   1,   1,   1,   0,   3,   0, 
+         2,   3,   0,   1,   1,   0,   2,   0,   1,   0,   2,   0,   0, 
+         2,   2,   1,   0,   1,   0,   1,   2,   2,   0,   0,   1,   1, 
+         0,   2,   0,   2,   2,   0,   1,   1,   1,   0,   2,   0,   2, 
+         0,   1,   1,   0,   0,   2,   2,   0,   1,   1,   0,   0,   0, 
+         2,   2,   0,   3,   1,   1,   0,   0,   0,   2,   3,   0,   1, 
+         0,   0,   2,   2,   0,   2,   1,   1,   1,   0,   0,   2,   2, 
+         0,   0,   1,   1,   0,   0,   2,   2,   0,   1,   1,   0,   0, 
+         0,   0,   2,   0,   0,   1,   0,   0,   0,   0,   0,   0,   0]		
+		
 	
 	def _getMESAPath(self):
 		self.mesa_dir=os.getenv("MESA_DIR")
@@ -1138,6 +1323,40 @@ class plot(object):
 
 		plt.sca(ax)
 
+
+	def _decay2Stable(self,m,massInd):
+		abun_list=self._listAbun(m.prof)
+		
+		res=[]
+		for i,j,p in zip(self.stable_isos,self._stable_a,self._stable_charge):
+			res.append({'name':i,'p':p,'a':j,'mass':0})
+
+		msum=0
+		for i in abun_list:
+			element,p,n=self._getIso(i)
+			a=p+n
+			massFrac=self._getMassFrac(m,i,massInd)
+			for idj,j in enumerate(res):
+				if j['a'] != a:
+					continue
+				if (self._jcode[idj]==0 or 
+					(p>=self._stable_charge[idj] and self._jcode[idj]==1) or 
+					(p<=self._stable_charge[idj] and self._jcode[idj]==2) or 
+					(p==self._stable_charge[idj] and self._jcode[idj]==3)):
+					res[idj]['mass']=res[idj]['mass']+massFrac
+					msum=msum+massFrac
+			
+		for i in res:
+			i['mass']=i['mass']/msum
+			
+		return res
+		
+	def get_solar(self):
+		res=[]
+		for i,j,p,m in zip(self.stable_isos,self._stable_a,self._stable_charge,self.sol_comp):
+			res.append({'name':i,'p':p,'a':j,'mass':m})
+		return res
+
 	
 	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
 				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
@@ -1297,6 +1516,106 @@ class plot(object):
 			ax.set_ylabel(r'$\log_{10}$ Abundance')
 		else:
 			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}_1}{\rm{Abun}_2}\right)$')
+		
+		if show_title_name or show_title_model or show_title_age:
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',m.prof.head["model_number"],m.prof.head["star_age"])
+		
+		ax.set_xlim(0,ax.get_xlim()[1])
+	
+		if yrng is not None:
+			ax.set_ylim(ymin,ymax+0.5*(ymax-ymin))
+		else:
+			ax.set_ylim(ymin,ymax)
+	
+		if show:
+			plt.show()			
+
+
+	def plotAbunByA_Stable(self,m,m2=None,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
+					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
+					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
+					line_labels=True,yrng=None):
+		
+		fig,ax=self._setupProf(fig,ax,m,model)
+				
+		if mass_range is None:
+			mass_range=[0.0,m.prof.star_mass]
+		
+			
+		ax.set_yscale('log')
+			
+			
+		massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
+		abun=self._decay2Stable(m,massInd)
+		
+		abun_solar=self.get_solar()
+		
+		if len(abun_solar) != len(abun):
+			raise ValueError("Bad length for solar data "+len(abun_solar)+","+len(abun))
+		
+		
+		if xmin is None:
+			xmin=-1
+		if xmax is None:
+			xmax=999999
+	
+			
+		data=[]
+		ys=[]
+		
+		for i,j in zip(abun,abun_solar):
+			name,mass=self._splitIso(i['name'])
+			if mass >= xmin and mass <= xmax:
+				total_mass=i['mass']
+				total_mass2=j['mass']
+				data.append({'name':name,'mass':mass,
+							'totmass1':total_mass,
+							'totmass2':total_mass2,
+							'rel':total_mass/total_mass2})
+				ys.append(total_mass/total_mass2)
+		
+		uniq_names=set(dic['name'] for dic in data)
+		sorted_names=sorted(uniq_names,key=self.elements.index)
+		
+		self._cycleColors(ax,colors,cmap,len(uniq_names),abun_random)
+		
+		ymax=np.max(ys)
+		ymin=np.min(ys)
+		
+		if yrng is not None:
+			ymax=yrng[1]
+			ymin=yrng[0]
+		
+			
+		levels=[-1,0,1]
+		for idj,j in enumerate(sorted_names):
+			x=[]
+			y=[]
+			for i in data:
+				if i['name']==j:
+					if i['rel']<=ymax and i['rel'] >=ymin:
+						ax.scatter(i['mass'],i['rel'],color='k')
+						x.append(i['mass'])
+						y.append(i['rel'])	
+			x=np.array(x)
+			y=np.array(y)
+			if np.size(x)==0:
+				continue
+			
+			ind=np.argsort(x)
+			if np.count_nonzero(ind)>1:
+				x=x[ind]
+				y=y[ind]	
+			line,=ax.plot(x,y,linewidth=1)
+			col=line.get_color()
+			switch=levels[np.mod(idj,3)]
+			ax.text(np.median(x),ymax+(switch*0.25*(ymax-ymin)),j,color=col)
+				
+		ax.set_xlabel("A")
+		if m2 is None:
+			ax.set_ylabel(r'$\log_{10}$ Abundance')
+		else:
+			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}}{\rm{Abun}_{Sol}}\right)$')
 		
 		if show_title_name or show_title_model or show_title_age:
 			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',m.prof.head["model_number"],m.prof.head["star_age"])
@@ -2172,6 +2491,72 @@ class plot(object):
 		
 		if show:
 			plt.show()
+			
+			
+	#Will replace plotKip and plotKip2 when finished
+	#def plotKip3(self,m,plot_type='hist',xaxis='model_number',yaxis='mass',
+				#xrng=[-1,-1],yrng=[-1,-1],x_index=None,y_index=None,xtsep=1,ystep=1,
+				#xlabel=None,ylabel=None,title=None,
+				#show=True,reloadHistory=False,ax=None,fig=None,title=None
+				#show_mix=True,mix=None,show_burn=True,
+				#cmin=None,cmax=None,colormap=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,
+				#show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
+				#age_collapse=False,age_log=True,age_reverse=False,age_units='yrs',end_time=None,age_zero=None
+				#num_x=None,num_y=None,y2=None):
+					
+		#if fig==None:
+			#fig=plt.figure(figsize=(12,12))
+			
+		#if title is not None:
+			#fig.suptitle(title)
+			
+			
+		#if plot_type=='hist' and show_mix_labels	
+			#self._addMixLabelsAxis(fig)
+
+		#if ax==None:
+			#ax=fig.add_subplot(111)
+		
+		#if plot_type=='history':			
+			#try:
+				#model_num=m.hist.data['model_number']
+			#except AttributeError:
+				#raise ValueError("Must call loadHistory first")
+		#elif plot_type=='profile'
+			#try:
+				#model_num=m.prof.head['model_number']
+			#except AttributeError:
+				#raise ValueError("Must load a profile file first")
+				
+			#try:
+				#y=m.prof.data[yaxis]
+			#except AttributeError:
+				#raise ValueError("No value "+yaxis+" found")
+							
+		#else:
+			#raise ValueError("plot_type must be either history or profile, got "+plot_type)	
+	
+	
+
+		#if not (xaxis=='model_number' or xaxis=='age'):
+			#raise ValueError("Kips can only plot model_number or age, got "+xaxis)
+
+						
+		##Extract Data
+		#data_x=[]
+		#data_y=[]
+		#data_z=[]
+		
+		#if plot_type=='hist':
+			#if xaxis=='model_number':
+				#data_x=m.hist.model_number
+			#else:
+				#data_x=m.hist.star_age
+		#else:
+			
+		
+		
+		
 		
 		
 		
