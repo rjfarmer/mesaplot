@@ -577,16 +577,12 @@ class plot(object):
 				x=x+np.sum(m.prof.data[i][ind]*10**m.prof.logdq[ind])*m.prof.star_mass/np.minimum(m.prof.star_mass,mass_max-mass_min)
 		return x
 
-
-	def _setMixRegionsCol(self,kip=False,mix=False):		
+	def _setMixRegionsCol(self,kip=True,mix=False):		
 		cmap = mpl.colors.ListedColormap(self.mix_col)
 	
 		cmap.set_over((1., 1., 1.))
 		cmap.set_under((0., 0., 0.))
-		if mix:
-			bounds=[0.0,1.01,2.01,3.01,4.01,5.01,6.01,7.01,8.01,9.01]
-		if kip:
-			bounds=[0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0]
+		bounds=[0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0]
 		norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 		return cmap,norm
 		
@@ -634,27 +630,30 @@ class plot(object):
 				yy[:]=yrng[0]
 			else:
 				yy[:]=ylim[0]
-			size=90
-
-		yy=y
-		size=60
+			size=150
+		else:
+			yy=y
+			size=60
 	
-		cmap,norm=self._setMixRegionsCol(mix=True)
+		cmap,norm=self._setMixRegionsCol()
 		
-		isSet=None
-		for mixLabel in ['mixing_type','conv_mixing_type','mlt_mixing_type']:
+		isSet=False
+		for mixLabel in ['mixing_type','conv_mixing_type']:
 			try:
 				col=m.prof.data[mixLabel]
 				isSet=True
 				break
 			except:
 				continue
-			
+	
+		
 		if isSet is None:
 			raise(ValueError,"Need mixing type in profile file for showing mix regions, either its mixing_type or conv_mixing_type")
 		
 		if ind is not None:
 			col=col[ind]
+			x=x[ind]
+			yy=yy[ind]
 		
 		ax.scatter(x,yy,c=col,s=size,cmap=cmap,norm=norm,linewidths=0)
 	
@@ -922,25 +921,28 @@ class plot(object):
 		ax2.set_xticklabels(outc)
 		plt.sca(ax)
 		
-	def _showShockLoc(self,prof,fig,ax,xaxis,yrng,ind):
-		# Show the location of the shock
-		
+	def _findShockLoc(self,prof,ind):
 		cs=prof.data['csound'][ind]
 		vel=prof.data['velocity'][ind]
 		#Find location of shock
-		s=np.count_nonzero(ind)
+		s=np.count_nonzero(cs)
 		fs=False
-		for k in range(0,s):
+		k=-1
+		for k in range(0,s-1):
 			if vel[k+1]>=cs[k] and vel[k]<cs[k]:
 				fs=True
 				break
 		
 		if not fs:
-			for k in range(s,0,-1):
+			for k in range(s-1,0):
 				if vel[k+1]>=-cs[k] and vel[k]<-cs[k]:
 					fs=True
 					break
+		return fs,k		
 		
+		
+	def _showShockLoc(self,prof,fig,ax,xaxis,yrng,ind):
+		fs,k=self._findShockLoc(prof,ind)
 		#check we are either side of shock
 		if fs:
 			xx=[xaxis[ind][k],xaxis[ind][k]]
@@ -1145,6 +1147,7 @@ class plot(object):
 				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model,label='abun_ax1')
+	
 			
 		if modFile:
 			x,xrngL,mInd=self._setXAxis(np.cumsum(m.mod_dat["dq"][::-1])*m._fds2f(m.mod_head[1]),xmin,xmax,fx)
@@ -1172,8 +1175,9 @@ class plot(object):
 		
 		for i in abun_list:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
-									ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-									label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,linestyle=linestyle,xrev=xrev,xlog=xlog)
+				ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
+				label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,
+				linestyle=linestyle,xrev=xrev,xlog=xlog)
 			
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,m.prof.mass,show_line=False,show_x=True,yrng=yrng,ind=mInd)
@@ -1355,9 +1359,16 @@ class plot(object):
 		
 		outArr=np.zeros((10,10))
 		outArr[:]=np.nan
+	
+		mf=[]	
+		for i in abun_list:
+			na,pr,ne=self._getIso(i)
+			idx=name.index(na)
+			massFrac=np.log10(np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd])))
+			mf.append(massFrac)
 		
-		min_col=np.log10(mass_frac_lim)
-		max_col=0.0
+		min_col=np.maximum(np.log10(mass_frac_lim),np.min(mf))
+		max_col=np.minimum(np.max(mf),0.0)
 
 		for i in abun_list:
 			na,pr,ne=self._getIso(i)
@@ -1368,7 +1379,6 @@ class plot(object):
 			else:
 				ax.add_patch(mpl.patches.Rectangle((float(ne-0.5),float(pr-0.5)),1.0,1.0,fill=False))
 			#outArr[ne,pr]=massFrac
-			
 			
 		norm = mpl.colors.Normalize(vmin=min_col, vmax=max_col)
 		im=ax.imshow(outArr, aspect='auto',cmap=cmap, norm=norm)
@@ -1757,7 +1767,7 @@ class plot(object):
 			self._showBurnMixLegend(ax,burn=show_burn,mix=show_mix)
 
 		if show_core_loc:
-			self._plotCoreLoc(m,ax,xaxis,px,ax.get_ylim()[0],ax.get_ylim()[1])
+			self._plotCoreLoc(m.prof,ax,xaxis,px,ax.get_ylim()[0],ax.get_ylim()[1])
 	
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,ax.get_ylim(),mInd)
@@ -1768,7 +1778,7 @@ class plot(object):
 		self._setTicks(ax)
 	
 		self._setXLabel(fig,ax,xlabel,xaxis)
-		self._setYLabel(fig,ax,y1label,self.safe_label(y1),y1col)
+		self._setYLabel(fig,ax,y1label,y1,y1col)
 		
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,title_name,m.prof.head["model_number"],m.prof.head["star_age"])
 		
@@ -1800,7 +1810,7 @@ class plot(object):
 			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 
 		self._setXLabel(fig,ax,xlabel,xaxis)
-		self._setYLabel(fig,ax,y1label,self.safe_label(y1),y1col)
+		self._setYLabel(fig,ax,y1label,y1,y1col)
 			
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
@@ -1831,7 +1841,7 @@ class plot(object):
 			
 		try:
 			xx=m.hist.data['model_number']
-		except:
+		except KeyError:
 			raise ValueError("Must call loadHistory first")
 		
 		modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
@@ -1840,10 +1850,6 @@ class plot(object):
 		if xrng[0]>=0:
 			modInd=modInd&(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
 			
-		
-		#modDiff=np.diff(m.hist.data["model_number"][modInd])
-		#if np.all(modDiff) !=modDiff[0]:
-			#raise ValueError("model_number must be monotomically increasing, ie set history_interval=1")
 
 		if np.count_nonzero(modInd) > 40000:
 			print("Warning attempting to plot more than 40,000 models")
@@ -1851,9 +1857,7 @@ class plot(object):
 			
 		q=np.linspace(0.0,np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
-		#burnZones=np.zeros((numModels,np.size(q)))
-		#burnZones=np.zeros((np.size(q),numModels))
-			
+
 		numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
 		numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
 
@@ -1869,14 +1873,6 @@ class plot(object):
 				if m.hist.data["burn_qtop_"+str(j)][i] ==1.0:
 					break
 			k=k+1
-
-		#burnZones=np.zeros((np.size(q),numModels))
-		#burnZones[:,:]=m.hist.data["burn_type_1"][None,modInd]
-		#for j in range(2,numBurnZones+1):
-			#bqt1=m.hist.data["burn_qtop_"+str(j-1)][modInd]*m.hist.data['star_mass'][modInd]
-			#bqt2=m.hist.data["burn_qtop_"+str(j)][modInd]*m.hist.data['star_mass'][modInd]
-			#ind=(q[:,None]<=bqt2)&(q[:,None]>bqt1)
-			#burnZones=burnZones+ind*m.hist.data["burn_type_"+str(j)][modInd]
 
 		Xmin=m.hist.data["model_number"][modInd][0]
 		Xmax=m.hist.data["model_number"][modInd][-1]
@@ -1932,27 +1928,13 @@ class plot(object):
 				if m.hist.data["mix_qtop_"+str(j)][i]==1.0:
 					break
 			k=k+1		
-			
-		#mixZones=np.zeros((np.size(q),numModels))
-		#mixZones[:,:]=m.hist.data["mix_type_1"][None,modInd]
-		#for j in range(2,numBurnZones+1):
-			#bqt1=m.hist.data["mix_qtop_"+str(j-1)][modInd]*m.hist.data['star_mass'][modInd]
-			#bqt2=m.hist.data["mix_qtop_"+str(j)][modInd]*m.hist.data['star_mass'][modInd]
-			#ind=(q[:,None]<=bqt2)&(q[:,None]>bqt1)
-			#mixZones=mixZones+ind*m.hist.data["mix_type_"+str(j)][modInd]
-			
-		#if mix==-1:
-			#mixZones[:,:]=0.0
-		#elif type(mix) is list or type(mix) is tuple:
-			#mixZones[np.in1d(mixZones,mix,invert=True)]=0.0
-			
-				
+
+					
 		mixZones[mixZones==0]=-np.nan
 		
 		mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
 		
 		ax.imshow(mixZones.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
-		#ax.contourf(XX,YY,mixZones.T,cmap=cmap,norm=norm,origin='lower')
 		mixZones=0
 		ax.set_xlabel(r"$\rm{Model\; number}$")
 		ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
@@ -1961,11 +1943,7 @@ class plot(object):
 		cb.solids.set_edgecolor("face")
 
 		cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
-		#fig.set_size_inches(12,9.45)
-		
-		#ax.locator_params(nbins=6)
-		#self._setTicks(ax)
-		#ax.set_tick_params(axis='both',which='both')
+
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		
 		#Add line at outer mass location
@@ -1986,6 +1964,7 @@ class plot(object):
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
 				mod_out=None,megayears=False,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None,
 				num_x=None,num_y=None,y2=None):
+					
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 			
