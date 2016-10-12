@@ -80,22 +80,23 @@ class data(object):
 	def __getattr__(self, name):
 		x=None
 		
-		try:
-			x=self.data[name]
-		except:
-			pass
-		try:
-			x=np.atleast_1d(self.head[name])[0]
-		except:
-			pass
-		
-		if x is not None:
-			return x
-		else:
-			if self.loaded:
-				raise AttributeError("No value "+name+" available")
-			else:
-				raise AttributeError("Must call loadHistory or loadProfile first")
+		if '_loaded' in self.__dict__:
+			if self._loaded:
+				try:
+					x=self.data[name]
+				except:
+					pass
+				try:
+					x=np.atleast_1d(self.head[name])[0]
+				except:
+					pass
+				
+				if x is not None:
+					return x
+				else:
+					raise AttributeError("No value "+name+" available")
+						
+		raise AttributeError("Must call loadHistory or loadProfile first")
 	
 	def __dir__(self):
 		x=[]
