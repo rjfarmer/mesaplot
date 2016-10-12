@@ -1,1 +1,0 @@
-# Dynamo plots

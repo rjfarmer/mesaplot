@@ -1,1 +1,0 @@
-# Kippenhan plots
