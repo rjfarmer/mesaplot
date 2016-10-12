@@ -405,6 +405,8 @@ class plot(object):
 		self.elements=[x.lower() for x in self.elementsPretty]
 					
 		self._getMESAPath()
+		
+		self.msun=1.9892*10**33
 	
 	def _getMESAPath(self):
 		self.mesa_dir=os.getenv("MESA_DIR")
@@ -530,14 +532,18 @@ class plot(object):
 				mass+=i
 			else:
 				name+=i
-		if name=='neut' or i=='prot':
+		if name=='neut' or name=='prot':
 			mass=1
 		return name,int(mass)
 	
 	def _getIso(self,iso):
 		name,mass=self._splitIso(iso)
-		p=self.elements.index(name)
-		n=mass-p
+		if name=='prot':
+			p=1
+			n=0
+		else:
+			p=self.elements.index(name)
+			n=mass-p
 		return name,p,n
 
 
@@ -557,10 +563,19 @@ class plot(object):
 				mixListOut.append(i)
 		return mixListOut
 	
-	def _abunSum(m,iso,mass_min=0.0,mass_max=9999.0):
+	def _abunSum(self,m,iso,mass_min=0.0,mass_max=9999.0):
 		ind=(m.prof.mass>=mass_min)&(m.prof.mass<=mass_max)
 		return np.sum(m.prof.data[iso][ind]*10**m.prof.logdq[ind])*m.prof.star_mass/np.minimum(m.prof.star_mass,mass_max-mass_min)
 
+	def _eleSum(self,m,ele,mass_min=0.0,mass_max=9999.0):
+		ind=(m.prof.mass>=mass_min)&(m.prof.mass<=mass_max)
+		
+		la=self._listAbun(m.prof)
+		x=0.0
+		for i in la:
+			if ele == i[0:len(ele)]:
+				x=x+np.sum(m.prof.data[i][ind]*10**m.prof.logdq[ind])*m.prof.star_mass/np.minimum(m.prof.star_mass,mass_max-mass_min)
+		return x
 
 
 	def _setMixRegionsCol(self,kip=False,mix=False):		
@@ -697,11 +712,14 @@ class plot(object):
 			
 		return x,xrngL,ind
    
-	def _cycleColors(self,ax,colors=None,cmap='',num_plots=0):
+	def _cycleColors(self,ax,colors=None,cmap='',num_plots=0,random_col=False):
 		if colors is None:
-			ax.set_prop_cycle(cycler('color',[cmap(i) for i in np.linspace(0.0,0.9,num_plots)]))
+			c=[cmap(i) for i in np.linspace(0.0,0.9,num_plots)]
 		else:
-			ax.set_prop_cycle(cycler('color',colors))
+			c=colors
+		if random_col:
+			random.shuffle(c)
+		ax.set_prop_cycle(cycler('color',c))
 
 	def _showBurnData(self,ax):
 		self._loadBurnData()
@@ -927,6 +945,19 @@ class plot(object):
 		if fs:
 			xx=[xaxis[ind][k],xaxis[ind][k]]
 			ax.plot(xx,yrng,'--',color=self.colors['clr_DarkGray'],linewidth=2)
+			
+	def _getMassFrac(self,m,i,massInd):
+		return np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd]))
+		
+	def _getMassIso(self,m,i,massInd):
+		mcen=0.0
+		try:
+			mcen=m.prof.M_center
+		except AttributeError:
+			pass
+		mass=m.prof.star_mass-mcen/msun	
+			
+		return self._getMassFrac(m,i,massInd)*mass
 		
 	def _addExtraLabelsToAxis(self,fig,labels,colors=None,num_left=0,num_right=0,left_pad=85,right_pad=85):
 
@@ -1170,19 +1201,15 @@ class plot(object):
 		if show:
 			plt.show()
 			
-	def plotAbunByA(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
-					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
-					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,abun_scaler=None,
+	def plotAbunByA(self,m,m2=None,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
+					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
+					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
 					line_labels=True,yrng=None):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 				
 		if mass_range is None:
-			ymin=0.0
-			ymax=m.prof.star_mass
-		else:
-			ymin=mass_range[0]
-			ymax=mass_range[1]
+			mass_range=[0.0,m.prof.star_mass]
 		
 		if abun is None:
 			abun_list=self._listAbun(m.prof)
@@ -1191,85 +1218,95 @@ class plot(object):
 			abun_list=abun
 			log=""
 			
+		ax.set_yscale('log')
+			
 		abun_log=True
 		if len(log)>0:
 			abun_log=False
 			
-		massInd=(m.prof.mass>=ymin)&(m.prof.mass<=ymax)
+		massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
+		
+		if m2 is not None:
+			massInd2=(m2.prof.mass>=mass_range[0])&(m2.prof.mass<=mass_range[1])
 		
 		if xmin is None:
 			xmin=-1
 		if xmax is None:
 			xmax=999999
-		
 	
-
-		name_all=[]
+			
+		data=[]
+		ys=[]
+		
 		for i in abun_list:
 			name,mass=self._splitIso(i)
+			if name=='neut' or name=='prot':
+				continue
 			if mass >= xmin and mass <= xmax:
-				total_mass=np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd]))
-				y=np.log10(total_mass)
-				if abun_scaler is not None:
-					massIndAS=(abun_scaler.prof.mass>=ymin)&(abun_scaler.prof.mass<=ymax)
-					y=y-np.log10(np.sum(abun_scaler.prof.data[i][massIndAS]*10**(abun_scaler.prof.logdq[massIndAS])))
-				ax.scatter(mass,y,color='k')
-				name_all.append(name)
-	
-		#Helps when we have many elements not on the plot that stretch the colormap
-		if abun_random:
-			random.shuffle(name_all)
-	
-		name_all=set(name_all)
-		num_plots=len(name_all)
+				total_mass=self._getMassFrac(m,i,massInd)
+				total_mass2=self._getMassFrac(m2,i,massInd2)
+				data.append({'name':name,'mass':mass,
+							'totmass1':total_mass,
+							'totmass2':total_mass2,
+							'rel':total_mass/total_mass2})
+				ys.append(total_mass/total_mass2)
 		
-	
-		self._cycleColors(ax,colors,cmap,num_plots)
-	
-		for i in name_all:
-			xx=[]
-			yy=[]
-			for j in abun_list:
-				name,mass=self._splitIso(j)
-				if name==i and mass >=xmin and mass <=xmax:
-					xx.append(mass)
-					total_mass=np.sum(m.prof.data[j][massInd]*10**(m.prof.logdq[massInd]))
-					y=np.log10(total_mass)
-					if abun_scaler is not None:
-						massIndAS=(abun_scaler.prof.mass>=ymin)&(abun_scaler.prof.mass<=ymax)
-						y=y-np.log10(np.sum(abun_scaler.prof.data[j][massIndAS]*10**(abun_scaler.prof.logdq[massIndAS])))
-					yy.append(y)
-			ind=np.argsort(xx)
-			zz=np.zeros(np.size(ind))
-			if np.size(ind)>1:
-				line,=ax.plot(np.array(xx)[ind],np.array(yy)[ind],linewidth=1)
-				col=line.get_color()
-			else:
-				##TODO: Fix
-				col='k'
-			if line_labels:
-				self._annotateLine(ax,np.array(xx)[ind],zz*1.0,1,np.min(np.array(xx)[ind]),np.max(np.array(xx)[ind]),i,color=col)
+		uniq_names=set(dic['name'] for dic in data)
+		sorted_names=sorted(uniq_names,key=self.elements.index)
+		
+		self._cycleColors(ax,colors,cmap,len(uniq_names),abun_random)
+		
+		ymax=np.max(ys)
+		ymin=np.min(ys)
+		
+		if yrng is not None:
+			ymax=yrng[1]
+			ymin=yrng[0]
+		
 			
-		
-		
+		levels=[-1,0,1]
+		for idj,j in enumerate(sorted_names):
+			x=[]
+			y=[]
+			for i in data:
+				if i['name']==j:
+					if i['rel']<=ymax and i['rel'] >=ymin:
+						ax.scatter(i['mass'],i['rel'],color='k')
+						x.append(i['mass'])
+						y.append(i['rel'])	
+			x=np.array(x)
+			y=np.array(y)
+			if np.size(x)==0:
+				continue
+			
+			ind=np.argsort(x)
+			if np.count_nonzero(ind)>1:
+				x=x[ind]
+				y=y[ind]	
+			line,=ax.plot(x,y,linewidth=1)
+			col=line.get_color()
+			switch=levels[np.mod(idj,3)]
+			ax.text(np.median(x),ymax+(switch*0.25*(ymax-ymin)),j,color=col)
+				
 		ax.set_xlabel("A")
-		if abun_scaler is None:
+		if m2 is None:
 			ax.set_ylabel(r'$\log_{10}$ Abundance')
 		else:
 			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}_1}{\rm{Abun}_2}\right)$')
 		
 		if show_title_name or show_title_model or show_title_age:
-			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Abundances',m.prof.head["model_number"],m.prof.head["star_age"])
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		ax.set_xlim(0,ax.get_xlim()[1])
-		if line_labels:
-			ax.set_ylim(ax.get_ylim()[0],ax.get_ylim()[1]+0.5)
-			
+	
 		if yrng is not None:
-			ax.set_ylim(yrng)
-		
+			ax.set_ylim(ymin,ymax+0.5*(ymax-ymin))
+		else:
+			ax.set_ylim(ymin,ymax)
+	
 		if show:
-			plt.show()
+			plt.show()			
+
 			
 	def plotAbunPAndN(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
 					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
