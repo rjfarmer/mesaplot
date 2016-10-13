@@ -444,6 +444,7 @@ class plot(object):
 			'hg200','hg201','hg202','hg204','tl203','tl205','pb204','pb206',
 			'pb207','pb208','bi209','th232','u235','u238']
 
+		self.solar_is_set=False
 
 		#..anders & grevesse 1989 solar mass fractions
 		self._sol_comp_ag89 =[
@@ -505,8 +506,6 @@ class plot(object):
 			1.2023E-10, 2.7882E-10, 6.7411E-10, 3.1529E-10, 3.1369E-09, 
 			3.4034E-09, 9.6809E-09, 7.6127E-10, 1.9659E-10, 3.8519E-13, 
 			5.3760E-11]
-
-		self.sol_comp=self._sol_comp_ag89
 
 #..charge of the stable isotopes
 
@@ -591,7 +590,19 @@ class plot(object):
          0,   0,   2,   2,   0,   2,   1,   1,   1,   0,   0,   2,   2, 
          0,   0,   1,   1,   0,   0,   2,   2,   0,   1,   1,   0,   0, 
          0,   0,   2,   0,   0,   1,   0,   0,   0,   0,   0,   0,   0]		
-		
+	
+	
+	def set_solar(self,solar):
+		if solar=='ag89':
+			self.sol_comp=self._sol_comp_ag89
+		else:
+			raise ValueError("Must pass either ag98")
+			
+		self.solar_is_set=True
+			
+	def is_solar_set(self):
+		if not self.solar_is_set:
+			raise ValueError("Must call set_solar first")
 	
 	def _getMESAPath(self):
 		self.mesa_dir=os.getenv("MESA_DIR")
@@ -1352,6 +1363,7 @@ class plot(object):
 		return res
 		
 	def get_solar(self):
+		self.is_solar_set()
 		res=[]
 		for i,j,p,m in zip(self.stable_isos,self._stable_a,self._stable_charge,self.sol_comp):
 			res.append({'name':i,'p':p,'a':j,'mass':m})
@@ -1531,7 +1543,7 @@ class plot(object):
 			plt.show()			
 
 
-	def plotAbunByA_Stable(self,m,m2=None,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
+	def plotAbunByA_Stable(self,m,m2=None,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,mass_range2=None,abun=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
 					line_labels=True,yrng=None):
@@ -1540,12 +1552,12 @@ class plot(object):
 				
 		if mass_range is None:
 			mass_range=[0.0,m.prof.star_mass]
-		
+			
+		massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
 			
 		ax.set_yscale('log')
 			
 			
-		massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
 		abun=self._decay2Stable(m,massInd)
 		
 		abun_solar=self.get_solar()
@@ -1553,6 +1565,14 @@ class plot(object):
 		if len(abun_solar) != len(abun):
 			raise ValueError("Bad length for solar data "+len(abun_solar)+","+len(abun))
 		
+		if m2 is not None:
+			if mass_range2 is None:
+				massInd2=(m2.prof.mass>=mass_range[0])&(m2.prof.mass<=mass_range[1])
+			else:
+				massInd2=(m2.prof.mass>=mass_range2[0])&(m2.prof.mass<=mass_range2[1])
+			abun2=self._decay2Stable(m2,massInd2)
+		else:
+			abun2=[]
 		
 		if xmin is None:
 			xmin=-1
@@ -1563,16 +1583,28 @@ class plot(object):
 		data=[]
 		ys=[]
 		
-		for i,j in zip(abun,abun_solar):
+		for k in range(len(abun)):
+			i=abun[k]
+			j=abun_solar[k]
+			try:
+				l=abun2[k]
+			except IndexError:
+				l=0
 			name,mass=self._splitIso(i['name'])
 			if mass >= xmin and mass <= xmax:
 				total_mass=i['mass']
-				total_mass2=j['mass']
+				total_massSol=j['mass']
+				try:
+					total_mass2=l['mass']/total_massSol
+				except TypeError:
+					total_mass2=1.0
+				
 				data.append({'name':name,'mass':mass,
 							'totmass1':total_mass,
 							'totmass2':total_mass2,
-							'rel':total_mass/total_mass2})
-				ys.append(total_mass/total_mass2)
+							'totmasssol':total_massSol,
+							'rel':(total_mass/total_massSol)/total_mass2})
+				ys.append(data[-1]['rel'])
 		
 		uniq_names=set(dic['name'] for dic in data)
 		sorted_names=sorted(uniq_names,key=self.elements.index)
@@ -1613,9 +1645,9 @@ class plot(object):
 				
 		ax.set_xlabel("A")
 		if m2 is None:
-			ax.set_ylabel(r'$\log_{10}$ Abundance')
-		else:
 			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}}{\rm{Abun}_{Sol}}\right)$')
+		else:
+			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{m_1}}{\rm{m}_{2}}\right)$')
 		
 		if show_title_name or show_title_model or show_title_age:
 			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',m.prof.head["model_number"],m.prof.head["star_age"])
