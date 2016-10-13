@@ -2,10 +2,19 @@
 Library of python routines to read MESA ouput files and plot MESA quantites
 
 ## Installation instructions:
-Simply git clone the repo then add the folder to your PYTHONPATH
+git clone the repo then either call
 ````bash
-export PYTHONPATH=$PYTHONPATH:/path/to/mesaplot/folder
+python setup.py install 
+python3 setup.py install 
 ````
+
+Depending on choice of python version, --user can also be passed to install locally
+
+````bash
+make
+````
+
+Can be called as well, which just wraps installing both the python and python3 versions
 
 ## Reading data:
 
@@ -78,6 +87,7 @@ Here we'll show the basics of plotting, there are more complex examples for each
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadHistory()
 p.plotHistory(m,xaxis='star_age',y1='log_center_T',y2='he_core_mass')
@@ -89,6 +99,7 @@ p.plotHistory(m,xaxis='star_age',y1='log_center_T',y2='he_core_mass')
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadProfile(num=-1)
 p.plotProfile(m,xaxis='mass',y1='logT',y2='ye')
@@ -100,6 +111,7 @@ p.plotProfile(m,xaxis='mass',y1='logT',y2='ye')
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadHistory()
 p.plotHR(m)
@@ -111,6 +123,7 @@ p.plotHR(m)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadHistory()
 p.plotKip(m,show_mass_loc=True)
@@ -121,6 +134,7 @@ p.plotKip(m,show_mass_loc=True)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadHistory()
 p.plotKip2(m)
@@ -132,6 +146,7 @@ p.plotKip2(m)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadProfile(num=-1)
 p.plotAbun(m)
@@ -141,6 +156,7 @@ p.plotAbun(m)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadProfile(num=-1)
 p.plotAbunByA(m)
@@ -148,9 +164,43 @@ p.plotAbunByA(m)
 
 ![Production plot](/examples/abun_bya.png?raw=true "Production plot")
 
+````python
+import mesaPlot as mp
+m=mp.MESA()
+p=mp.plot()
+m.loadProfile(num=-1)
+m2=mp.MESA()
+m2.log_fold='../some/other/mesa/result'
+m2.loadprofile(num=-1)
+p.plotAbunByA(m,m2=m2)
+````
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
+p=mp.plot()
+p.set_solar('ag89')
+m.loadProfile(num=-1)
+#Plot the mass fractions relative to solar
+p.plotAbunByA_Stable(m)
+````
+
+````python
+import mesaPlot as mp
+m=mp.MESA()
+p=mp.plot()
+p.set_solar('ag89')
+m.loadProfile(num=-1)
+m2=mp.MESA()
+m2.log_fold='../some/other/mesa/result'
+m2.loadprofile(num=-1)
+#Plot the mass fractions relative to solar relative to 2nd model
+p.plotAbunByA_Stable(m,m2=m2)
+````
+
+````python
+import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadProfile(num=-1)
 p.plotAbunPAndN(m)
@@ -161,6 +211,7 @@ p.plotAbunPAndN(m)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadHistory()
 p.plotAbunSummary(m)
@@ -172,6 +223,7 @@ p.plotAbunSummary(m)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadProfile(num=-1)
 p.plotBurn(m)
@@ -179,6 +231,7 @@ p.plotBurn(m)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadHistory()
 p.plotBurnSummary(m)
@@ -190,6 +243,7 @@ p.plotBurnSummary(m)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadProfile(num=-1)
 p.plotDynamo(m)
@@ -199,6 +253,7 @@ p.plotDynamo(m)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadProfile(num=-1)
 p.plotDyanmo2(m)
@@ -212,6 +267,7 @@ p.plotDyanmo2(m)
 
 ````python
 import mesaPlot as mp
+m=mp.MESA()
 p=mp.plot()
 m.loadProfile(num=-1)
 p.plotAngMom(m)
