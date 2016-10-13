@@ -1503,10 +1503,12 @@ class plot(object):
 		for idj,j in enumerate(sorted_names):
 			x=[]
 			y=[]
+			line,=ax.plot(1,1)
+			col=line.get_color()
 			for i in data:
 				if i['name']==j:
 					if i['rel']<=ymax and i['rel'] >=ymin:
-						ax.scatter(i['mass'],i['rel'],color='k')
+						ax.scatter(i['mass'],i['rel'],color=col)
 						x.append(i['mass'])
 						y.append(i['rel'])	
 			x=np.array(x)
@@ -1518,8 +1520,7 @@ class plot(object):
 			if np.count_nonzero(ind)>1:
 				x=x[ind]
 				y=y[ind]	
-			line,=ax.plot(x,y,linewidth=1)
-			col=line.get_color()
+			line,=ax.plot(x,y,linewidth=2,color=col)
 			switch=levels[np.mod(idj,3)]
 			ax.text(np.median(x),ymax+(switch*0.25*(ymax-ymin)),j,color=col)
 				
@@ -1598,6 +1599,13 @@ class plot(object):
 					total_mass2=l['mass']/total_massSol
 				except TypeError:
 					total_mass2=1.0
+					
+				if total_mass==0.0 and total_mass2==0.0:
+					continue
+					
+				if total_mass==0.0 or total_mass2==0.0:
+					print("Skipping "+i['name']+" mass frac is 0")
+					continue
 				
 				data.append({'name':name,'mass':mass,
 							'totmass1':total_mass,
@@ -1618,15 +1626,16 @@ class plot(object):
 			ymax=yrng[1]
 			ymin=yrng[0]
 		
-			
 		levels=[-1,0,1]
 		for idj,j in enumerate(sorted_names):
 			x=[]
 			y=[]
+			line,=ax.plot(1,1)
+			col=line.get_color()
 			for i in data:
 				if i['name']==j:
 					if i['rel']<=ymax and i['rel'] >=ymin:
-						ax.scatter(i['mass'],i['rel'],color='k')
+						ax.scatter(i['mass'],i['rel'],color=col)
 						x.append(i['mass'])
 						y.append(i['rel'])	
 			x=np.array(x)
@@ -1638,8 +1647,7 @@ class plot(object):
 			if np.count_nonzero(ind)>1:
 				x=x[ind]
 				y=y[ind]	
-			line,=ax.plot(x,y,linewidth=1)
-			col=line.get_color()
+			line,=ax.plot(x,y,linewidth=2,color=col)
 			switch=levels[np.mod(idj,3)]
 			ax.text(np.median(x),ymax+(switch*0.25*(ymax-ymin)),j,color=col)
 				
