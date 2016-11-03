@@ -273,6 +273,23 @@ m.loadProfile(num=-1)
 p.plotAngMom(m)
 ````
 
+###Time series Profile plots
+````python
+import mesaPlot as mp
+
+m=mp.MESA()
+m.loadHistory()
+m.loadProfile(num=1)
+p=mp.plot()
+p.plotSliderProf(m,'plotAbun')
+````
+
+Paresing as a string the name of a plotting function (only ones based on profile data),
+will show that plot with a slider that can be used to iterate over the profile files
+available. plotSliderProf will take any extra arguments parsed to it and
+send parse them to the plotting function.
+
+
 ### Stacked plots
 
 [More on stacked plots](docs/stacked.md)

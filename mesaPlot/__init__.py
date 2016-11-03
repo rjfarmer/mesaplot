@@ -2791,7 +2791,78 @@ class plot(object):
 		
 		if show==True:
 			plt.show()
+			
+	def plotSliderProf(self,m,func,*args,**kwargs):
+		from matplotlib.widgets import Slider, Button, RadioButtons
+		class DiscreteSlider(Slider):
+			"""A matplotlib slider widget with discrete steps."""
+			def __init__(self, *args, **kwargs):
+				"""
+				Identical to Slider.__init__, except for the new keyword 'allowed_vals'.
+				This keyword specifies the allowed positions of the slider
+				"""
+				self.allowed_vals = kwargs.pop('allowed_vals',None)
+				self.previous_val = kwargs['valinit']
+				Slider.__init__(self, *args, **kwargs)
+				if self.allowed_vals is None:
+					self.allowed_vals = [self.valmin,self.valmax]
 		
+			def set_val(self, val):
+				discrete_val = self.allowed_vals[abs(val-self.allowed_vals).argmin()]
+				xy = self.poly.xy
+				xy[2] = discrete_val, 1
+				xy[3] = discrete_val, 0
+				self.poly.xy = xy
+				self.valtext.set_text(self.valfmt % discrete_val)
+				if self.drawon: 
+					self.ax.figure.canvas.draw()
+				self.val = discrete_val
+				if self.previous_val!=discrete_val:
+					self.previous_val = discrete_val
+					if not self.eventson: 
+						return
+					for cid, func in self.observers.items():
+						func(discrete_val)
+
+		fig=plt.figure(figsize=(12,12))
+		ax=plt.axes([0.1,0.15,0.7,0.75])
+		f=getattr(self,func)
+		
+		m.loadProfile(num=1)
+		f(m,fig=fig,ax=ax,show=False,show_title_model=True,*args,**kwargs)
+		
+		axcolor = 'white'
+		axmodels = plt.axes([0.15, 0.025, 0.75, 0.03], axisbg=axcolor,label='slider')
+		
+		num_models=np.size(m.prof_ind['model'])
+		
+		smodels=DiscreteSlider(axmodels,'Model',0.0,1.0*num_models-1.0,valinit=0.0,allowed_vals=np.arange(0.0,num_models,1.0))
+		
+		smodels.set_val(np.argmin(np.abs(m.prof_ind['model']-m.prof.model_number)))
+		
+		smodels.ax.set_xticks(np.arange(0.0,num_models,1.0))
+		smodels.ax.set_xticklabels([])
+		smodels.valtext.set_visible(False)
+		
+		def update(val):
+			mo = smodels.val
+			m.loadProfile(num=m.prof_ind['model'][int(mo)])
+			xmin,xmax=ax.get_xlim()
+			ymin,ymax=ax.get_ylim()
+			xmin=np.minimum(0.0,xmin)
+			for i in fig.axes:
+				if '_ax2' in i.get_label():
+					fig.delaxes(i)
+			plt.sca(ax)
+			plt.cla()
+			f(m,fig=fig,ax=ax,xmin=xmin,xmax=xmax,yrng=[ymin,ymax],show_title_model=True,show=False,*args,**kwargs)
+			#fig.canvas.draw_idle()
+			fig.canvas.draw()
+		
+		smodels.on_changed(update)
+		
+		plt.show()
+				
 
 
 class debug_logs(object):
