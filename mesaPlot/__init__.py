@@ -1479,7 +1479,9 @@ class plot(object):
 				continue
 			if mass >= xmin and mass <= xmax:
 				total_mass=self._getMassFrac(m,i,massInd)
-				total_mass2=self._getMassFrac(m2,i,massInd2)
+				total_mass2=1.0
+				if m2 is not None:
+					total_mass2=self._getMassFrac(m2,i,massInd2)
 				data.append({'name':name,'mass':mass,
 							'totmass1':total_mass,
 							'totmass2':total_mass2,
