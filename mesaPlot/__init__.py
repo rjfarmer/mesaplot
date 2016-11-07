@@ -1153,7 +1153,7 @@ class plot(object):
 			mcen=m.prof.M_center
 		except AttributeError:
 			pass
-		mass=m.prof.star_mass-mcen/msun	
+		mass=m.prof.star_mass-mcen/self.msun	
 			
 		return self._getMassFrac(m,i,massInd)*mass
 		
@@ -2097,7 +2097,7 @@ class plot(object):
 					y1Textcol=None,y2Textcol=None,fig=None,y1rng=[None,None],y2rng=[None,None],
 					fx=None,fy1=None,fy2=None,
 					show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
-					y1linelabel=None,show_core_loc=False,show_shock=False):
+					y1linelabel=None,show_core_loc=False,show_shock=False,yrng=None):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 
@@ -2116,7 +2116,10 @@ class plot(object):
 
 
 		ax.set_ylabel(self.safeLabel(y1label,y1), color=y1labcol)
-		self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1log)
+		if yrng is None:
+			self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1log)
+		else:
+			self._setYLim(ax,ax.get_ylim(),yrng,rev=y1rev,log=y1log)
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,px,py,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
@@ -2181,7 +2184,8 @@ class plot(object):
 
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
-				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None):
+				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None,y2rng=None):
+					
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 		
@@ -2219,16 +2223,24 @@ class plot(object):
 		q=np.linspace(0.0,np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
 		numModels=np.count_nonzero(modInd)
 
+		try:
+			m_center=m.hist.data['m_center']/self.msun
+		except:
+			m_center=np.zeros(np.size(m.hist.data['model_number']))
+
+
 		numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
 		numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
 
 		burnZones=np.zeros((numModels,np.size(q)))
+		burnZones[:,:]=np.nan
 		k=0		
 		for jj in m.hist.data["model_number"][modInd]:
 			ind2b=np.zeros(np.size(q),dtype='bool')
 			i=m.hist.data["model_number"]==jj
+			ind2b=(q<=m_center[i])
 			for j in range(1,numBurnZones+1):
-				indb=(q<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2b)
+				indb=(q<=m_center[i]+m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2b)
 				burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
 				ind2b=ind2b|indb
 				if m.hist.data["burn_qtop_"+str(j)][i] ==1.0:
@@ -2271,12 +2283,14 @@ class plot(object):
 
 		
 		mixZones=np.zeros((numModels,np.size(q)))
+		mixZones[:,:]=-np.nan
 		k=0
 		for jj in m.hist.data["model_number"][modInd]:
 			ind2=np.zeros(np.size(q),dtype='bool')
 			i=m.hist.data["model_number"]==jj
+			ind2b=(q<=m_center[i])
 			for j in range(1,numMixZones+1):
-				ind=(q<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
+				ind=(q<= m_center[i]+m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
 				if mix is None:
 					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
 				elif mix ==-1 :
@@ -2307,12 +2321,17 @@ class plot(object):
 
 		self._setYLim(ax,ax.get_ylim(),yrng)
 		
-		#Add line at outer mass location
+		#Add line at outer mass location and inner
 		ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],color='k')
+		ax.plot(m.hist.data['model_number'][modInd],m_center[modInd],color='k')
+		
 		
 		if y2 is not None:
+			# Update axes 2 locations after ax1 is moved by the colorbar
+			ax2.set_position(ax.get_position())
 			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],color='k')
-		
+			if y2rng is not None:
+				ax2.set_ylim(y2rng)
 		
 		if show_mass_loc:
 			self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
@@ -2855,6 +2874,18 @@ class plot(object):
 					fig.delaxes(i)
 			plt.sca(ax)
 			plt.cla()
+			try:
+				kwargs.pop('xmax')
+			except KeyError:
+				pass
+			try:
+				kwargs.pop('xmin')
+			except KeyError:
+				pass
+			try:
+				kwargs.pop('yrng')
+			except KeyError:
+				pass
 			f(m,fig=fig,ax=ax,xmin=xmin,xmax=xmax,yrng=[ymin,ymax],show_title_model=True,show=False,*args,**kwargs)
 			#fig.canvas.draw_idle()
 			fig.canvas.draw()
@@ -2862,9 +2893,7 @@ class plot(object):
 		smodels.on_changed(update)
 		
 		plt.show()
-				
-
-
+			
 class debug_logs(object):
 	def __init__(self,folder):
 		self.folder=folder
