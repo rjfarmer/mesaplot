@@ -2868,10 +2868,13 @@ class plot(object):
 			m.loadProfile(num=m.prof_ind['model'][int(mo)])
 			xmin,xmax=ax.get_xlim()
 			ymin,ymax=ax.get_ylim()
+			ymin2=None
+			ymax2=None
 			xmin=np.minimum(0.0,xmin)
 			for i in fig.axes:
 				if '_ax2' in i.get_label():
 					fig.delaxes(i)
+					ymin2,ymax2=i.get_ylim()
 			plt.sca(ax)
 			plt.cla()
 			try:
@@ -2886,7 +2889,7 @@ class plot(object):
 				kwargs.pop('yrng')
 			except KeyError:
 				pass
-			f(m,fig=fig,ax=ax,xmin=xmin,xmax=xmax,yrng=[ymin,ymax],show_title_model=True,show=False,*args,**kwargs)
+			f(m,fig=fig,ax=ax,xmin=xmin,xmax=xmax,yrng=[ymin,ymax],y2rng=[ymin2,ymax2],show_title_model=True,show=False,*args,**kwargs)
 			#fig.canvas.draw_idle()
 			fig.canvas.draw()
 		
