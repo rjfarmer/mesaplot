@@ -3316,83 +3316,26 @@ class plotNet(object):
 			print(i)
 			self.plot(i,show,trng,rrng)
 			
+class debug_mesh(object):
+	def __init__(self):
+		self.data_old=[]
+		self.data_new=[]
+
+	def load(self,folder='mesh_plot_data',mesh_new='new_mesh.data',mesh_old='mesh_plan.data'):
+		self.data_old=np.genfromtxt(os.path.join(folder,mesh_old),names=True)
+		self.data_new=np.genfromtxt(os.path.join(folder,mesh_new),names=True)
+
+	def plot_gval(self,data,show=True):
+		for i in data.dtype.names:
+			if i.startswith('gval_'):
+				plt.plot(data['mass'],data[i],label=data.replace('_','\_'),linewidth=2)
 	
-# Adds a slider at bottom of the plot to iterate over model numbers
-# need to merge into main code
-# Discrete slider from https://stackoverflow.com/questions/13656387/can-i-make-matplotlib-sliders-more-discrete
-#import mesaPlot as mp
-#import numpy as np
-#import matplotlib.pyplot as plt
-#from matplotlib.widgets import Slider, Button, RadioButtons
+		plt.legend(loc=0)	
+		if show:
+			plt.show()
 
-#m=mp.MESA()
-#p=mp.plot()
+		
+		
+		
 
 
-#class DiscreteSlider(Slider):
-	#"""A matplotlib slider widget with discrete steps."""
-	#def __init__(self, *args, **kwargs):
-		#"""
-		#Identical to Slider.__init__, except for the new keyword 'allowed_vals'.
-		#This keyword specifies the allowed positions of the slider
-		#"""
-		#self.allowed_vals = kwargs.pop('allowed_vals',None)
-		#self.previous_val = kwargs['valinit']
-		#Slider.__init__(self, *args, **kwargs)
-		#if self.allowed_vals is None:
-			#self.allowed_vals = [self.valmin,self.valmax]
-
-	#def set_val(self, val):
-		#discrete_val = self.allowed_vals[abs(val-self.allowed_vals).argmin()]
-		#xy = self.poly.xy
-		#xy[2] = discrete_val, 1
-		#xy[3] = discrete_val, 0
-		#self.poly.xy = xy
-		#self.valtext.set_text(self.valfmt % discrete_val)
-		#if self.drawon: 
-			#self.ax.figure.canvas.draw()
-		#self.val = discrete_val
-		#if self.previous_val!=discrete_val:
-			#self.previous_val = discrete_val
-			#if not self.eventson: 
-				#return
-			#for cid, func in self.observers.items():
-				#func(discrete_val)
-
-
-#m.loadProfile(num=-1)
-
-#fig=plt.figure()
-#ax=plt.axes([0.1,0.15,0.7,0.75])
-
-#p.plotAbun(m,fig=fig,ax=ax,xmax=2.0,show=False,show_title_model=True,y2='velocity')
-
-#axcolor = 'white'
-#axmodels = plt.axes([0.15, 0.025, 0.75, 0.03], axisbg=axcolor,label='slider')
-
-#num_models=np.size(m.prof_ind['model'])
-
-#smodels=DiscreteSlider(axmodels,'Model',0.0,1.0*num_models-1.0,valinit=0.0,allowed_vals=np.arange(0.0,num_models,1.0))
-
-#smodels.set_val(np.argmin(np.abs(m.prof_ind['model']-m.prof.model_number)))
-
-#smodels.ax.set_xticks(np.arange(0.0,num_models,1.0))
-#smodels.ax.set_xticklabels([])
-#smodels.valtext.set_visible(False)
-
-#def update(val):
-	#mo = smodels.val
-	#m.loadProfile(num=m.prof_ind['model'][int(mo)])
-	#xmin,xmax=ax.get_xlim()
-	#ymin,ymax=ax.get_ylim()
-	#for i in fig.axes:
-		#if '_ax2' in i.get_label():
-			#fig.delaxes(i)
-
-	#p.plotAbun(m,fig=fig,ax=ax,show=False,show_title_model=True,xmin=xmin,xmax=xmax,yrng=[ymin,ymax],y2='velocity')
-	##fig.canvas.draw_idle()
-	#fig.canvas.draw()
-
-#smodels.on_changed(update)
-
-#plt.show()
