@@ -592,11 +592,11 @@ class plot(object):
          0,   0,   2,   0,   0,   1,   0,   0,   0,   0,   0,   0,   0]		
 	
 	
-	def set_solar(self,solar):
+	def set_solar(self,solar='ag89'):
 		if solar=='ag89':
 			self.sol_comp=self._sol_comp_ag89
 		else:
-			raise ValueError("Must pass either ag98")
+			raise ValueError("Must pass either ag89")
 			
 		self.solar_is_set=True
 			
