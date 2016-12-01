@@ -398,7 +398,21 @@ class plot(object):
 					  ]
 		
 		#Conviently the index of this list is the proton number
-		self.elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
+		self.elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N', 
+							'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 
+							'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 
+							'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 
+							'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 
+							'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 
+							'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 
+							'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu',
+							'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 
+							'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 
+							'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 
+							'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 
+							'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 
+							'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 
+							'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
 		self.elements=[x.lower() for x in self.elementsPretty]
 					
 		self._getMESAPath()
@@ -818,6 +832,11 @@ class plot(object):
 		
 		
 	def _plotMixRegions(self,m,ax,x,y,show_x,show_line,yrng=None,ind=None):
+		
+		if ind is not None:
+			if np.count_nonzero(ind)==0:
+				return
+		
 		ylim=ax.get_ylim()
 		
 		if show_x:
@@ -834,13 +853,14 @@ class plot(object):
 		cmap,norm=self._setMixRegionsCol()
 		
 		isSet=False
+		col=np.zeros(np.size(x))
 		for mixLabel in ['mixing_type','conv_mixing_type']:
 			try:
 				col=m.prof.data[mixLabel]
 				isSet=True
 				break
 			except:
-				continue
+				pass
 	
 		
 		if isSet is None:
@@ -859,15 +879,19 @@ class plot(object):
 		ind=np.argsort(x)
 		xx=x[ind]
 		yy=y[ind]
+		
+		ind=(xx>xmin)&(xx<xmax)
+		xx=xx[ind]
+		yy=yy[ind]
+		
 		for ii in range(1,num_labels+1):
-			ind=(xx>=xmin)&(xx<=xmax)
-			if np.size(xx[ind])>1:
-				f = interpolate.interp1d(xx[ind],yy[ind])
+			if np.size(xx)>1:
+				f = interpolate.interp1d(xx,yy)
 				xp1=((xmax-xmin)*(ii/(num_labels+1.0)))+xmin
 				yp1=f(xp1)
 			else:
-				xp1=xx[ind]
-				yp1=yy[ind]
+				xp1=xmin
+				yp1=-99*10**9
 			if line is None:
 				col=color
 			else:
@@ -2155,7 +2179,7 @@ class plot(object):
 					y2log=False,y1col='b',y2col='r',minMod=0,maxMod=-1,xrev=False,
 					y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,
 					y2label=None,fig=None,y1rng=[None,None],y2rng=[None,None],
-					fx=None,fy1=None,fy2=None,show_core=False):
+					fx=None,fy1=None,fy2=None,show_core=False,y1Textcol=None,y2Textcol=None):
 		
 		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
@@ -2870,7 +2894,6 @@ class plot(object):
 			ymin,ymax=ax.get_ylim()
 			ymin2=None
 			ymax2=None
-			xmin=np.minimum(0.0,xmin)
 			for i in fig.axes:
 				if '_ax2' in i.get_label():
 					fig.delaxes(i)
