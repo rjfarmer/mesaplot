@@ -3031,11 +3031,11 @@ class debug_logs(object):
 
 	
 class debug(object):
-	def __init__(self):
-		self.solve=debug_logs(os.path.join('plot_data','solve_logs'))
-		self.res=debug_logs(os.path.join('plot_data','residual_logs'))
+	def __init__(self,folder='plot_data'):
+		self.solve=debug_logs(os.path.join(folder,'solve_logs'))
+		self.res=debug_logs(os.path.join(folder,'residual_logs'))
 
-		self.jacobian_default='plot_data'
+		self.jacobian_default=folder
 
 	def load_res(self):
 		self.res.load_all_logs()
@@ -3339,6 +3339,9 @@ class plotNet(object):
 			print(i)
 			self.plot(i,show,trng,rrng)
 			
+			
+
+			
 class debug_mesh(object):
 	def __init__(self):
 		self.data_old=[]
@@ -3359,6 +3362,88 @@ class debug_mesh(object):
 
 		
 		
+class plotNeu(object):
+   
+	def __init__(self):
+		self.data=[]
+		self.name=[]
+		self.teff=0
+		self.rho=0
+
+	def load(self,folder='plot_data'):
+		self.folder=folder
+		self.teff=np.genfromtxt(folder+'/tmp.data')
+		self.rho=np.genfromtxt(folder+'/rho.data')
 		
+		for i in glob.glob(folder+'/*.data'):
+			if '/tmp.data' not in i and '/rho.data' not in i:
+				print('Load',i)
+				self.name.append(i.replace(folder,'').replace('.data','').replace('/',''))
+				x=np.genfromtxt(i)
+				self.data.append(x.reshape((np.size(self.rho),np.size(self.teff))))
+		
+	def plot(self,name,save=False,only_neg=False):
+		idx=self.name.index(name)
+
+		if np.all(self.data[idx]==0.0):
+			print('Empty ',name)
+			return
+		
+		plt.figure(figsize=(12,12))
+		plt.title(name.replace('_',' '))
+
+		data=self.data[idx]
+		
+		vmin=np.nanmin(data)
+		vmax=np.nanmax(data)
+		
+		label=''
+		if vmax>100.0 or vmin<-100.0:
+			data=np.log10(np.abs(data))
+			label='Log'
+			vmin=np.nanmin(data)
+			vmax=np.nanmax(data)
+
+		if vmin>=0.0:
+			vmin=0.0
+			cmap='Reds'
+		else:
+			cmap='seismic'
+			if np.abs(vmin) < np.abs(vmax):
+				vmin=-vmax
+			else:
+				vmax=np.abs(vmin)
+				
+		if only_neg:
+			vmax=0.0
+			vmin=np.nanmin(data)
+			cmap='Reds_r'
+			data[data>0.0]=np.nan
+			
+
+		plt.imshow(data,extent=(np.nanmin(self.rho),np.nanmax(self.rho),np.nanmin(self.teff),np.nanmax(self.teff)),aspect='auto',cmap=cmap,vmin=vmin,vmax=vmax,
+				interpolation='nearest',origin='lower')
+
+		plt.xlim(np.nanmin(self.rho),np.nanmax(self.rho))
+		plt.ylim(np.nanmin(self.teff),np.nanmax(self.teff))
+		plt.xlabel('LogRho')
+		plt.ylabel('LogT')
+		cb=plt.colorbar()
+		cb.solids.set_edgecolor("face")
+		cb.set_label(label)
+		
+		if save:
+			plt.savefig(os.path.join(self.folder,name+'.pdf'))
+		else:
+			plt.show()
+		
+		plt.close()
+		
+
+
+	def plot_all(self,only_neg=False):
+		for i in self.name:
+			print('Plot',i)
+			self.plot(name=i,save=True,only_neg=only_neg)
 
 
