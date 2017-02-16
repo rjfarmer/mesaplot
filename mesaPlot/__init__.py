@@ -2243,15 +2243,20 @@ class plot(object):
 		if np.count_nonzero(modInd) > 40000:
 			print("Warning attempting to plot more than 40,000 models")
 			print("This may take a long time")
-			
-		q=np.linspace(0.0,np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
-		numModels=np.count_nonzero(modInd)
 
-		try:
-			m_center=m.hist.data['m_center']/self.msun
-		except:
+		if 'm_center' in m.hist.data.dtype.names:
+			if np.any(m.hist.data['m_center'] > m.hist.star_mass):
+				#m_center in grams
+				m_center=m.hist.data['m_center']/self.msun
+			else:
+				#Solar units
+				m_center=m.hist.data['m_center']
+		else:
 			m_center=np.zeros(np.size(m.hist.data['model_number']))
-
+			
+			
+		q=np.linspace(np.min(m_center),np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
+		numModels=np.count_nonzero(modInd)
 
 		numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
 		numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
