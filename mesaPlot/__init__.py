@@ -661,7 +661,7 @@ class plot(object):
 				l=l+r"$T_{eff,c}\; [K]$"
 			else:
 				l=l+r"$T_{eff}\; [K]$"
-		if 'rho' in label:
+		if 'rho' in label or 'Rho' in label:
 			if center:
 				l=l+r"$\rho_{c}\; [\rm{g\;cm^{-3}}]$"
 			else:
@@ -2601,7 +2601,7 @@ class plot(object):
 			#fig.suptitle(title)
 			
 			
-		#if plot_type=='hist' and show_mix_labels	
+		#if plot_type=='history' and show_mix_labels	
 			#self._addMixLabelsAxis(fig)
 
 		#if ax==None:
@@ -2642,8 +2642,14 @@ class plot(object):
 				#data_x=m.hist.model_number
 			#else:
 				#data_x=m.hist.star_age
-		#else:
+				
+			#data_y=np.linspace(np.min(m_center),np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"]))	
+			#data_z=np.zeros((np.size(data_x),np.size(data_y)))
 			
+		#else:
+			#ip=m.iterateProfiles()
+			#for i in ip 
+				#pass
 		
 		
 		
