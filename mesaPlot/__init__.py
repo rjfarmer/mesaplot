@@ -661,7 +661,7 @@ class plot(object):
 				l=l+r"$T_{eff,c}\; [K]$"
 			else:
 				l=l+r"$T_{eff}\; [K]$"
-		if label=='rho':
+		if 'rho' in label':
 			if center:
 				l=l+r"$\rho_{c}\; [\rm{g\;cm^{-3}}]$"
 			else:
