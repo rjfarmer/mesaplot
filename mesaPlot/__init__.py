@@ -1909,7 +1909,7 @@ class plot(object):
 				px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 										ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
 										label=r"$D_{"+i.split('_')[3]+"}$",points=points,
-										ylog=True,num_labels=num_labels,xrev=xrev,xlog=log)
+										ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog)
 
 		if show_burn:
 			self._plotBurnRegions(m,ax,px,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
