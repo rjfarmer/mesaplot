@@ -2386,6 +2386,8 @@ class plot(object):
 
 		if ax==None:
 			ax=fig.add_subplot(111)
+		if y2 is not None:
+			ax2=ax.twinx()
 		
 		if reloadHistory:
 			m.loadHistory()
@@ -2551,10 +2553,15 @@ class plot(object):
 		f = interp1d(age, m.hist.data['star_mass'][modInd])
 		ax.plot(lin_age,f(lin_age),c='k')
 		
+		
 		if y2 is not None:
-			ax2=ax.twinx()
+			# Update axes 2 locations after ax1 is moved by the colorbar
+			ax2.set_position(ax.get_position())
 			f = interp1d(age, m.hist.data[y2][modInd])
 			ax2.plot(lin_age,f(lin_age),c='k')
+			if y2rng is not None:
+				ax2.set_ylim(y2rng)
+		
 		
 		if xlabel is None:
 			if age_log:
