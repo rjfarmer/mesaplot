@@ -309,6 +309,8 @@ class MESA(object):
 			if len(rng)==2 and rng[0]>0:
 				if x["model"] >=rng[0] and x["model"] <= rng[1] and np.remainder(x["model"]-rng[0],step)==0:
 					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data")
+				elif x["model"]>rng[1]:
+					raise StopIteration
 				yield
 			elif len(rng)>2 and rng[0]>0:
 				if x["model"] in rng:
@@ -2210,7 +2212,9 @@ class plot(object):
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None,y2rng=None):
-					
+				
+		print("Warning plotKip is now depreciated switch to plotKip3")	
+				
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
 		
@@ -2374,6 +2378,8 @@ class plot(object):
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
 				mod_out=None,megayears=False,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None,
 				num_x=None,num_y=None,y2=None):
+
+		print("Warning plotKip2 is now depreciated switch to plotKip3")	
 					
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
@@ -2592,16 +2598,16 @@ class plot(object):
 			
 			
 	#Will replace plotKip and plotKip2 when finished
-	def plotKip3(self,m,plot_type='history',xaxis='model_number',yaxis='mass',
+	def plotKip3(self,m,plot_type='history',xaxis='model_number',yaxis='mass',zaxis='logT',
 				xmin=None,xmax=None,mod_min=None,mod_max=None,
 				yrng=[-1,-1],xstep=1,
 				xlabel=None,ylabel=None,title=None,
 				show=True,reloadHistory=False,ax=None,fig=None,
 				show_mix=True,mix=None,show_burn=True,show_outer_mass=True,
-				cmin=None,cmax=None,colormap=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label='',
+				cmin=None,cmax=None,colormap=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
 				age_lookback=False,age_log=True,age_reverse=False,megayears=False,end_time=None,age_zero=None,
-				y2=None,mod_index=None):
+				y2=None,mod_index=None,zlog=False):
 					
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
@@ -2615,21 +2621,23 @@ class plot(object):
 
 		if ax==None:
 			ax=fig.add_subplot(111)
+		if y2 is not None:
+			ax2=ax.twinx()
 		
 		if plot_type=='history':			
 			try:
 				model_num=m.hist.data['model_number']
-			except AttributeError:
+			except (KeyError,AttributeError):
 				raise ValueError("Must call loadHistory first")
 		elif plot_type=='profile':
 			try:
 				model_num=m.prof.head['model_number']
-			except AttributeError:
+			except (KeyError,AttributeError):
 				raise ValueError("Must load a profile file first")
 				
 			try:
 				y=m.prof.data[yaxis]
-			except AttributeError:
+			except (KeyError,AttributeError):
 				raise ValueError("No value "+yaxis+" found")
 							
 		else:
@@ -2672,20 +2680,31 @@ class plot(object):
 			#May need to interpolate data:
 			lin_x=np.linspace(data_x[0],data_x[-1],np.count_nonzero(data_x))
 			
-			data_z=self._rebinKipData(data_z,data_x,lin_x)
+			data_z=self._rebinKipDataX(data_z,data_x,lin_x)
 			if show_mix:
-				mix_data=self._rebinKipData(mix_data,data_x,lin_x,nan=True,nan_value=1)
+				mix_data=self._rebinKipDataX(mix_data,data_x,lin_x,nan=True,nan_value=1)
 			
 		else:
-			pass
-			#ip=m.iterateProfiles(rng=[minMod,maxMod])
-			#for i in ip: 
-				#data_x.append(m.prof.head[xaxis])
-				#data_y.append(m.prof.data[yaxis])
-				#data_z.append(m.prof.data[zaxis])
-				#if show_mix:
-					#mix.append(m.prof.mixing_type)
-
+			show_mix=False
+			show_burn=False
+			if mod_min is None:
+				mod_min=-1
+				mod_max=-1			
+			ip=m.iterateProfiles(rng=[mod_min,mod_max])
+			count=0
+			zones=[]
+			for i in ip: 
+				data_x.append(m.prof.head[xaxis])
+				data_y.append(m.prof.data[yaxis])
+				data_z.append(m.prof.data[zaxis])
+				zones.append(m.prof.head['num_zones'])
+				count=count+1
+				
+			modInd=np.zeros(count,dtype='bool')
+			modInd[:]=True
+			data_x=np.array(data_x)
+			num_zones=np.max(zones)
+			data_z,lin_x,data_y=self._rebinKipDataXY(data_z,data_x,data_y,count,num_zones)
 
 
 		xmin=data_x[0]
@@ -2713,7 +2732,13 @@ class plot(object):
 			newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
 		else:
 			vmin=0
-			newCm=burnMap[-1]					
+			newCm=burnMap[-1]		
+			
+		if zlog:
+			data_z=np.log10(data_z)
+			vmin=np.log10(vmin)
+			vmax=np.log10(vmax)
+						
 					
 		im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
 				
@@ -2722,10 +2747,11 @@ class plot(object):
 			ax.imshow(mix_data.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
 				
 
-		if ylabel is not None:
-			ax.set_ylabel(ylabel)
-		else:
+
+		if plot_type=='history':
 			ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
+		else:
+			ax.set_ylabel(self.safeLabel(ylabel,yaxis))
 		
 		if colorbar:
 			cb=fig.colorbar(im1)
@@ -2734,18 +2760,20 @@ class plot(object):
 			if show_burn:
 				cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
 			else:
-				cb.set_label(cbar_label)
-			fig.set_size_inches(12,9.45)
+				cb.set_label(self.safeLabel(cbar_label,zaxis))
 				
-		##Add line at outer mass location
-		if show_outer_mass:
+		#Add line at outer mass location
+		if show_outer_mass and plot_type=='history':
 			f = interp1d(data_x[modInd], m.hist.data['star_mass'][modInd])
 			ax.plot(lin_x,f(lin_x),c='k')
 		
-		if y2 is not None:
-			ax2=ax.twinx()
-			f = interp1d(data_x[modInd], m.hist.data[y2][modInd])
-			ax2.plot(lin_x,f(lin_x),c='k')
+		if y2 is not None and plot_type=='history':
+			# Update axes 2 locations after ax1 is moved by the colorbar
+			ax2.set_position(ax.get_position())
+			f = interp1d(age, m.hist.data[y2][modInd])
+			ax2.plot(lin_age,f(lin_age),c='k')
+			if y2rng is not None:
+				ax2.set_ylim(y2rng)
 		
 		if xlabel is None:
 			if xaxis=='model_number':
@@ -2907,16 +2935,29 @@ class plot(object):
 		return modInd	
 		
 		
-	def _rebinKipData(self,data,x,lin_x,nan=False,nan_value=1):
+	def _rebinKipDataX(self,data,x,lin_x,nan=False,nan_value=1):
 		sorter=np.argsort(x)
-		print(x)
-		print(lin_x)
-		print(sorter)
 		ind=np.searchsorted(x,lin_x,sorter=sorter)
 		data=data[sorter[ind],:]
 		if nan:
 			data[data<nan_value]=np.nan
 		return data
+		
+	def _rebinKipDataXY(self,data_z,data_x,data_y,num_x_zones,num_y_zones):
+		ymin=np.nanmin([np.nanmin(y) for y in data_y])
+		ymax=np.nanmax([np.nanmax(y) for y in data_y])
+		data_y2=np.linspace(ymin,ymax,num_y_zones)
+		data_z2=np.zeros((np.size(data_x),int(num_y_zones)))
+		for i in range(len(data_x)):
+			f=interp1d(data_y[i], data_z[i],bounds_error=False,fill_value=np.nan)
+			data_z2[i,:]=f(data_y2)
+
+		lin_x=np.linspace(np.nanmin(data_x),np.nanmax(data_x),num_x_zones)
+		sorter=np.argsort(data_x)
+		
+		ind=np.searchsorted(data_x,lin_x,sorter=sorter)
+		data_z=data_z2[sorter[ind],:]
+		return data_z,lin_x,data_y2
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=-4.0,xmax=10.0,fig=None,yrng=[3.0,10.0],
 				show_burn=False,show_mix=False,

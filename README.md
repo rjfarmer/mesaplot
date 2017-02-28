@@ -121,6 +121,7 @@ p.plotHR(m)
 
 [More on Kippenhan plots](docs/kipp.md)
 
+plotKip and plotKip2 are now depreciated, switch to plotKip3
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -129,9 +130,7 @@ m.loadHistory()
 p.plotKip(m,show_mass_loc=True)
 ````
 
-![Kippenhan plot 1M_pre_ms_to_wd](/examples/kip.png?raw=true "Kippenhan plot")
-
-
+Depreciated
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -139,6 +138,39 @@ p=mp.plot()
 m.loadHistory()
 p.plotKip2(m)
 ````
+
+New way of doing plotKip
+````python
+import mesaPlot as mp
+m=mp.MESA()
+p=mp.plot()
+m.loadHistory()
+p.plotKip3(m,show_mass_loc=True)
+````
+![Kippenhan plotKip3 SAGB star](/examples/kip.png?raw=true "Kippenhan plot")
+
+New way of doing plotKip2
+````python
+import mesaPlot as mp
+m=mp.MESA()
+p=mp.plot()
+m.loadHistory()
+p.plotKip3(m,xaxis='star_age',age_lookback=True,age_log=True)
+````
+![Kippenhan plotKip3 SAGB star 2](/examples/kip_age.png?raw=true "Kippenhan plot 2")
+
+Profile based kippenhan's
+````python
+import mesaPlot as mp
+
+m=mp.MESA()
+m.loadHistory()
+m.loadProfile(num=1)
+p=mp.plot()
+p.plotKip3(m,plot_type='profile',xaxis='model_number',yaxis='mass',zaxis='logT',mod_min=1,mod_max=3000)
+````
+![Kippenhan plotKip3 SAGB star 3](/examples/kip_prof.png?raw=true "Kippenhan plot 3")
+
 
 ### Abundances
 
