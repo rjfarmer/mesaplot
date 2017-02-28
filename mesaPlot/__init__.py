@@ -73,7 +73,6 @@ class data(object):
 		self.head={}
 		self._loaded=False
 		
-
 	def __getattr__(self, name):
 		x=None
 		
@@ -142,6 +141,8 @@ class MESA(object):
 		self.prof=data()
 		self.prof_ind=""
 		self.log_fold=""
+		self.clearProfCache()
+		self.cache_limit=100
 	
 	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1):
 		"""
@@ -204,8 +205,8 @@ class MESA(object):
 				print(' '.join([str(self.hist.data[i][j]) for i in self.hist.data_names]),file=f)	
 	
 		
-	def loadProfile(self,f='',num=None,prof=-1,mode='nearest',silent=False):
-		if num==None and prof==-1:
+	def loadProfile(self,f='',num=None,prof=None,mode='nearest',silent=False,cache=True):
+		if num is None and prof is None:
 			self._readProfile(f) #f is a filename
 			return
 		
@@ -215,43 +216,43 @@ class MESA(object):
 			f=self.log_fold
 		else:
 			self.log_fold=f
+			
+		self._loadProfileIndex(f) #Assume f is a folder
+		prof_nums=np.atleast_1d(self.prof_ind["profile"]).astype('int')
 		
-		if prof>0:
-			filename=f+"/profile"+str(int(prof))+".data"
-			self._readProfile(filename)
-			return
+		if prof is not None:
+			pos=np.where(prof_nums==prof)[0][0]
 		else:
-			self._loadProfileIndex(f) #Assume f is a folder
 			if np.count_nonzero(self.prof_ind)==1:
-				filename=f+"/profile"+str(int(np.atleast_1d(self.prof_ind["profile"])[0]))+".data"
+				pos=0
 			else:
-				if num==0:
-				#Load first model
-					filename=f+"/profile"+str(int(self.prof_ind["profile"][0]))+".data"
-				elif num<0:
-					filename=f+"/profile"+str(int(self.prof_ind["profile"][num]))+".data"
+				if num<=0:
+					pos=num
 				else:
 				#Find profile with mode 'nearest','upper','lower','first','last'
 					pos = bisect.bisect_left(self.prof_ind["model"], num)
 					if pos == 0 or mode=='first':
-						filename=f+"/profile"+str(int(self.prof_ind["profile"][0]))+".data"
+						pos=0
 					elif pos == np.size(self.prof_ind["profile"]) or mode=='last':
-						filename=f+"/profile"+str(int(self.prof_ind["profile"][-1]))+".data"
+						pos=-1
 					elif mode=='lower':
-						filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
+						pos=pos-1
 					elif mode=='upper':
-						filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
+						pos=pos
 					elif mode=='nearest':
 						if self.prof_ind["model"][pos]-num < num-self.prof_ind["model"][pos-1]:
-							filename=f+"/profile"+str(int(self.prof_ind["profile"][pos]))+".data"
+							pos=pos
 						else:
-							filename=f+"/profile"+str(int(self.prof_ind["profile"][pos-1]))+".data"
+							pos=pos-1
 					else:
 						raise(ValueError,"Invalid mode")
-			if not silent:
-				print(filename)
-			self._readProfile(filename)
-			return
+						
+		profile_num=self.prof_ind["profile"][pos]		
+		filename=f+"/profile"+str(int(profile_num))+".data"
+		if not silent:
+			print(filename)
+		self._readProfile(filename,cache=cache)
+		return
 			
 	#def loadMod(self,filename=None):
 		#"""
@@ -291,7 +292,7 @@ class MESA(object):
 		#self.mod_dat=np.genfromtxt(filename,skip_header=count,
 						#names=self.mod_dat_names,skip_footer=5,dtype=None,converters=d)
 		
-	def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1):
+	def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1,cache=True):
 		if len(f)==0:
 			if len(self.log_fold)==0:
 				self.log_fold='LOGS/'
@@ -304,26 +305,26 @@ class MESA(object):
 			if priority != None:
 				if type(priority) is not list: priority= [ priority ]
 				if x["priority"] in priority or 0 in priority:
-					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data")
+					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
 				yield
 			if len(rng)==2 and rng[0]>0:
 				if x["model"] >=rng[0] and x["model"] <= rng[1] and np.remainder(x["model"]-rng[0],step)==0:
-					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data")
+					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
 				elif x["model"]>rng[1]:
 					raise StopIteration
 				yield
 			elif len(rng)>2 and rng[0]>0:
 				if x["model"] in rng:
-					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data")
+					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
 				yield
 			else:
-				self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data")
+				self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
 				yield 
 				
 	def _loadProfileIndex(self,f):
 		self.prof_ind=np.genfromtxt(f+"/profiles.index",skip_header=1,names=["model","priority","profile"])
 
-	def _readProfile(self,filename):
+	def _readProfile(self,filename,cache=True):
 		"""
 		Reads a MESA profile file.
 		
@@ -336,7 +337,23 @@ class MESA(object):
 		self.prof.head_names: List of names of the header fields
 		self.prof.data_names: List of names of the data fields
 		"""
-		self.prof.loadFile(filename)
+		
+		if filename in self._cache_prof_name and cache:
+			self.prof=self._cache_prof[self._cache_prof_name.index(filename)]
+		else:
+			x=data()
+			x.loadFile(filename)
+			if cache:
+				if len(self._cache_prof_name)==self.cache_limit:
+					self._cache_prof.pop(0)
+					self._cache_prof_name.pop(0)
+				self._cache_prof.append(x)
+				self._cache_prof_name.append(filename)
+			self.prof=x
+			
+	def clearProfCache(self):
+		self._cache_prof=[]
+		self._cache_prof_name=[]
 	
 	#def _fds2f(self,x):
 		#if isinstance(x, str):
