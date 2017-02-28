@@ -418,6 +418,7 @@ class plot(object):
 		self._getMESAPath()
 		
 		self.msun=1.9892*10**33
+		self.secyear=60.0*60.0*24.0*365.0
 		
 		#..names of the stable isotopes
 		self.stable_isos = [
@@ -2584,77 +2585,331 @@ class plot(object):
 			
 			
 	#Will replace plotKip and plotKip2 when finished
-	#def plotKip3(self,m,plot_type='hist',xaxis='model_number',yaxis='mass',
-				#xrng=[-1,-1],yrng=[-1,-1],x_index=None,y_index=None,xtsep=1,ystep=1,
-				#xlabel=None,ylabel=None,title=None,
-				#show=True,reloadHistory=False,ax=None,fig=None,title=None
-				#show_mix=True,mix=None,show_burn=True,
-				#cmin=None,cmax=None,colormap=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,
-				#show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
-				#age_collapse=False,age_log=True,age_reverse=False,age_units='yrs',end_time=None,age_zero=None
-				#num_x=None,num_y=None,y2=None):
+	def plotKip3(self,m,plot_type='history',xaxis='model_number',yaxis='mass',
+				xmin=None,xmax=None,mod_min=None,mod_max=None,
+				yrng=[-1,-1],xstep=1,
+				xlabel=None,ylabel=None,title=None,
+				show=True,reloadHistory=False,ax=None,fig=None,
+				show_mix=True,mix=None,show_burn=True,show_outer_mass=True,
+				cmin=None,cmax=None,colormap=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label='',
+				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
+				age_lookback=False,age_log=True,age_reverse=False,megayears=False,end_time=None,age_zero=None,
+				y2=None,mod_index=None):
 					
-		#if fig==None:
-			#fig=plt.figure(figsize=(12,12))
+		if fig==None:
+			fig=plt.figure(figsize=(12,12))
 			
-		#if title is not None:
-			#fig.suptitle(title)
+		if title is not None:
+			fig.suptitle(title)
 			
 			
-		#if plot_type=='history' and show_mix_labels	
-			#self._addMixLabelsAxis(fig)
+		if plot_type=='history' and show_mix_labels:
+			self._addMixLabelsAxis(fig)
 
-		#if ax==None:
-			#ax=fig.add_subplot(111)
+		if ax==None:
+			ax=fig.add_subplot(111)
 		
-		#if plot_type=='history':			
-			#try:
-				#model_num=m.hist.data['model_number']
-			#except AttributeError:
-				#raise ValueError("Must call loadHistory first")
-		#elif plot_type=='profile'
-			#try:
-				#model_num=m.prof.head['model_number']
-			#except AttributeError:
-				#raise ValueError("Must load a profile file first")
+		if plot_type=='history':			
+			try:
+				model_num=m.hist.data['model_number']
+			except AttributeError:
+				raise ValueError("Must call loadHistory first")
+		elif plot_type=='profile':
+			try:
+				model_num=m.prof.head['model_number']
+			except AttributeError:
+				raise ValueError("Must load a profile file first")
 				
-			#try:
-				#y=m.prof.data[yaxis]
-			#except AttributeError:
-				#raise ValueError("No value "+yaxis+" found")
+			try:
+				y=m.prof.data[yaxis]
+			except AttributeError:
+				raise ValueError("No value "+yaxis+" found")
 							
-		#else:
-			#raise ValueError("plot_type must be either history or profile, got "+plot_type)	
+		else:
+			raise ValueError("plot_type must be either history or profile, got "+plot_type)	
 	
-	
-
-		#if not (xaxis=='model_number' or xaxis=='age'):
-			#raise ValueError("Kips can only plot model_number or age, got "+xaxis)
+		if not (xaxis=='model_number' or 'age' in xaxis):
+			raise ValueError("Kips can only plot model_number or age, got "+xaxis)
 
 						
-		##Extract Data
-		#data_x=[]
-		#data_y=[]
-		#data_z=[]
+		#Extract Data
+		data_x=[]
+		data_y=[]
+		data_z=[]
+		burn=[]
+		mix_data=[]
 		
-		#if plot_type=='hist':
-			#if xaxis=='model_number':
-				#data_x=m.hist.model_number
-			#else:
-				#data_x=m.hist.star_age
+		#Number of zones to plot
+		num_zones=np.max(m.hist.num_zones)
+		
+		if plot_type=='history':
+			if xaxis=='model_number':
+				data_x=m.hist.model_number
+			else:
+				data_x=self._getSafeAge(m,age_lookback,age_zero,megayears,age_log,age_reverse,end_time)
 				
-			#data_y=np.linspace(np.min(m_center),np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"]))	
-			#data_z=np.zeros((np.size(data_x),np.size(data_y)))
+			modInd=self._getModInd(m,mod_index,mod_min,mod_max,xstep,xaxis,xmin,xmax)
+				
+			m_center=self._getSafeMCenter(m)	
+				
+			data_y=np.linspace(np.min(m_center),np.max(m.hist.data["star_mass"]),num_zones)	
 			
-		#else:
-			#ip=m.iterateProfiles()
-			#for i in ip 
-				#pass
+			#Get burn data
+			if show_burn:
+				data_z=self._getHistBurnData(m,data_x,data_y,modInd)
+			
+			#Get mix data
+			if show_mix:
+					mix_data=self._getHistMixData(m,data_x,data_y,modInd,mix)	
+					
+			#May need to interpolate data:
+			lin_x=np.linspace(data_x[0],data_x[-1],np.count_nonzero(data_x))
+			
+			data_z=self._rebinKipData(data_z,data_x,lin_x)
+			if show_mix:
+				mix_data=self._rebinKipData(mix_data,data_x,lin_x,nan=True,nan_value=1)
+			
+		else:
+			pass
+			#ip=m.iterateProfiles(rng=[minMod,maxMod])
+			#for i in ip: 
+				#data_x.append(m.prof.head[xaxis])
+				#data_y.append(m.prof.data[yaxis])
+				#data_z.append(m.prof.data[zaxis])
+				#if show_mix:
+					#mix.append(m.prof.mixing_type)
+
+
+
+		xmin=data_x[0]
+		xmax=data_x[-1]
+		
+		ymin=data_y[0]
+		ymax=data_y[-1]
+
+		extent=(xmin,xmax,ymin,ymax)
+		extent=np.double(np.array(extent))
+
+		if cmin is None:
+			vmin=np.nanmin(data_z)
+		else:
+			vmin=cmin
+			
+		if cmax is None:
+			vmax=np.nanmax(data_z)
+		else:
+			vmax=cmax
+			
+		if vmin < 0:
+			vmax=np.maximum(np.abs(vmax),np.abs(vmin))
+			vmin=-vmax
+			newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
+		else:
+			vmin=0
+			newCm=burnMap[-1]					
+					
+		im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
+				
+		if show_mix:
+			mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
+			ax.imshow(mix_data.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
+				
+
+		if ylabel is not None:
+			ax.set_ylabel(ylabel)
+		else:
+			ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
+		
+		if colorbar:
+			cb=fig.colorbar(im1)
+			cb.solids.set_edgecolor("face")
+
+			if show_burn:
+				cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
+			else:
+				cb.set_label(cbar_label)
+			fig.set_size_inches(12,9.45)
+				
+		##Add line at outer mass location
+		if show_outer_mass:
+			f = interp1d(data_x[modInd], m.hist.data['star_mass'][modInd])
+			ax.plot(lin_x,f(lin_x),c='k')
+		
+		if y2 is not None:
+			ax2=ax.twinx()
+			f = interp1d(data_x[modInd], m.hist.data[y2][modInd])
+			ax2.plot(lin_x,f(lin_x),c='k')
+		
+		if xlabel is None:
+			if xaxis=='model_number':
+				ax.set_xlabel(r"\rm{Model Number}")
+			else:
+				if age_log:
+					if age_lookback:
+						ax.set_xlabel(r"$\log_{10}\;\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
+					else:
+						if megayears:
+							ax.set_xlabel(r"$\log\; \left(\tau/\rm{Myr}\right)$")
+						else:
+							ax.set_xlabel(r"$\log\; \left(\tau/\rm{yr}\right)$")
+				else:
+					if age_lookback:
+						if megayears:
+							ax.set_xlabel(r"$\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{Myr}]$")
+						else:
+							ax.set_xlabel(r"$\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
+					else:
+						if megayears:
+							ax.set_xlabel(r"$\tau\; \left(\rm{Myr}\right)$")
+						else:
+							ax.set_xlabel(r"$\tau\; \left(\rm{yr}\right)$")
+		else:
+			ax.set_xlabel(xlabel)
+	
+		if show_mass_loc:
+			self._showMassLoc(m,fig,ax,np.linspace(xmin,xmax,np.count_nonzero(modInd)),modInd)
+	
+		self._setYLim(ax,ax.get_ylim(),[ymin,ymax])
+		
+		self._setTicks(ax)
+		
+		if show:
+			plt.show()
 		
 		
+	def _getHistBurnData(self,m,data_x,data_y,modInd):
+		z=np.zeros((np.size(data_x),np.size(data_y)))
+		
+		numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
+
+		k=0	
+		ind2=np.zeros(np.size(data_y),dtype='bool')
+		for jj in m.hist.data["model_number"][modInd]:
+			ind2[:]=False
+			i=m.hist.data["model_number"]==jj
+			for j in range(1,numBurnZones+1):
+				ind=(data_y<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
+				z[k,ind]=m.hist.data["burn_type_"+str(j)][i]
+				ind2=ind2|ind
+			k=k+1
+			
+		z[z<-100.0]=0.0
+		return z
+
+	def _getHistMixData(self,m,data_x,data_y,modInd,mix):
+		z=np.zeros((np.size(data_x),np.size(data_y)))
+		numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
+		k=0
+		ind2=np.zeros(np.size(data_y),dtype='bool')
+		for jj in m.hist.data["model_number"][modInd]:
+			ind2[:]=False
+			i=m.hist.data["model_number"]==jj
+			for j in range(1,numMixZones+1):
+				ind=(data_y<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
+				if mix is None:
+					z[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+				elif mix ==-1 :
+					z[k,ind]=0.0
+				elif m.hist.data["mix_type_"+str(j)][i] in mix:
+					z[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+				else:
+					z[k,ind]=0.0
+				ind2=ind2|ind
+			k=k+1		
+		
+		return z
+		
+	def _getSafeAge(self,m,age_lookback=False,age_zero=None,megayears=False,age_log=False,age_reverse=False,end_time=None):
+	
+		if 'star_age_sec' in m.hist.data.dtype.names:
+			age=m.hist.star_age_sec
+		elif 'star_age' in m.hist.data.dtype.names:
+			if age_lookback:
+				#Age in years does not have enough digits to be able to distingush the final models in pre-sn progenitors
+				age=np.cumsum(10**np.longdouble(m.hist.log_dt))
+			else:
+				age=m.hist.star_age*self.secyear
+		
+		if age_lookback:
+			xx=age[-1]
+			if end_time is not None:
+				xx=end_time
+			age=xx-age
+			
+		if age_zero is not None:
+			age=age_zero-age
+		
+		if megayears:
+			age=age/(self.secyear*10**6)
+		
+		if age_log:
+			if age_lookback:
+				#Fudge the first value not to be exactly 0.0
+				age[-1]=age[-2]/2.0
+			age[0]=age[1]/2.0
+			age=np.log10(age)
+		
+		if age_reverse:
+			age=age[::-1]
+			
+		return age
+		
+	def _getSafeMCenter(self,m):
+		if 'm_center' in m.hist.data.dtype.names:
+			if np.any(m.hist.data['m_center'] > m.hist.star_mass):
+				#m_center in grams
+				m_center=m.hist.data['m_center']/self.msun
+			else:
+				#Solar units
+				m_center=m.hist.data['m_center']
+		else:
+			m_center=np.zeros(np.size(m.hist.data['model_number']))
+			
+		return m_center
+		
+	def _getModInd(self,m,mod_index=None,mod_min=None,mod_max=None,step=1,xaxis='',xmin=None,xmax=None):
+		
+		modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
+		modInd[:]=True
+		
+		modInd[::step]=False
+		modInd[:]=np.logical_not(modInd)
+		
+		#Mod_index is user supplied index routine
+		if mod_index is not None:
+			modInd=modInd&mod_index
+		
+		if mod_min is None:
+			mod_min=m.hist.data["model_number"][modInd][0]
+			
+		if mod_max is None:
+			mod_max=m.hist.data["model_number"][modInd][-1]
+			
+		modInd=modInd&(m.hist.data["model_number"]>=mod_min)&(m.hist.data["model_number"]<=mod_max)
 		
 		
+		if len(xaxis)>0 and xaxis != "model_number":
+			if xmin is None:
+				xmin=np.nanmin(m.hist.data[xaxis][modInd])
+			
+			if xmax is None:
+				xmax=np.nanmax(m.hist.data[xaxis][modInd])
+			
+			modInd=modInd&(m.hist.data[xaxis]>=xmin)&(m.hist.data[xaxis]<=xmax)
 		
+		return modInd	
+		
+		
+	def _rebinKipData(self,data,x,lin_x,nan=False,nan_value=1):
+		sorter=np.argsort(x)
+		print(x)
+		print(lin_x)
+		print(sorter)
+		ind=np.searchsorted(x,lin_x,sorter=sorter)
+		data=data[sorter[ind],:]
+		if nan:
+			data[data<nan_value]=np.nan
+		return data
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=-4.0,xmax=10.0,fig=None,yrng=[3.0,10.0],
 				show_burn=False,show_mix=False,
