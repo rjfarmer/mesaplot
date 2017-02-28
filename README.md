@@ -139,7 +139,7 @@ m.loadHistory()
 p.plotKip2(m)
 ````
 
-New way of doing plotKip
+New way of doing plotKip (history data plotting by model_number)
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -149,7 +149,7 @@ p.plotKip3(m,show_mass_loc=True)
 ````
 ![Kippenhan plotKip3 SAGB star](/examples/kip.png?raw=true "Kippenhan plot")
 
-New way of doing plotKip2
+New way of doing plotKip2 (history data plotting by age)
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -167,7 +167,7 @@ m=mp.MESA()
 m.loadHistory()
 m.loadProfile(num=1)
 p=mp.plot()
-p.plotKip3(m,plot_type='profile',xaxis='model_number',yaxis='mass',zaxis='logT',mod_min=1,mod_max=3000)
+p.plotKip3(m,plot_type='profile',xaxis='model_number',yaxis='mass',zaxis='logRho',mod_min=1,mod_max=3000)
 ````
 ![Kippenhan plotKip3 SAGB star 3](/examples/kip_prof.png?raw=true "Kippenhan plot 3")
 
