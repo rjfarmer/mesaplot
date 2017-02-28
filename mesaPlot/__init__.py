@@ -688,7 +688,7 @@ class plot(object):
 				l=l+r"$\rho\; [\rm{g\;cm^{-3}}]$"
 		if label=='log_column_depth':
 			l=l+r'$y\; [\rm{g}\; \rm{cm}^{-2}]$'
-		if 'lum' in label and not 'column':
+		if ('lum' in label) and ('column' not in label):
 			l=l+r'$L\; [L_{\odot}]$'
 		if 'star_age' in label:
 			l=l+r'T$\;$'
