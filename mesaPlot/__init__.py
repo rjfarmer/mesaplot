@@ -2624,7 +2624,7 @@ class plot(object):
 				cmin=None,cmax=None,colormap=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
 				age_lookback=False,age_log=True,age_reverse=False,megayears=False,end_time=None,age_zero=None,
-				y2=None,mod_index=None,zlog=False):
+				y2=None,y2rng=None,mod_index=None,zlog=False):
 					
 		if fig==None:
 			fig=plt.figure(figsize=(12,12))
@@ -2771,7 +2771,7 @@ class plot(object):
 			ax.set_ylabel(self.safeLabel(ylabel,yaxis))
 		
 		if colorbar:
-			cb=fig.colorbar(im1)
+			cb=fig.colorbar(im1,ax=ax)
 			cb.solids.set_edgecolor("face")
 
 			if show_burn:
@@ -2787,8 +2787,8 @@ class plot(object):
 		if y2 is not None and plot_type=='history':
 			# Update axes 2 locations after ax1 is moved by the colorbar
 			ax2.set_position(ax.get_position())
-			f = interp1d(age, m.hist.data[y2][modInd])
-			ax2.plot(lin_age,f(lin_age),c='k')
+			f = interp1d(data_x[modInd], m.hist.data[y2][modInd])
+			ax2.plot(lin_x,f(lin_x),c='k')
 			if y2rng is not None:
 				ax2.set_ylim(y2rng)
 		
