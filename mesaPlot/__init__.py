@@ -2623,7 +2623,7 @@ class plot(object):
 				show_mix=True,mix=None,show_burn=True,show_outer_mass=True,
 				cmin=None,cmax=None,colormap=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
-				age_lookback=False,age_log=True,age_reverse=False,megayears=False,end_time=None,age_zero=None,
+				age_lookback=False,age_log=True,age_reverse=False,age_units='sec',end_time=None,age_zero=None,
 				y2=None,y2rng=None,mod_index=None,zlog=False):
 					
 		if fig==None:
@@ -2638,6 +2638,7 @@ class plot(object):
 
 		if ax==None:
 			ax=fig.add_subplot(111)
+			
 		if y2 is not None:
 			ax2=ax.twinx()
 		
@@ -2678,7 +2679,7 @@ class plot(object):
 			if xaxis=='model_number':
 				data_x=m.hist.model_number
 			else:
-				data_x=self._getSafeAge(m,age_lookback,age_zero,megayears,age_log,age_reverse,end_time)
+				data_x=self._getSafeAge(m,age_lookback,age_zero,age_units,age_log,age_reverse,end_time)
 				
 			modInd=self._getModInd(m,mod_index,mod_min,mod_max,xstep,xaxis,xmin,xmax)
 				
@@ -2695,7 +2696,7 @@ class plot(object):
 					mix_data=self._getHistMixData(m,data_x,data_y,modInd,mix)	
 					
 			#May need to interpolate data:
-			lin_x=np.linspace(data_x[0],data_x[-1],np.count_nonzero(data_x))
+			lin_x=np.linspace(data_x[modInd][0],data_x[modInd][-1],np.count_nonzero(data_x[modInd]))
 			
 			data_z=self._rebinKipDataX(data_z,data_x,lin_x)
 			if show_mix:
@@ -2724,8 +2725,8 @@ class plot(object):
 			data_z,lin_x,data_y=self._rebinKipDataXY(data_z,data_x,data_y,count,num_zones)
 
 
-		xmin=data_x[0]
-		xmax=data_x[-1]
+		xmin=data_x[modInd][0]
+		xmax=data_x[modInd][-1]
 		
 		ymin=data_y[0]
 		ymax=data_y[-1]
@@ -2830,7 +2831,7 @@ class plot(object):
 		
 		
 	def _getHistBurnData(self,m,data_x,data_y,modInd):
-		z=np.zeros((np.size(data_x),np.size(data_y)))
+		z=np.zeros((np.count_nonzero(data_x[modInd]),np.size(data_y)))
 		
 		numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
 
@@ -2849,7 +2850,7 @@ class plot(object):
 		return z
 
 	def _getHistMixData(self,m,data_x,data_y,modInd,mix):
-		z=np.zeros((np.size(data_x),np.size(data_y)))
+		z=np.zeros((np.count_nonzero(data_x[modInd]),np.size(data_y)))
 		numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
 		k=0
 		ind2=np.zeros(np.size(data_y),dtype='bool')
@@ -2871,7 +2872,7 @@ class plot(object):
 		
 		return z
 		
-	def _getSafeAge(self,m,age_lookback=False,age_zero=None,megayears=False,age_log=False,age_reverse=False,end_time=None):
+	def _getSafeAge(self,m,age_lookback=False,age_zero=None,age_units='sec',age_log=False,age_reverse=False,end_time=None):
 	
 		if 'star_age_sec' in m.hist.data.dtype.names:
 			age=m.hist.star_age_sec
@@ -2891,8 +2892,14 @@ class plot(object):
 		if age_zero is not None:
 			age=age_zero-age
 		
-		if megayears:
+		if 'sec' in age_units:
+			pass
+		elif 'mega' in age_units:
 			age=age/(self.secyear*10**6)
+		elif 'year' in age_units:
+			age=age/(self.secyear)
+		else:
+			raise ValueError("Bad age unit: "+str(age_units))
 		
 		if age_log:
 			if age_lookback:
@@ -2948,7 +2955,7 @@ class plot(object):
 				xmax=np.nanmax(m.hist.data[xaxis][modInd])
 			
 			modInd=modInd&(m.hist.data[xaxis]>=xmin)&(m.hist.data[xaxis]<=xmax)
-		
+	
 		return modInd	
 		
 		
