@@ -1280,7 +1280,11 @@ class plot(object):
 
 	def _plotAnnotatedLine(self,ax,x,y,fy,xmin,xmax,ymin=None,ymax=None,annotate_line=False,label=None,
 							points=False,xlog=False,ylog=False,xrev=False,yrev=False,linecol=None,
-							linewidth=2,num_labels=5,linestyle='-'):
+							linewidth=2,num_labels=5,linestyle='-',ind=None):
+			if ind is not None:
+				x=x[ind]
+				y=y[ind]
+			
 			if xlog:
 				x=np.log10(x)
 			if ylog:
@@ -1452,7 +1456,7 @@ class plot(object):
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 				ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
 				label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,
-				linestyle=linestyle,xrev=xrev,xlog=xlog)
+				linestyle=linestyle,xrev=xrev,xlog=xlog,ind=mInd)
 			
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,m.prof.mass,show_line=False,show_x=True,yrng=yrng,ind=mInd)
@@ -1823,7 +1827,7 @@ class plot(object):
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.hist.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=self.safeLabel(None,i,'center'),
-									points=points,ylog=True,num_labels=num_labels,xlog=xlog,xrev=xrev)
+									points=points,ylog=True,num_labels=num_labels,xlog=xlog,xrev=xrev,ind=mInd)
 			
 		if y2 is not None:
 			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
@@ -1929,13 +1933,13 @@ class plot(object):
 				px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 										ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
 										label=r"$D_{"+i.split('_')[3]+"}$",points=points,
-										ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog)
+										ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog,ind=mInd)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,px,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
+			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,px,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
+			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
 			
 		if show_core:
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
@@ -1978,14 +1982,15 @@ class plot(object):
 		for i in burn_list:
 			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-									label=self.safeLabel(None,i),points=points,ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog)
+									label=self.safeLabel(None,i),points=points,ylog=True,
+									num_labels=num_labels,xrev=xrev,xlog=xlog,ind=mInd)
 
 		
 		if show_burn:
-			self._plotBurnRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
+			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
+			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
 			
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
@@ -2022,10 +2027,13 @@ class plot(object):
 			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=i.split('_')[2],
-									points=points,ylog=False,num_labels=num_labels,xlog=xlog,xrev=xrev)
+									points=points,ylog=False,num_labels=num_labels,xlog=xlog,xrev=xrev,ind=mInd)
 		
 		if show_burn:
-			self._plotBurnRegions(m,ax,px,py,show_line=False,show_x=True,ind=mInd)
+			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
+
+		if show_mix:
+			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
 			
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
@@ -2062,13 +2070,16 @@ class plot(object):
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=self.safeLabel(None,i),
-									points=points,ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog)
+									points=points,ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog,ind=mInd)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
+			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
+			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
+			
+		if show_shock:
+			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
 			
 		if y2 is not None:
 			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
@@ -2106,19 +2117,19 @@ class plot(object):
 		self._cycleColors(ax,colors,cmap,num_plots)
 			
 		for i in abun_list:
-			y=m.hist.data["log_total_mass_"+i][mInd]
+			y=m.hist.data["log_total_mass_"+i]
 			self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=self.safeLabel(None,i),
 									points=points,ylog=True,num_labels=num_labels,linestyle=linestyle,
-									xrev=xrev,xlog=xlog)
+									xrev=xrev,xlog=xlog,ind=mInd)
 
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
+			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x[mInd],y,show_line=False,show_x=True,ind=mInd)
+			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
 			
 		if y2 is not None:
 			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
@@ -2147,11 +2158,11 @@ class plot(object):
 
 		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 		
-		y=m.prof.data[y1][mInd]
-		px,py=self._plotAnnotatedLine(ax=ax,x=x[mInd],y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
+		y=m.prof.data[y1]
+		px,py=self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
 								ymin=y1rng[0],ymax=y1rng[1],annotate_line=False,
 								label=self.safeLabel(y1label,y1),points=points,
-								xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col)
+								xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col,ind=mInd)
 		
 		if y1Textcol is None:
 			y1labcol=y1col
@@ -2166,10 +2177,10 @@ class plot(object):
 			self._setYLim(ax,ax.get_ylim(),yrng,rev=y1rev,log=y1log)
 
 		if show_burn:
-			self._plotBurnRegions(m,ax,px,py,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
+			self._plotBurnRegions(m,ax,x,y,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,px,py,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
+			self._plotMixRegions(m,ax,x,y,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
 	
 		if show_burn or show_mix:
 			self._showBurnMixLegend(ax,burn=show_burn,mix=show_mix)
@@ -2205,11 +2216,11 @@ class plot(object):
 		
 		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
 			
-		y=m.hist.data[y1][modelIndex][mInd]
-		self._plotAnnotatedLine(ax=ax,x=x[mInd],y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
+		y=m.hist.data[y1][modelIndex]
+		self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
 								ymin=y1rng[0],ymax=y1rng[1],annotate_line=False,
 								label=self.safeLabel(y1label,y1),points=points,
-								xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col)
+								xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col,ind=mInd)
 		
 		self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1log)
 
