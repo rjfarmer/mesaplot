@@ -2709,9 +2709,9 @@ class plot(object):
 			#May need to interpolate data:
 			lin_x=np.linspace(data_x[modInd][0],data_x[modInd][-1],np.count_nonzero(data_x[modInd]))
 			
-			data_z=self._rebinKipDataX(data_z,data_x,lin_x)
+			data_z=self._rebinKipDataX(data_z,data_x[modInd],lin_x)
 			if show_mix:
-				mix_data=self._rebinKipDataX(mix_data,data_x,lin_x,nan=True,nan_value=1)
+				mix_data=self._rebinKipDataX(mix_data,data_x[modInd],lin_x,nan=True,nan_value=1)
 			
 		else:
 			show_mix=False
@@ -2733,7 +2733,7 @@ class plot(object):
 			modInd[:]=True
 			data_x=np.array(data_x)
 			num_zones=np.max(zones)
-			data_z,lin_x,data_y=self._rebinKipDataXY(data_z,data_x,data_y,count,num_zones)
+			data_z,lin_x,data_y=self._rebinKipDataXY(data_z,data_x[modInd],data_y,count,num_zones)
 
 
 		xmin=data_x[modInd][0]
@@ -2972,7 +2972,7 @@ class plot(object):
 		
 	def _rebinKipDataX(self,data,x,lin_x,nan=False,nan_value=1):
 		sorter=np.argsort(x)
-		ind=np.searchsorted(x,lin_x,sorter=sorter)
+		ind=np.searchsorted(x,lin_x,sorter=sorter,side='left')
 		data=data[sorter[ind],:]
 		if nan:
 			data[data<nan_value]=np.nan
