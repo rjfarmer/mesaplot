@@ -672,6 +672,8 @@ class plot(object):
 		
 		if log or 'log' in label:
 			l=r'$\log_{10}\;$'
+		if label=='logxq':
+			l=r'$\log_{10}\;\left(1-q\right)$'
 		if label=='mass':
 			l=l+r"$\rm{Mass}\; [M_{\odot}]$"
 		if label=='model':
@@ -896,22 +898,20 @@ class plot(object):
 		ax.set_ylim(ylim)
 	
 	def _annotateLine(self,ax,x,y,num_labels,xmin,xmax,text,line=None,color=None,fontsize=mpl.rcParams['font.size']-12):
+		
+		if xmin<np.nanmin(x):
+			xmin=np.nanmin(x)
+		if xmax>np.nanmax(x):
+			xmax=np.nanmax(x)
+		
 		ind=np.argsort(x)
-		xx=x[ind]
-		yy=y[ind]
+		x=x[ind]
+		y=y[ind]
 		
-		ind=(xx>xmin)&(xx<xmax)
-		xx=xx[ind]
-		yy=yy[ind]
+		xx=np.linspace(xmin,xmax,num_labels)
+		yy=y[np.searchsorted(x,xx)]
 		
-		for ii in range(1,num_labels+1):
-			if np.size(xx)>1:
-				f = interpolate.interp1d(xx,yy)
-				xp1=((xmax-xmin)*(ii/(num_labels+1.0)))+xmin
-				yp1=f(xp1)
-			else:
-				xp1=xmin
-				yp1=-99*10**9
+		for xp1,yp1 in zip(xx,yy):
 			if line is None:
 				col=color
 			else:
