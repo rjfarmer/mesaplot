@@ -143,6 +143,7 @@ class MESA(object):
 		self.log_fold=""
 		self.clearProfCache()
 		self.cache_limit=100
+		self._cache_wd=''
 	
 	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1):
 		"""
@@ -337,6 +338,12 @@ class MESA(object):
 		self.prof.head_names: List of names of the header fields
 		self.prof.data_names: List of names of the data fields
 		"""
+		
+		# Handle cases where we change directories inside the python session
+		if self._cache_wd != os.getcwd():
+			self.clearProfCache()
+			self._cache_wd=os.getcwd()
+		
 		
 		if filename in self._cache_prof_name and cache:
 			self.prof=self._cache_prof[self._cache_prof_name.index(filename)]
