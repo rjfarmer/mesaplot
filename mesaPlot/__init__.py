@@ -2655,7 +2655,7 @@ class plot(object):
 				show_mix=True,mix=None,show_burn=True,show_outer_mass=True,
 				cmin=None,cmax=None,colormap=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
-				age_lookback=False,age_log=True,age_reverse=False,age_units='sec',end_time=None,age_zero=None,
+				age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
 				y2=None,y2rng=None,mod_index=None,zlog=False):
 					
 		if fig==None:
@@ -2785,9 +2785,13 @@ class plot(object):
 			newCm=burnMap[-1]		
 			
 		if zlog:
-			data_z=np.log10(data_z)
-			vmin=np.log10(vmin)
-			vmax=np.log10(vmax)
+			#Get rid of warnigns about > nan's
+			data_z[np.isnan(data_z)]=-1
+			ind=(data_z>0)
+			data_z[ind]=np.log10(data_z[ind])
+			data_z[~ind]=np.nan
+			vmin=np.nanmin(data_z)
+			vmax=np.nanmax(data_z)
 						
 					
 		im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
@@ -2827,7 +2831,7 @@ class plot(object):
 		
 		if xlabel is None:
 			if xaxis=='model_number':
-				ax.set_xlabel(r"\rm{Model Number}")
+				ax.set_xlabel(r"$\rm{Model Number}$")
 			else:
 				self._setAgeLabel(ax,age_log,age_lookback,age_units)
 		else:
@@ -3000,6 +3004,7 @@ class plot(object):
 		data=data[sorter[ind],:]
 		if nan:
 			data[data<nan_value]=np.nan
+		data=np.array(data)
 		return data
 		
 	def _rebinKipDataXY(self,data_z,data_x,data_y,num_x_zones,num_y_zones):
@@ -3016,6 +3021,7 @@ class plot(object):
 		
 		ind=np.searchsorted(data_x,lin_x,sorter=sorter)
 		data_z=data_z2[sorter[ind],:]
+		data_z=np.array(data_z)
 		return data_z,lin_x,data_y2
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=-4.0,xmax=10.0,fig=None,yrng=[3.0,10.0],
