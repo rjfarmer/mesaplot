@@ -904,18 +904,26 @@ class plot(object):
 	
 		ax.set_ylim(ylim)
 	
-	def _annotateLine(self,ax,x,y,num_labels,xmin,xmax,text,line=None,color=None,fontsize=mpl.rcParams['font.size']-12):
+	def _annotateLine(self,ax,x,y,num_labels,xmin,xmax,text,xlog=False,line=None,color=None,fontsize=mpl.rcParams['font.size']-12):
 		
 		if xmin<np.nanmin(x):
 			xmin=np.nanmin(x)
 		if xmax>np.nanmax(x):
 			xmax=np.nanmax(x)
+			
+		if xlog:
+			xmin=np.log10(xmin)
+			xmax=np.log10(xmax)
 		
 		ind=np.argsort(x)
 		x=x[ind]
 		y=y[ind]
 		
 		xx=np.linspace(xmin,xmax,num_labels)
+		
+		if xlog:
+			xx=10**xx
+
 		yy=y[np.searchsorted(x,xx)]
 		
 		for xp1,yp1 in zip(xx,yy):
@@ -1293,9 +1301,10 @@ class plot(object):
 				y=y[ind]
 			
 			if xlog:
-				x=np.log10(x)
+				ax.set_xscale("log", nonposx='clip')
 			if ylog:
-				y=np.log10(y)
+				ax.set_yscale("log", nonposx='clip')
+				
 			if fy is not None:
 				y=fy(y)
 			
@@ -1305,8 +1314,14 @@ class plot(object):
 			if xmin is None or xmax is None:
 				xmin=np.nanmin(x)
 				xmax=np.nanmax(x)
+				
+			if xmin>xmax:
+				xrev=True
+				tmp=xmin
+				xmin=xmax
+				xmax=tmp
 			
-			y[np.logical_not(np.isfinite(y))]=ymin-(ymax-ymin)
+			#y[np.logical_not(np.isfinite(y))]=ymin-(ymax-ymin)
 			if linecol is None:
 				line, =ax.plot(x,y,linestyle=linestyle,linewidth=linewidth)
 			else:
@@ -1314,17 +1329,17 @@ class plot(object):
 			if points:
 				ax.scatter(x,y)
 			if annotate_line:
-				self._annotateLine(ax,x,y,num_labels,xmin,xmax,label,line)
+				self._annotateLine(ax,x,y,num_labels,xmin,xmax,xlog=xlog,text=label,line=line)
 			
+			ax.set_xlim(xmin,xmax)
 			if xrev:
-				ax.set_xlim(xmax,xmin)
-			else:
-				ax.set_xlim(xmin,xmax)
+				ax.invert_xaxis()
+				
+			ax.set_ylim(ymin,ymax)
 			if yrev:
-				ax.set_ylim(ymax,ymin)
-			else:
-				ax.set_ylim(ymin,ymax)
-			self._setTicks(ax)
+				ax.invert_yaxis()
+				
+			#self._setTicks(ax)
 	
 			return x,y
 		
@@ -1425,7 +1440,7 @@ class plot(object):
 		return res
 
 	
-	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[-3.0,1.0],
+	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[10**-3,1.0],
 				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
@@ -1479,7 +1494,7 @@ class plot(object):
 
 			
 		self._setXLabel(fig,ax,xlabel,xaxis)
-		self._setYLabel(fig,ax,ylabel,r'$\log_{10}$ Abundance')
+		self._setYLabel(fig,ax,ylabel,r'Abundance')
 			
 		
 		if title is not None:
@@ -1968,7 +1983,7 @@ class plot(object):
 			plt.show()
 			
 	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
-				cmap=plt.cm.gist_ncar,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
+				cmap=plt.cm.gist_ncar,yrng=[1.0,10**10],num_labels=7,burn_random=False,points=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,show_shock=False,
 				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
@@ -2006,6 +2021,7 @@ class plot(object):
 			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 		
 		self._setXLabel(fig,ax,xlabel,xaxis)
+		ax.set_ylabel(r'$\epsilon$')
 		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Burn',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		
@@ -2200,8 +2216,6 @@ class plot(object):
 	
 		if y2 is not None:
 			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
-
-		self._setTicks(ax)
 	
 		self._setXLabel(fig,ax,xlabel,xaxis)
 		self._setYLabel(fig,ax,y1label,y1,y1col)
