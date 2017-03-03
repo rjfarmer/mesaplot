@@ -2829,25 +2829,7 @@ class plot(object):
 			if xaxis=='model_number':
 				ax.set_xlabel(r"\rm{Model Number}")
 			else:
-				if age_log:
-					if age_lookback:
-						ax.set_xlabel(r"$\log_{10}\;\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
-					else:
-						if megayears:
-							ax.set_xlabel(r"$\log\; \left(\tau/\rm{Myr}\right)$")
-						else:
-							ax.set_xlabel(r"$\log\; \left(\tau/\rm{yr}\right)$")
-				else:
-					if age_lookback:
-						if megayears:
-							ax.set_xlabel(r"$\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{Myr}]$")
-						else:
-							ax.set_xlabel(r"$\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
-					else:
-						if megayears:
-							ax.set_xlabel(r"$\tau\; \left(\rm{Myr}\right)$")
-						else:
-							ax.set_xlabel(r"$\tau\; \left(\rm{yr}\right)$")
+				self._setAgeLabel(ax,age_log,age_lookback,age_units)
 		else:
 			ax.set_xlabel(xlabel)
 	
@@ -2860,6 +2842,27 @@ class plot(object):
 		
 		if show:
 			plt.show()
+			
+	def _setAgeLabel(self,ax,age_log,age_lookback,age_units):
+		
+		unit=''
+		if 'sec' in age_units:
+			unit=r'\rm{s}'
+		elif 'mega' in age_units:
+			unit=r'\rm{Myr}'
+		elif 'year' in age_units:
+			unit=r'\rm{yr}'	
+		
+		if age_log:
+			if age_lookback:
+				ax.set_xlabel(r"$\log_{10}\; \left(\rm{\tau_{cc}-\tau}\right)/"+unit+r"$")
+			else:
+				ax.set_xlabel(r"$\log_{10}\; \left(\tau/"+unit+r"\right)$")
+		else:
+			if age_lookback:
+				ax.set_xlabel(r"$\left(\rm{\tau_{cc}-\tau}\right)\; ["+unit+r"]$")
+			else:
+				ax.set_xlabel(r"$\tau\; \left("+unit+r"\right)$")
 		
 		
 	def _getHistBurnData(self,m,data_x,data_y,modInd):
