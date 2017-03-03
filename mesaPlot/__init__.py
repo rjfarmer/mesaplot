@@ -931,7 +931,7 @@ class plot(object):
 				col=color
 			else:
 				col=line.get_color()
-			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize)
+			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize).set_clip_on(True)
 	
 	def _setYLim(self,ax,yrngIn,yrngOut,rev=False,log=False):
 		yrng=[]
@@ -1593,8 +1593,14 @@ class plot(object):
 				x=x[ind]
 				y=y[ind]	
 			line,=ax.plot(x,y,linewidth=2,color=col)
-			switch=levels[np.mod(idj,3)]
-			ax.text(np.median(x),ymax+(switch*0.25*(ymax-ymin)),j,color=col)
+			if np.size(x)>1:
+				f=interp1d(x,y)
+				xx=np.median(x)
+				yy=f(np.median(x))
+			else:
+				xx=x
+				yy=y
+			ax.text(xx,yy,j,color=col,fontsize=14).set_clip_on(True)
 				
 		ax.set_xlabel("A")
 		if m2 is None:
@@ -1720,8 +1726,14 @@ class plot(object):
 				x=x[ind]
 				y=y[ind]	
 			line,=ax.plot(x,y,linewidth=2,color=col)
-			switch=levels[np.mod(idj,3)]
-			ax.text(np.median(x),ymax+(switch*0.25*(ymax-ymin)),j,color=col)
+			if np.size(x)>1:
+				f=interp1d(x,y)
+				xx=np.median(x)
+				yy=f(np.median(x))
+			else:
+				xx=x
+				yy=y
+			ax.text(xx,yy,j,color=col,fontsize=14).set_clip_on(True)
 				
 		ax.set_xlabel("A")
 		if m2 is None:
