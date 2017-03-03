@@ -841,10 +841,10 @@ class plot(object):
 				yy[:]=yrng[0]
 			else:
 				yy[:]=ylim[0]
-			size=240
-
-		yy=y
-		size=180
+			size=350
+		else:
+			yy=y
+			size=180
 			
 		if ind is not None:
 			netEng=m.prof.data['net_nuclear_energy'][ind]
@@ -3024,7 +3024,7 @@ class plot(object):
 		data_z=np.array(data_z)
 		return data_z,lin_x,data_y2
 		
-	def plotTRho(self,m,model=None,show=True,ax=None,xmin=-4.0,xmax=10.0,fig=None,yrng=[3.0,10.0],
+	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None,yrng=[None,None],
 				show_burn=False,show_mix=False,
 				showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,
 				showGamma=False,showEOS=False,logT=False,logRho=False,
