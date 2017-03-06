@@ -2130,10 +2130,11 @@ class plot(object):
 			plt.show()
 
 	def plotAbunSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
-				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,abun_random=False,points=False,
+				cmap=plt.cm.nipy_spectral,yrng=[None,None],num_labels=3,abun_random=False,points=False,
 				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-',colors=None,
 				show_core=False,
-				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',
+				xlog=False,xrev=False,prefix='total_mass_',ylog=False):
 		
 		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
@@ -2141,7 +2142,7 @@ class plot(object):
 
 			
 		if abun is None:
-			abun_list,log=self._listAbun(m.hist)
+			abun_list=self._listAbun(m.hist,prefix=prefix)
 		else:
 			abun_list=abun
 			
@@ -2151,13 +2152,18 @@ class plot(object):
 			random.shuffle(abun_list)
 		
 		self._cycleColors(ax,colors,cmap,num_plots)
+		
+		if yrng[0] is None:
+			yrng[0]=0.0
+		if yrng[1] is None:
+			yrng[1]=np.max(m.hist.star_mass)
 			
 		for i in abun_list:
-			y=m.hist.data["log_total_mass_"+i]
+			y=m.hist.data[i]
 			self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy,xmin=xrngL[0],
 									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
 									annotate_line=annotate_line,label=self.safeLabel(None,i),
-									points=points,ylog=True,num_labels=num_labels,linestyle=linestyle,
+									points=points,ylog=ylog,num_labels=num_labels,linestyle=linestyle,
 									xrev=xrev,xlog=xlog,ind=mInd)
 
 
@@ -2174,7 +2180,7 @@ class plot(object):
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
 		
 		self._setXLabel(fig,ax,xlabel,xaxis)
-		ax.set_ylabel(self.labels('log_abundance'))
+		ax.set_ylabel(self.labels('abundance'))
 
 		if show:
 			plt.show()
