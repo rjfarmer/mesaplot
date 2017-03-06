@@ -637,7 +637,7 @@ class plot(object):
 		if solar=='ag89':
 			self.sol_comp=self._sol_comp_ag89
 		else:
-			raise ValueError("Must pass either ag89")
+			raise ValueError("Must pass ag89")
 			
 		self.solar_is_set=True
 			
