@@ -121,7 +121,7 @@ p.plotHR(m)
 
 [More on Kippenhan plots](docs/kipp.md)
 
-plotKip and plotKip2 are now depreciated, switch to plotKip3
+Kippenhan plot with model number vs mass
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -130,7 +130,7 @@ m.loadHistory()
 p.plotKip(m,show_mass_loc=True)
 ````
 
-Depreciated
+Kippenhan plot with star age vs mass
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -139,7 +139,7 @@ m.loadHistory()
 p.plotKip2(m)
 ````
 
-New way of doing plotKip (history data plotting by model_number)
+Generic kippenhan plotter
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -149,7 +149,7 @@ p.plotKip3(m,show_mass_loc=True)
 ````
 ![Kippenhan plotKip3 SAGB star](/examples/kip.png?raw=true "Kippenhan plot")
 
-New way of doing plotKip2 (history data plotting by age)
+New way of doing plotKip2 (star age vs mass)
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -246,7 +246,7 @@ import mesaPlot as mp
 m=mp.MESA()
 p=mp.plot()
 m.loadHistory()
-p.plotAbunSummary(m)
+p.plotAbunHist(m)
 ````
 
 ### Burn data
@@ -266,7 +266,7 @@ import mesaPlot as mp
 m=mp.MESA()
 p=mp.plot()
 m.loadHistory()
-p.plotBurnSummary(m)
+p.plotBurnHist(m)
 ````
 
 ### Dynamos

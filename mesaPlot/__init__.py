@@ -248,7 +248,7 @@ class MESA(object):
 					else:
 						raise(ValueError,"Invalid mode")
 						
-		profile_num=self.prof_ind["profile"][pos]		
+		profile_num=np.atleast_1d(self.prof_ind["profile"])[pos]		
 		filename=f+"/profile"+str(int(profile_num))+".data"
 		if not silent:
 			print(filename)
@@ -673,13 +673,21 @@ class plot(object):
 
 	def labels(self,label,log=False,center=False):
 		l=''
+		ls=''
 		
 		if '$' in label:
 			return label
 		
 		if log or 'log' in label:
-			l=r'$\log_{10}\;$'
+			ls=r'$\log_{10}\;$'
+			
+		if 'log_D' in label:
+			ls=''
+			l=r"$D_{"+label.split('_')[2]+"}$"
+		if 'am_log_D' in label:
+			l=r"$D_{"+label.split('_')[3]+"}$"
 		if label=='logxq':
+			ls=''
 			l=r'$\log_{10}\;\left(1-q\right)$'
 		if label=='mass':
 			l=l+r"$\rm{Mass}\; [M_{\odot}]$"
@@ -696,7 +704,8 @@ class plot(object):
 			else:
 				l=l+r"$\rho\; [\rm{g\;cm^{-3}}]$"
 		if label=='log_column_depth':
-			l=l+r'$y\; [\rm{g}\; \rm{cm}^{-2}]$'
+			ls=''
+			l=ls+r'$y\; [\rm{g}\; \rm{cm}^{-2}]$'
 		if ('lum' in label) and ('column' not in label):
 			l=l+r'$L\; [L_{\odot}]$'
 		if 'star_age' in label:
@@ -731,6 +740,8 @@ class plot(object):
 			l=l+r'$\epsilon_{other}$'
 		if 'abundance' in label:
 			l=l+r'$\chi\; [M_{\odot}]$'
+				
+		l=ls+l		
 				
 		if len(l)==0:
 			if '$' not in label:
@@ -920,7 +931,8 @@ class plot(object):
 		x=x[ind]
 		y=y[ind]
 		
-		xx=np.linspace(xmin,xmax,num_labels)
+		#Dont add points at the edge of the plot 
+		xx=np.linspace(xmin,xmax,num_labels+2)[1:-1]
 		
 		if xlog:
 			xx=10**xx
@@ -1390,11 +1402,11 @@ class plot(object):
 		if y2 is not None:
 			ax2=ax.twinx()
 			ax2.set_label('abun_ax2')
-			y=data[y2][mInd]
-			px,py=self._plotAnnotatedLine(ax2,x[mInd],y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
+			y=data[y2]
+			px,py=self._plotAnnotatedLine(ax2,x,y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
 					annotate_line=False,label=self.safeLabel(y2label,y2),
 					points=points,xlog=xlog,ylog=y2log,xrev=xrev,
-					yrev=y2rev,linecol=y2col)  
+					yrev=y2rev,linecol=y2col,ind=mInd)  
 
 			if y2Textcol is None:
 				y2labcol=y2col
@@ -1440,72 +1452,124 @@ class plot(object):
 			res.append({'name':i,'p':p,'a':j,'mass':m})
 		return res
 
-	
-	def plotAbun(self,m,model=None,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[10**-3,1.0],
-				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,abun_random=False,
-				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,modFile=False,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None,ylabel=None,title=None,show_shock=False,
-				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
-		
-		fig,ax=self._setupProf(fig,ax,m,model,label='abun_ax1')
-	
-			
-		if modFile:
-			x,xrngL,mInd=self._setXAxis(np.cumsum(m.mod_dat["dq"][::-1])*m._fds2f(m.mod_head[1]),xmin,xmax,fx)
-		else:
-			x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
 
-		
-		if abun is None:
-			abun_list=self._listAbun(m.prof)
-			log=''
-		else:
-			abun_list=abun
-			log=""
-			
-		abun_log=True
-		if len(log)>0:
-			abun_log=False
-			
-		num_plots=len(abun_list)
+	def _plotMultiProf(self,m,list_y=[],ylog=False,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=None,model=None,
+				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
+				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',show_core_loc=False,
+				colors=None,ylabel=None,title=None,show_shock=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
+				_axlabel=''):
+					
+		fig,ax=self._setupProf(fig,ax,m,model,label=_axlabel)
+	
+		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
+
+		num_plots=len(list_y)
 		#Helps when we have many elements not on the plot that stretch the colormap
-		if abun_random:
-			random.shuffle(abun_list)
+		if rand_col:
+			random.shuffle(list_y)
 
 		self._cycleColors(ax,colors,cmap,num_plots)
 		
-		for i in abun_list:
+		for i in list_y:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
 				ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-				label=self.safeLabel(None,i),points=points,ylog=abun_log,num_labels=num_labels,
+				label=self.safeLabel(None,i),points=points,ylog=ylog,num_labels=num_labels,
 				linestyle=linestyle,xrev=xrev,xlog=xlog,ind=mInd)
 			
 		if show_burn:
-			self._plotBurnRegions(m,ax,x,m.prof.mass,show_line=False,show_x=True,yrng=yrng,ind=mInd)
+			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
 
 		if show_mix:
-			self._plotMixRegions(m,ax,x,m.prof.mass,show_line=False,show_x=True,yrng=yrng,ind=mInd)
-			
+			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
+	
+		if show_burn or show_mix:
+			self._showBurnMixLegend(ax,burn=show_burn,mix=show_mix)
+
+		if show_core_loc:
+			self._plotCoreLoc(m.prof,ax,xaxis,px,ax.get_ylim()[0],ax.get_ylim()[1])
+	
 		if show_shock:
-			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
+			self._showShockLoc(m.prof,fig,ax,x,ax.get_ylim(),mInd)
 			
 		if y2 is not None:
 			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
 
 			
 		self._setXLabel(fig,ax,xlabel,xaxis)
-		self._setYLabel(fig,ax,ylabel,r'Abundance')
+		self._setYLabel(fig,ax,ylabel,i)
 			
 		
 		if title is not None:
 			ax.set_title(title)
 		elif show_title_name or show_title_model or show_title_age:
-			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Abundances',m.prof.head["model_number"],m.prof.head["star_age"])
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,ylabel,m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		
 		if show:
 			plt.show()
+			
+	def _plotMultiHist(self,m,list_y=[],model=None,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[None,None],ylog=False,
+					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
+					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,
+					show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,ylabel=None,
+					y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
+		
+		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
+		
+		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
+		
+		if rand_col:
+			random.shuffle(list_y)
+				
+		self._cycleColors(ax,colors,cmap,len(list_y))
+			
+		for i in list_y:
+			self._plotAnnotatedLine(ax=ax,x=x,y=m.hist.data[i],fy=fy,xmin=xrngL[0],
+									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
+									annotate_line=annotate_line,label=self.safeLabel(None,i),
+									points=points,ylog=ylog,num_labels=num_labels,xlog=xlog,xrev=xrev,ind=mInd)
+			
+		if y2 is not None:
+			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
+			
+		if show_core:
+			self._showMassLocHist(m,fig,ax,x,y,mInd)
+		
+		self._setXLabel(fig,ax,xlabel,xaxis)
+		self._setYLabel(fig,ax,ylabel,i)
+
+		if show:
+			plt.show()
+			
+	def plotAbun(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[10**-3,1.0],
+				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,rand_col=False,
+				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_core_loc=False,
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
+				colors=None,ylabel=r'Abundance',title=None,show_shock=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
+				show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,):
+		
+		if abun is None:
+			abun_list=self._listAbun(m.prof)
+			log=''
+		else:
+			abun_list=abun
+			log=''
+			
+		abun_log=True
+		if len(log)>0:
+			abun_log=False
+			
+		self._plotMultiProf(m,list_y=abun_list,ylog=abun_log,_axlabel='abun',
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
+							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
+							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
+							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
+							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,
+							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)
+				
 			
 	def plotAbunByA(self,m,m2=None,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
@@ -1837,45 +1901,23 @@ class plot(object):
 
 		if show:
 			plt.show()
-			
-			
-	def plotCenterAbun(self,m,model=None,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[-3.0,1.0],
-					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun_random=False,
-				fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,
-				show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,
-				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
+						
+	def plotAbunHist(self,m,prefix='center_',show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[10**-5,1.0],ylog=True,
+					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
+					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,ylabel='Abundance',
+					show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,
+					y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
-		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
-		
-		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
+		abun_list=self._listAbun(m.hist,prefix=prefix)
 
-			
-		abun_list=self._listAbun(m.hist,prefix='center_')
-		num_plots=len(abun_list)
-		
-		if abun_random:
-			random.shuffle(abun_list)
-				
-		self._cycleColors(ax,colors,cmap,num_plots)
-			
-		for i in abun_list:
-			self._plotAnnotatedLine(ax=ax,x=x,y=m.hist.data[i],fy=fy,xmin=xrngL[0],
-									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
-									annotate_line=annotate_line,label=self.safeLabel(None,i,'center'),
-									points=points,ylog=True,num_labels=num_labels,xlog=xlog,xrev=xrev,ind=mInd)
-			
-		if y2 is not None:
-			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
-			
-		if show_core:
-			self._showMassLocHist(m,fig,ax,x,y,mInd)
-		
-		self._setXLabel(fig,ax,xlabel,xaxis)
-		ax.set_ylabel(self.labels('Abundance'))
-
-		if show:
-			plt.show()
-
+		self._plotMultiHist(m,list_y=abun_list,show=show,ax=ax,xaxis=xaxis,
+							xmin=xmin,xmax=xmax,yrng=yrng,ylog=ylog,ylabel=ylabel,
+							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
+							fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,
+							show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
+							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
+									
+									
 	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=None,y2rng=None,
 					show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,show_rotation=True,show_shock=False):
@@ -1953,298 +1995,99 @@ class plot(object):
 		
 		if show:
 			plt.show()
-
-	def plotAngMom(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,yrng=[0.0,10.0],
-					show_burn=False,show_mix=False,legend=True,annotate_line=True,num_labels=5,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,points=False,show_core=False,show_shock=False,
-				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
-		fig,ax=self._setupProf(fig,ax,m,model)
-			
-		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
-
+	def plotAngMom(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[0.0,10.0],
+				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
+				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
+				colors=None,ylabel=r'Angular Momentum',title=None,show_shock=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
+				show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,):
+		
+		list_y=[]
 		for i in m.prof.data_names:         
 			if "am_log_D" in i:
-				px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
-										ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-										label=r"$D_{"+i.split('_')[3]+"}$",points=points,
-										ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog,ind=mInd)
-
-		if show_burn:
-			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
-
-		if show_mix:
-			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
+				list_y.append(i)
 			
-		if show_core:
-			self._showMassLocHist(m,fig,ax,x,y,mInd)
+		self._plotMultiProf(m,list_y=list_y,ylog=True,_axlabel='angmom',
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
+							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
+							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
+							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
+							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,
+							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
 			
-		if show_shock:
-			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
 			
-		if y2 is not None:
-			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
-
-		if legend:
-			ax.legend(loc=0)
-
-		self._setXLabel(fig,ax,xlabel,xaxis)
-		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Ang mom',m.prof.head["model_number"],m.prof.head["star_age"])
-		
-		
-		if show:
-			plt.show()
-			
-	def plotBurn(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
-				cmap=plt.cm.gist_ncar,yrng=[1.0,10**10],num_labels=7,burn_random=False,points=False,
-				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,show_shock=False,
+	def plotBurn(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[1.0,10**10],
+				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
+				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_core_loc=False,
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
+				colors=None,ylabel=r'$\epsilon$',title=None,show_shock=False,
 				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
-		fig,ax=self._setupProf(fig,ax,m,model)
+		list_y=self._listBurn(m.prof)
 			
-		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
+		self._plotMultiProf(m,list_y=list_y,ylog=True,_axlabel='burn',
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
+							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
+							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
+							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
+							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,show_core_loc=show_core_loc,
+							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)			
+			
+	def plotMix(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[1.0,20],
+				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
+				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_core_loc=False,
+				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
+				colors=None,ylabel=r'Mixing',title=None,show_shock=False,
+				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
+				show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,):
+		
+		list_y=self._listMix(m.prof)
+			
+		self._plotMultiProf(m,list_y=list_y,_axlabel='mix',
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
+							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
+							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
+							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
+							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,show_core_loc=show_core_loc,
+							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)
 
+	def plotBurnHist(self,m,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[1,10**10],ylog=True,
+					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
+					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,ylabel=r'$\epsilon$',
+					show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,
+					y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
+		
+		burn_list=self._listBurnHistory(m.hist)
 
-		burn_list=self._listBurn(m.prof)
-		num_plots=len(burn_list)
-		
-		if burn_random:
-			random.shuffle(burn_list)
-				
-		self._cycleColors(ax,None,cmap,num_plots)
-			
-		for i in burn_list:
-			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
-									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-									label=self.safeLabel(None,i),points=points,ylog=True,
-									num_labels=num_labels,xrev=xrev,xlog=xlog,ind=mInd)
-
-		
-		if show_burn:
-			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
-
-		if show_mix:
-			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
-			
-		if show_shock:
-			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
-			
-		if y2 is not None:
-			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
-		
-		self._setXLabel(fig,ax,xlabel,xaxis)
-		ax.set_ylabel(r'$\epsilon$')
-		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Burn',m.prof.head["model_number"],m.prof.head["star_age"])
-		
-		
-		if show:
-			plt.show()
-			
-	def plotMix(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
-				cmap=plt.cm.gist_ncar,yrng=[0.0,5.0],num_labels=7,mix_random=False,points=False,
-				show_burn=False,fig=None,fx=None,fy=None,
-				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,show_shock=False,colors=None,
-				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
-		
-		fig,ax=self._setupProf(fig,ax,m,model)
-			
-		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
-
-		mix_list=self._listMix(m.prof)
-		num_plots=len(mix_list)
-		
-		if mix_random:
-			random.shuffle(mix_list)
-				
-		self._cycleColors(ax,None,cmap,num_plots)
-			
-		for i in mix_list:
-			px,py=self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
-									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
-									annotate_line=annotate_line,label=i.split('_')[2],
-									points=points,ylog=False,num_labels=num_labels,xlog=xlog,xrev=xrev,ind=mInd)
-		
-		if show_burn:
-			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
-
-		if show_mix:
-			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
-			
-		if show_shock:
-			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
-			
-		if y2 is not None:
-			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
-		
-		self._setXLabel(fig,ax,xlabel,xaxis)
-		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Mixing',m.prof.head["model_number"],m.prof.head["star_age"])
-		
-		
-		if show:
-			plt.show()
-
-	def plotBurnSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
-				cmap=plt.cm.nipy_spectral,yrng=[0.0,10.0],num_labels=7,burn_random=False,points=False,
-				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,annotate_line=True,show_core=False,
-				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
-		
-		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
-		
-		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
-
-			
-		burn_list=self._listBurnHistory(m.prof)
-		num_plots=len(burn_list)
-		
-		if burn_random:
-			random.shuffle(burn_list)
-				
-		self._cycleColors(ax,colors,cmap,num_plots)
-			
-		for i in burn_list:
-			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],
-									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
-									annotate_line=annotate_line,label=self.safeLabel(None,i),
-									points=points,ylog=True,num_labels=num_labels,xrev=xrev,xlog=xlog,ind=mInd)
-
-		if show_burn:
-			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
-
-		if show_mix:
-			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=False,show_x=True,ind=mInd)
-			
-		if show_shock:
-			self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
-			
-		if y2 is not None:
-			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
-			
-		if show_core:
-			self._showMassLocHist(m,fig,ax,x,y,mInd)
-		
-		self._setXLabel(fig,ax,xlabel,xaxis)
-		ax.set_ylabel(self.labels('log_lum'))
-
-		if show:
-			plt.show()
-
-	def plotAbunSummary(self,m,xaxis='model_number',minMod=0,maxMod=-1,show=True,ax=None,xmin=None,xmax=None,xlabel=None,
-				cmap=plt.cm.nipy_spectral,yrng=[None,None],num_labels=3,abun_random=False,points=False,
-				show_burn=False,show_mix=False,abun=None,fig=None,fx=None,fy=None,annotate_line=True,linestyle='-',colors=None,
-				show_core=False,
-				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',
-				xlog=False,xrev=False,prefix='total_mass_',ylog=False):
-		
-		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
-		
-		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
-
-			
-		if abun is None:
-			abun_list=self._listAbun(m.hist,prefix=prefix)
-		else:
-			abun_list=abun
-			
-		num_plots=len(abun_list)
-		#Helps when we have many elements not on the plot that stretch the colormap
-		if abun_random:
-			random.shuffle(abun_list)
-		
-		self._cycleColors(ax,colors,cmap,num_plots)
-		
-		if yrng[0] is None:
-			yrng[0]=0.0
-		if yrng[1] is None:
-			yrng[1]=np.max(m.hist.star_mass)
-			
-		for i in abun_list:
-			y=m.hist.data[i]
-			self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy,xmin=xrngL[0],
-									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
-									annotate_line=annotate_line,label=self.safeLabel(None,i),
-									points=points,ylog=ylog,num_labels=num_labels,linestyle=linestyle,
-									xrev=xrev,xlog=xlog,ind=mInd)
-
-
-		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
-
-		if show_mix:
-			self._plotMixRegions(m,ax,x,y,show_line=False,show_x=True,ind=mInd)
-			
-		if y2 is not None:
-			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
-			
-		if show_core:
-			self._showMassLocHist(m,fig,ax,x,y,mInd)
-		
-		self._setXLabel(fig,ax,xlabel,xaxis)
-		ax.set_ylabel(self.labels('abundance'))
-
-		if show:
-			plt.show()
-
+		self._plotMultiHist(m,list_y=burn_list,show=show,ax=ax,xaxis=xaxis,
+							xmin=xmin,xmax=xmax,yrng=yrng,ylog=ylog,
+							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
+							fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,ylabel=ylabel,
+							show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
+							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
 
 	def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,
 					xlog=False,y1log=False,y2log=False,y1col='b',
 					y2col='r',xrev=False,y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,y2label=None,
-					show_burn=False,show_burn_2=False,show_burn_x=False,show_burn_line=False,
-					show_mix=False,show_mix_2=False,show_mix_x=False,show_mix_line=False,
+					show_burn=False,show_burn_x=False,show_burn_line=False,
+					show_mix=False,show_mix_x=False,show_mix_line=False,
 					y1Textcol=None,y2Textcol=None,fig=None,y1rng=[None,None],y2rng=[None,None],
 					fx=None,fy1=None,fy2=None,
 					show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
 					y1linelabel=None,show_core_loc=False,show_shock=False,yrng=None):
 		
-		fig,ax=self._setupProf(fig,ax,m,model)
-
-		x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
+		list_y=[y1]
 		
-		y=m.prof.data[y1]
-		px,py=self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
-								ymin=y1rng[0],ymax=y1rng[1],annotate_line=False,
-								label=self.safeLabel(y1label,y1),points=points,
-								xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col,ind=mInd)
-		
-		if y1Textcol is None:
-			y1labcol=y1col
-		else:
-			y1labcol=y1Textcol
-
-
-		ax.set_ylabel(self.safeLabel(y1label,y1), color=y1labcol)
-		if yrng is None:
-			self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1log)
-		else:
-			self._setYLim(ax,ax.get_ylim(),yrng,rev=y1rev,log=y1log)
-
-		if show_burn:
-			self._plotBurnRegions(m,ax,x,y,show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
-
-		if show_mix:
-			self._plotMixRegions(m,ax,x,y,show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
+		self._plotMultiProf(m,list_y=list_y,ylog=abun_log,_axlabel='profile',
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
+							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
+							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,show_core_loc=show_core_loc,
+							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
+							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,
+							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)
 	
-		if show_burn or show_mix:
-			self._showBurnMixLegend(ax,burn=show_burn,mix=show_mix)
-
-		if show_core_loc:
-			self._plotCoreLoc(m.prof,ax,xaxis,px,ax.get_ylim()[0],ax.get_ylim()[1])
-	
-		if show_shock:
-			self._showShockLoc(m.prof,fig,ax,x,ax.get_ylim(),mInd)
-	
-		if y2 is not None:
-			self._plotY2(fig,ax,x,m.prof.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
-	
-		self._setXLabel(fig,ax,xlabel,xaxis)
-		self._setYLabel(fig,ax,y1label,y1,y1col)
-		
-		self.setTitle(ax,show_title_name,show_title_model,show_title_age,title_name,m.prof.head["model_number"],m.prof.head["star_age"])
-		
-		
-		if show:
-			plt.show()
-
 	def plotHistory(self,m,xaxis='model_number',y1='star_mass',y2=None,show=True,
 					ax=None,xmin=None,xmax=None,xlog=False,y1log=False,
 					y2log=False,y1col='b',y2col='r',minMod=0,maxMod=-1,xrev=False,
@@ -2252,417 +2095,38 @@ class plot(object):
 					y2label=None,fig=None,y1rng=[None,None],y2rng=[None,None],
 					fx=None,fy1=None,fy2=None,show_core=False,y1Textcol=None,y2Textcol=None):
 		
-		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
+		list_y=[y1]
 		
-		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
-			
-		y=m.hist.data[y1][modelIndex]
-		self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy1,xmin=xrngL[0],xmax=xrngL[1],
-								ymin=y1rng[0],ymax=y1rng[1],annotate_line=False,
-								label=self.safeLabel(y1label,y1),points=points,
-								xlog=xlog,ylog=y1log,xrev=xrev,yrev=y1rev,linecol=y1col,ind=mInd)
-		
-		self._setYLim(ax,ax.get_ylim(),y1rng,rev=y1rev,log=y1log)
+		self._plotMultiHist(m,list_y=list_y,show=show,ax=ax,xaxis=xaxis,
+							xmin=xmin,xmax=xmax,yrng=yrng,ylog=ylog,
+							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
+							fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,
+							show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
+							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
 
-
-		if y2 is not None:
-			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
-
-		self._setXLabel(fig,ax,xlabel,xaxis)
-		self._setYLabel(fig,ax,y1label,y1,y1col)
-			
-		if show_core:
-			self._showMassLocHist(m,fig,ax,x,y,mInd)
-		
-		if show:
-			plt.show()
-
-	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
+	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ax=None,xrng=[None,None],mix=None,show_mix=True,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
-				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None,y2rng=None):
+				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None,y2rng=None):	
 				
-		print("Warning plotKip is now depreciated switch to plotKip3")	
-				
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
+		self.plotKip3(m,plot_type='history',xaxis='model_number',show=show,
+				reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
+				cmin=cmin,cmax=cmax,cmap=burnMap,fig=fig,yrng=yrng,
+				show_mass_loc=show_mass_loc,show_mix_labels=show_mix_labels,mix_alpha=mix_alpha,
+				xstep=step,y2=y2,title=title,y2rng=y2rng)
 		
-		if title is not None:
-			fig.suptitle(title)
-			
-		if show_mix_labels:
-			self._addMixLabelsAxis(fig)
-
-		if ax==None:
-			ax=fig.add_subplot(111)
-			
-		if y2 is not None:
-			ax2=ax.twinx()
-		
-		if reloadHistory:
-			m.loadHistory()
-			
-		try:
-			xx=m.hist.data['model_number']
-		except KeyError:
-			raise ValueError("Must call loadHistory first")
-		
-		modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
-		modInd[::step]=True
-		
-		if xrng[0]>=0:
-			modInd=modInd&(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
-			
-
-		if np.count_nonzero(modInd) > 40000:
-			print("Warning attempting to plot more than 40,000 models")
-			print("This may take a long time")
-
-		if 'm_center' in m.hist.data.dtype.names:
-			if np.any(m.hist.data['m_center'] > m.hist.star_mass):
-				#m_center in grams
-				m_center=m.hist.data['m_center']/self.msun
-			else:
-				#Solar units
-				m_center=m.hist.data['m_center']
-		else:
-			m_center=np.zeros(np.size(m.hist.data['model_number']))
-			
-			
-		q=np.linspace(np.min(m_center),np.max(m.hist.data["star_mass"]),np.max(m.hist.data["num_zones"][modInd]))
-		numModels=np.count_nonzero(modInd)
-
-		numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
-		numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
-
-		burnZones=np.zeros((numModels,np.size(q)))
-		burnZones[:,:]=np.nan
-		k=0		
-		for jj in m.hist.data["model_number"][modInd]:
-			ind2b=np.zeros(np.size(q),dtype='bool')
-			i=m.hist.data["model_number"]==jj
-			ind2b=(q<=m_center[i])
-			for j in range(1,numBurnZones+1):
-				indb=(q<=m_center[i]+m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2b)
-				burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
-				ind2b=ind2b|indb
-				if m.hist.data["burn_qtop_"+str(j)][i] ==1.0:
-					break
-			k=k+1
-
-		Xmin=m.hist.data["model_number"][modInd][0]
-		Xmax=m.hist.data["model_number"][modInd][-1]
-      
-		Ymin=q[0]
-		Ymax=q[-1]
-		extent=(Xmin,Xmax,Ymin,Ymax)
-		
-		burnZones[burnZones<-100]=0.0
-
-		if cmin is None:
-			vmin=np.nanmin(burnZones)
-		else:
-			vmin=cmin
-			
-		if cmax is None:
-			vmax=np.nanmax(burnZones)
-		else:
-			vmax=cmax
-			
-		if vmin < 0:
-			vmax=np.maximum(np.abs(vmax),np.abs(vmin))
-			vmin=-vmax
-			newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
-		else:
-			vmin=0
-			newCm=burnMap[-1]
-
-		im1=ax.imshow(burnZones.T,cmap=newCm,extent=extent,
-				interpolation='nearest',
-				origin='lower',aspect='auto',
-				vmin=vmin,
-				vmax=vmax)		
-		burnZones=0
-
-		
-		mixZones=np.zeros((numModels,np.size(q)))
-		mixZones[:,:]=-np.nan
-		k=0
-		for jj in m.hist.data["model_number"][modInd]:
-			ind2=np.zeros(np.size(q),dtype='bool')
-			i=m.hist.data["model_number"]==jj
-			ind2b=(q<=m_center[i])
-			for j in range(1,numMixZones+1):
-				ind=(q<= m_center[i]+m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
-				if mix is None:
-					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-				elif mix ==-1 :
-					mixZones[k,ind]=0.0
-				elif m.hist.data["mix_type_"+str(j)][i] in mix:
-					mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-				else:
-					mixZones[k,ind]=0.0
-				ind2=ind2|ind
-				if m.hist.data["mix_qtop_"+str(j)][i]==1.0:
-					break
-			k=k+1		
-
-					
-		mixZones[mixZones==0]=-np.nan
-		
-		mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
-		
-		ax.imshow(mixZones.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
-		mixZones=0
-		ax.set_xlabel(r"$\rm{Model\; number}$")
-		ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
-		
-		cb=fig.colorbar(im1,ax=ax)
-		cb.solids.set_edgecolor("face")
-
-		cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
-
-		self._setYLim(ax,ax.get_ylim(),yrng)
-		
-		#Add line at outer mass location and inner
-		ax.plot(m.hist.data['model_number'][modInd],m.hist.data['star_mass'][modInd],color='k')
-		ax.plot(m.hist.data['model_number'][modInd],m_center[modInd],color='k')
-		
-		
-		if y2 is not None:
-			# Update axes 2 locations after ax1 is moved by the colorbar
-			ax2.set_position(ax.get_position())
-			ax2.plot(m.hist.data['model_number'][modInd],m.hist.data[y2][modInd],color='k')
-			if y2rng is not None:
-				ax2.set_ylim(y2rng)
-		
-		if show_mass_loc:
-			self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
-		
-		if show:
-			plt.show()
-		
-	def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[-1,-1],mix=None,
+	def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[None,None],mix=None,
 				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
+				show_mix=True,show_burn=True,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
-				mod_out=None,megayears=False,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None,
-				num_x=None,num_y=None,y2=None):
-
-		print("Warning plotKip2 is now depreciated switch to plotKip3")	
+				mod_out=None,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None,y2=None,y2rng=None):	
 					
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-			
-		if title is not None:
-			fig.suptitle(title)
-			
-		if show_mix_labels:
-			self._addMixLabelsAxis(fig)
-
-		if ax==None:
-			ax=fig.add_subplot(111)
-		if y2 is not None:
-			ax2=ax.twinx()
-		
-		if reloadHistory:
-			m.loadHistory()
-			
-		try:
-			xx=m.hist.data['model_number']
-		except:
-			raise ValueError("Must call loadHistory first")
-		
-		modInd=np.zeros(np.size(m.hist.data["model_number"]),dtype='bool')
-		modInd[:]=True
-		
-		modInd[::step]=False
-		modInd[:]=np.logical_not(modInd)
-		
-		if mod_out is not None:
-			modInd=modInd&mod_out
-			
-		if xrng[0]>=0:
-			modInd=modInd&(m.hist.data["model_number"]>=xrng[0])&(m.hist.data["model_number"]<=xrng[1])
-		
-		#Age in years does not have enough digits to be able to distingush the final models in pre-sn progenitors
-		age=np.cumsum(10**np.longdouble(m.hist.log_dt))
-		
-		if age_collapse:
-			xx=age[-1]
-			if end_time is not None:
-				xx=end_time
-			age=xx-age
-			#Fudge the last value not to be exactly 0.0
-			age[-1]=(age[-2]/2.0)
-			
-		if age_zero is not None:
-			age=age_zero-age
-			#Fudge the first value not to be exactly 0.0
-			age[0]=age[1]/2.0
-		
-		modInd2=np.zeros(np.shape(modInd),dtype='bool')
-		modInd2[0]=modInd[0]
-		modInd2[1:]=(np.diff(age)!=0.0)
-		modInd=modInd&modInd2
-		
-		age=age[modInd]
-		
-		if megayears:
-			age=age/10**6
-		
-		if age_log:
-			age=np.log10(age)
-		
-		if age_reverse:
-			age=age[::-1]
-			
-		q=np.linspace(0.0,np.minimum(max_mass,np.max(m.hist.data["star_mass"])),np.max(m.hist.data["num_zones"][modInd]))
-		numModels=np.count_nonzero(modInd)
-		
-		if num_x is None:
-			num_x=numModels
-			
-		if num_x<numModels:
-			print("Not supported for num_x< numModels, leave num_x as None or bigger than numModels")
-			return
-		
-		lin_age=np.linspace(age[0],age[-1],num_x)
-		
-		if num_y is None:
-			num_y=np.size(q)
-      
-
-		burnZones=np.zeros((numModels,np.size(q)))
-			
-		self.numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
-		self.numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
-
-		k=0		
-		for jj in m.hist.data["model_number"][modInd]:
-			ind2b=np.zeros(np.size(q),dtype='bool')
-			i=m.hist.data["model_number"]==jj
-			for j in range(1,self.numBurnZones+1):
-				indb=(q<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2b)
-				burnZones[k,indb]=m.hist.data["burn_type_"+str(j)][i]
-				ind2b=ind2b|indb
-			k=k+1
-
-		Xmin=m.hist.data["model_number"][modInd][0]
-		Xmax=m.hist.data["model_number"][modInd][-1]
-			
-		Ymin=q[0]
-		Ymax=q[-1]
-		
-		burnZones[burnZones<-100]=0.0
-		
-		extent=(age[0],age[-1],Ymin,Ymax)
-		extent=np.double(np.array(extent))
-
-		if cmin is None:
-			vmin=np.nanmin(burnZones)
-		else:
-			vmin=cmin
-			
-		if cmax is None:
-			vmax=np.nanmax(burnZones)
-		else:
-			vmax=cmax
-			
-		if vmin < 0:
-			vmax=np.maximum(np.abs(vmax),np.abs(vmin))
-			vmin=-vmax
-			newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
-		else:
-			vmin=0
-			newCm=burnMap[-1]
-		
-		if burn:
-			burnZones2=np.zeros(np.shape(burnZones))
-			sorter=np.argsort(age)
-			ind=np.searchsorted(age,lin_age,sorter=sorter)
-			burnZones2[:,:]=burnZones[sorter[ind],:]
-			im1=ax.imshow(burnZones2.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)
-         
-		mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
-					
-				
-		if mix != -1:
-			mixZones=np.zeros((numModels,np.size(q)))
-			k=0
-			for jj in m.hist.data["model_number"][modInd]:
-				ind2=np.zeros(np.size(q),dtype='bool')
-				i=m.hist.data["model_number"]==jj
-				for j in range(1,self.numMixZones+1):
-					ind=(q<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
-					if mix is None:
-						mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-					elif mix ==-1 :
-						mixZones[k,ind]=0.0
-					elif m.hist.data["mix_type_"+str(j)][i] in mix:
-						mixZones[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-					else:
-						mixZones[k,ind]=0.0
-					ind2=ind2|ind
-				k=k+1		
-			
-			mixZones2=np.zeros(np.shape(mixZones))
-			sorter=np.argsort(age)
-			ind=np.searchsorted(age,lin_age,sorter=sorter)
-			mixZones2[:,:]=mixZones[sorter[ind],:]
-			mixZones2[mixZones2<1]=np.nan
-			ax.imshow(mixZones2.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
-			
-		if ylabel is not None:
-			ax.set_ylabel(ylabel)
-		else:
-			ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
-		
-		if colorbar and burn:
-			cb=fig.colorbar(im1)
-			cb.solids.set_edgecolor("face")
-
-			cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
-			fig.set_size_inches(12,9.45)
-				
-		##Add line at outer mass location
-		f = interp1d(age, m.hist.data['star_mass'][modInd])
-		ax.plot(lin_age,f(lin_age),c='k')
-		
-		
-		if y2 is not None:
-			# Update axes 2 locations after ax1 is moved by the colorbar
-			ax2.set_position(ax.get_position())
-			f = interp1d(age, m.hist.data[y2][modInd])
-			ax2.plot(lin_age,f(lin_age),c='k')
-			if y2rng is not None:
-				ax2.set_ylim(y2rng)
-		
-		
-		if xlabel is None:
-			if age_log:
-				if age_collapse:
-					ax.set_xlabel(r"$\log_{10}\;\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
-				else:
-					ax.set_xlabel(r"$\log\; \left(\tau/\rm{Myr}\right)$")
-			else:
-				if age_collapse:
-					if megayears:
-						ax.set_xlabel(r"$\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{Myr}]$")
-					else:
-						ax.set_xlabel(r"$\left(\rm{\tau_{cc}-\tau}\right)\; [\rm{yr}]$")
-				else:
-					ax.set_xlabel(r"$\tau\; \left(\rm{Myr}\right)$")
-		else:
-			ax.set_xlabel(xlabel)
-	
-		if show_mass_loc:
-			self._showMassLoc(m,fig,ax,np.linspace(Xmin,Xmax,np.count_nonzero(modInd)),modInd)
-	
-		self._setYLim(ax,ax.get_ylim(),yrng)
-		
-		self._setTicks(ax)
-		
-		if show:
-			plt.show()
+		self.plotKip3(m,plot_type='history',xaxis='star_age',show=show,
+				reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
+				cmin=cmin,cmax=cmax,cmap=burnMap,fig=fig,yrng=yrng,
+				show_mass_loc=show_mass_loc,show_mix_labels=show_mix_labels,mix_alpha=mix_alpha,
+				xstep=step,y2=y2,title=title,y2rng=y2rng,
+				age_zero=age_zero,age_lookback=age_collapse,age_log=age_log,age_reverse=age_reverse,
+				mod_index=mod_out,xlabel=xlabel,show_burn=burn,end_time=end_time)
 			
 			
 	#Will replace plotKip and plotKip2 when finished
@@ -2672,7 +2136,7 @@ class plot(object):
 				xlabel=None,ylabel=None,title=None,
 				show=True,reloadHistory=False,ax=None,fig=None,
 				show_mix=True,mix=None,show_burn=True,show_outer_mass=True,
-				cmin=None,cmax=None,colormap=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label=None,
+				cmin=None,cmax=None,cmap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
 				age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
 				y2=None,y2rng=None,mod_index=None,zlog=False):
@@ -2798,10 +2262,13 @@ class plot(object):
 		if vmin < 0:
 			vmax=np.maximum(np.abs(vmax),np.abs(vmin))
 			vmin=-vmax
-			newCm=self.mergeCmaps(burnMap,[[0.0,0.5],[0.5,1.0]])
+			newCm=self.mergeCmaps(cmap,[[0.0,0.5],[0.5,1.0]])
 		else:
 			vmin=0
-			newCm=burnMap[-1]		
+			if not isinstance(cmap, str):
+				newCm=cmap[-1]
+			else:
+				newCm=cmap
 			
 		if zlog:
 			#Get rid of warnigns about > nan's
