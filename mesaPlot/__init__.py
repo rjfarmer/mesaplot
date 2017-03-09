@@ -1317,6 +1317,8 @@ class plot(object):
 				ax.set_xscale("log", nonposx='clip')
 			if ylog:
 				ax.set_yscale("log", nonposx='clip')
+				if np.all(y)<=0:
+					return
 				
 			if fy is not None:
 				y=fy(y)
@@ -1324,6 +1326,11 @@ class plot(object):
 			if ymin is None or ymax is None:
 				ymin=np.nanmin(y)
 				ymax=np.nanmax(y)
+				
+				if ymin==ymax:
+					ymin=0.5*ymin
+					ymax=1.5*ymax
+				
 			if xmin is None or xmax is None:
 				xmin=np.nanmin(x)
 				xmax=np.nanmax(x)
@@ -1453,11 +1460,11 @@ class plot(object):
 		return res
 
 
-	def _plotMultiProf(self,m,list_y=[],ylog=False,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=None,model=None,
-				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
+	def _plotMultiProf(self,m,list_y=[],show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[None,None],model=None,
+				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,y1col='k',y1log=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',show_core_loc=False,
-				colors=None,ylabel=None,title=None,show_shock=False,
+				colors=None,y1label=None,title=None,show_shock=False,show_burn_labels=False,show_mix_labels=False,
 				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
 				_axlabel=''):
 					
@@ -1470,13 +1477,17 @@ class plot(object):
 		if rand_col:
 			random.shuffle(list_y)
 
-		self._cycleColors(ax,colors,cmap,num_plots)
+		if num_plots>1:
+			self._cycleColors(ax,colors,cmap,num_plots)
+			linecol=None
+		else:
+			linecol=y1col
 		
 		for i in list_y:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
-				ymin=yrng[0],ymax=yrng[1],annotate_line=annotate_line,
-				label=self.safeLabel(None,i),points=points,ylog=ylog,num_labels=num_labels,
-				linestyle=linestyle,xrev=xrev,xlog=xlog,ind=mInd)
+				ymin=y1rng[0],ymax=y1rng[1],annotate_line=annotate_line,
+				label=self.safeLabel(None,i),points=points,ylog=y1log,num_labels=num_labels,
+				linestyle=linestyle,xrev=xrev,xlog=xlog,ind=mInd,linecol=linecol)
 			
 		if show_burn:
 			self._plotBurnRegions(m,ax,x,m.prof.data[i],show_line=show_burn_line,show_x=show_burn_x,ind=mInd)
@@ -1484,11 +1495,11 @@ class plot(object):
 		if show_mix:
 			self._plotMixRegions(m,ax,x,m.prof.data[i],show_line=show_mix_line,show_x=show_mix_x,ind=mInd)
 	
-		if show_burn or show_mix:
-			self._showBurnMixLegend(ax,burn=show_burn,mix=show_mix)
+		if show_burn_labels or show_mix_labels:
+			self._showBurnMixLegend(ax,burn=show_burn_labels,mix=show_mix_labels)
 
 		if show_core_loc:
-			self._plotCoreLoc(m.prof,ax,xaxis,px,ax.get_ylim()[0],ax.get_ylim()[1])
+			self._plotCoreLoc(m.prof,ax,xaxis,x,ax.get_ylim()[0],ax.get_ylim()[1])
 	
 		if show_shock:
 			self._showShockLoc(m.prof,fig,ax,x,ax.get_ylim(),mInd)
@@ -1498,38 +1509,43 @@ class plot(object):
 
 			
 		self._setXLabel(fig,ax,xlabel,xaxis)
-		self._setYLabel(fig,ax,ylabel,i)
+		self._setYLabel(fig,ax,y1label,i)
 			
 		
 		if title is not None:
 			ax.set_title(title)
 		elif show_title_name or show_title_model or show_title_age:
-			self.setTitle(ax,show_title_name,show_title_model,show_title_age,ylabel,m.prof.head["model_number"],m.prof.head["star_age"])
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		
 		if show:
 			plt.show()
 			
-	def _plotMultiHist(self,m,list_y=[],model=None,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[None,None],ylog=False,
+	def _plotMultiHist(self,m,list_y=[],model=None,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,y1rng=[None,None],y1log=False,
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
-					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,
-					show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,ylabel=None,
+					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,y1col='k',
+					show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,y1label=None,
 					y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
 		
 		x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
 		
-		if rand_col:
-			random.shuffle(list_y)
+		num_plots=len(list_y)
+		if num_plots>1:
+			self._cycleColors(ax,colors,cmap,num_plots)
+			linecol=None
+		else:
+			linecol=y1col
 				
+		
 		self._cycleColors(ax,colors,cmap,len(list_y))
 			
 		for i in list_y:
 			self._plotAnnotatedLine(ax=ax,x=x,y=m.hist.data[i],fy=fy,xmin=xrngL[0],
-									xmax=xrngL[1],ymin=yrng[0],ymax=yrng[1],
+									xmax=xrngL[1],ymin=y1rng[0],ymax=y1rng[1],
 									annotate_line=annotate_line,label=self.safeLabel(None,i),
-									points=points,ylog=ylog,num_labels=num_labels,xlog=xlog,xrev=xrev,ind=mInd)
+									points=points,ylog=y1log,num_labels=num_labels,xlog=xlog,xrev=xrev,ind=mInd,linecol=linecol)
 			
 		if y2 is not None:
 			self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
@@ -1538,16 +1554,16 @@ class plot(object):
 			self._showMassLocHist(m,fig,ax,x,y,mInd)
 		
 		self._setXLabel(fig,ax,xlabel,xaxis)
-		self._setYLabel(fig,ax,ylabel,i)
+		self._setYLabel(fig,ax,y1label,i)
 
 		if show:
 			plt.show()
 			
-	def plotAbun(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[10**-3,1.0],
+	def plotAbun(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[10**-3,1.0],
 				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,abun=None,rand_col=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_core_loc=False,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None,ylabel=r'Abundance',title=None,show_shock=False,
+				colors=None,y1label=r'Abundance',title=None,show_shock=False,show_burn_labels=False,show_mix_labels=False,
 				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
 				show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,):
 		
@@ -1562,12 +1578,12 @@ class plot(object):
 		if len(log)>0:
 			abun_log=False
 			
-		self._plotMultiProf(m,list_y=abun_list,ylog=abun_log,_axlabel='abun',
-							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
+		self._plotMultiProf(m,list_y=abun_list,y1log=abun_log,_axlabel='abun',
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,y1rng=y1rng,
 							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
 							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
 							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
-							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,
+							colors=colors,y1label=y1label,title=title,show_shock=show_shock,
 							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)
 				
 			
@@ -1902,16 +1918,16 @@ class plot(object):
 		if show:
 			plt.show()
 						
-	def plotAbunHist(self,m,prefix='center_',show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[10**-5,1.0],ylog=True,
+	def plotAbunHist(self,m,prefix='center_',show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,y1rng=[10**-5,1.0],y1log=True,
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
-					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,ylabel='Abundance',
+					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,y1label='Abundance',
 					show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,
 					y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		abun_list=self._listAbun(m.hist,prefix=prefix)
 
 		self._plotMultiHist(m,list_y=abun_list,show=show,ax=ax,xaxis=xaxis,
-							xmin=xmin,xmax=xmax,yrng=yrng,ylog=ylog,ylabel=ylabel,
+							xmin=xmin,xmax=xmax,y1rng=y1rng,y1log=y1log,y1label=y1label,
 							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
 							fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,
 							show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
@@ -2000,7 +2016,7 @@ class plot(object):
 				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None,ylabel=r'Angular Momentum',title=None,show_shock=False,
+				colors=None,y1label=r'Angular Momentum',title=None,show_shock=False,show_burn_labels=False,show_mix_labels=False,
 				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
 				show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,):
 		
@@ -2009,62 +2025,62 @@ class plot(object):
 			if "am_log_D" in i:
 				list_y.append(i)
 			
-		self._plotMultiProf(m,list_y=list_y,ylog=True,_axlabel='angmom',
-							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
+		self._plotMultiProf(m,list_y=list_y,y1log=True,_axlabel='angmom',
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,y1rng=y1rng,
 							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
 							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
 							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
-							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,
+							colors=colors,y1label=y1label,title=title,show_shock=show_shock,show_burn_labels=show_burn_labels,show_mix_labels=show_mix_labels,
 							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
 			
 			
-	def plotBurn(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[1.0,10**10],
+	def plotBurn(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[1.0,10**10],
 				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_core_loc=False,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None,ylabel=r'$\epsilon$',title=None,show_shock=False,
+				colors=None,y1label=r'$\epsilon$',title=None,show_shock=False,show_burn_labels=False,show_mix_labels=False,
 				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		list_y=self._listBurn(m.prof)
 			
-		self._plotMultiProf(m,list_y=list_y,ylog=True,_axlabel='burn',
-							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
+		self._plotMultiProf(m,list_y=list_y,y1log=True,_axlabel='burn',
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,y1rng=y1rng,
 							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
 							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
 							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
-							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,show_core_loc=show_core_loc,
+							colors=colors,y1label=y1label,title=title,show_shock=show_shock,show_core_loc=show_core_loc,show_burn_labels=show_burn_labels,show_mix_labels=show_mix_labels,
 							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)			
 			
-	def plotMix(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[1.0,20],
+	def plotMix(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[1.0,20],
 				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_core_loc=False,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
-				colors=None,ylabel=r'Mixing',title=None,show_shock=False,
+				colors=None,y1label=r'Mixing',title=None,show_shock=False,show_burn_labels=False,show_mix_labels=False,
 				y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
 				show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,):
 		
 		list_y=self._listMix(m.prof)
 			
 		self._plotMultiProf(m,list_y=list_y,_axlabel='mix',
-							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,y1rng=y1rng,
 							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
 							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
 							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
-							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,show_core_loc=show_core_loc,
+							colors=colors,y1label=y1label,title=title,show_shock=show_shock,show_core_loc=show_core_loc,show_burn_labels=show_burn_labels,show_mix_labels=show_mix_labels,
 							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)
 
-	def plotBurnHist(self,m,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,yrng=[1,10**10],ylog=True,
+	def plotBurnHist(self,m,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,y1rng=[1,10**10],y1log=True,
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
-					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,ylabel=r'$\epsilon$',
+					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,y1label=r'$\epsilon$',
 					show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,
 					y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		burn_list=self._listBurnHistory(m.hist)
 
 		self._plotMultiHist(m,list_y=burn_list,show=show,ax=ax,xaxis=xaxis,
-							xmin=xmin,xmax=xmax,yrng=yrng,ylog=ylog,
+							xmin=xmin,xmax=xmax,yrng=y1rng,ylog=y1log,
 							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
-							fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,ylabel=ylabel,
+							fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,y1label=y1label,
 							show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
 							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
 
@@ -2074,34 +2090,36 @@ class plot(object):
 					show_burn=False,show_burn_x=False,show_burn_line=False,
 					show_mix=False,show_mix_x=False,show_mix_line=False,
 					y1Textcol=None,y2Textcol=None,fig=None,y1rng=[None,None],y2rng=[None,None],
-					fx=None,fy1=None,fy2=None,
+					fx=None,fy1=None,fy2=None,show_burn_labels=False,show_mix_labels=False,
 					show_title_name=False,title_name=None,show_title_model=False,show_title_age=False,
-					y1linelabel=None,show_core_loc=False,show_shock=False,yrng=None):
+					y1linelabel=None,show_core_loc=False,show_shock=False,title=None):
 		
 		list_y=[y1]
 		
-		self._plotMultiProf(m,list_y=list_y,ylog=abun_log,_axlabel='profile',
-							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,yrng=yrng,
-							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
-							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,show_core_loc=show_core_loc,
-							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
-							colors=colors,ylabel=ylabel,title=title,show_shock=show_shock,
+		self._plotMultiProf(m,list_y=list_y,y1log=y1log,_axlabel='profile',
+							show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,y1rng=y1rng,
+							y1col=y1col,xlabel=xlabel,points=points,annotate_line=False,
+							show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy1,show_core_loc=show_core_loc,
+							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,
+							y1label=y1label,title=title,show_shock=show_shock,show_burn_labels=show_burn_labels,show_mix_labels=show_mix_labels,
+							show_mix_line=show_mix_line,show_burn_line=show_burn_line,show_mix_x=show_mix_x,show_burn_x=show_burn_x,
 							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)
 	
 	def plotHistory(self,m,xaxis='model_number',y1='star_mass',y2=None,show=True,
-					ax=None,xmin=None,xmax=None,xlog=False,y1log=False,
+					ax=None,xmin=None,xmax=None,xlog=False,y1log=False,y1rng=[None,None],
 					y2log=False,y1col='b',y2col='r',minMod=0,maxMod=-1,xrev=False,
 					y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,
-					y2label=None,fig=None,y1rng=[None,None],y2rng=[None,None],
-					fx=None,fy1=None,fy2=None,show_core=False,y1Textcol=None,y2Textcol=None):
+					y2label=None,fig=None,y2rng=[None,None],
+					fx=None,fy1=None,fy2=None,show_core=False,y1Textcol=None,y2Textcol=None,
+					show_title_name=False):
 		
 		list_y=[y1]
 		
 		self._plotMultiHist(m,list_y=list_y,show=show,ax=ax,xaxis=xaxis,
-							xmin=xmin,xmax=xmax,yrng=yrng,ylog=ylog,
-							cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
-							fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,
-							show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
+							xmin=xmin,xmax=xmax,y1rng=y1rng,y1log=y1log,
+							xlabel=xlabel,points=points,
+							fig=fig,fx=fx,fy=fy1,minMod=minMod,maxMod=maxMod,annotate_line=False,
+							show_title_name=show_title_name,show_core=show_core,
 							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
 
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ax=None,xrng=[None,None],mix=None,show_mix=True,
@@ -2511,9 +2529,9 @@ class plot(object):
 		return data_z,lin_x,data_y2
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None,yrng=[None,None],
-				show_burn=False,show_mix=False,
+				show_burn=False,show_mix=False,show_burn_labels=False,show_mix_labels=False,
 				showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,
-				showGamma=False,showEOS=False,logT=False,logRho=False,
+				showGamma=False,showEOS=False,logT=False,logRho=False,title=None,
 				ycol='k'):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
@@ -2537,9 +2555,10 @@ class plot(object):
 			ylog=True
 	
 		self.plotProfile(m,xaxis=xname,y1=yname,y1log=ylog,xlog=xlog,model=model,show=False,
-               show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,
+               show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,show_mix_x=False,show_burn_x=False,
                xmin=xmin,xmax=xmax,ax=ax,y1label=self.labels('teff',log=True),
-               xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col=ycol)
+               xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col=ycol,
+               show_burn_labels=show_burn_labels,show_mix_labels=show_mix_labels,title=title)
 
 		if showBurn or showAll:
 			self._showBurnData(ax)
