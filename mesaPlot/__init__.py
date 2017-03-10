@@ -2521,11 +2521,7 @@ class plot(object):
 			data_z2[i,:]=f(data_y2)
 
 		lin_x=np.linspace(np.nanmin(data_x),np.nanmax(data_x),num_x_zones)
-		sorter=np.argsort(data_x)
-		
-		ind=np.searchsorted(data_x,lin_x,sorter=sorter)
-		data_z=data_z2[sorter[ind],:]
-		data_z=np.array(data_z)
+		data_z=self._rebinKipDataX(data_z2,lin_x)
 		return data_z,lin_x,data_y2
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None,yrng=[None,None],
