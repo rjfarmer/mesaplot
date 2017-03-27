@@ -112,13 +112,28 @@ class data(object):
 		else:
 			raise AttributeError
 
-	def loadFile(self,filename,max_num_lines=-1):
+	def loadFile(self,filename,max_num_lines=-1,cols=None):
 		numLines=self._filelines(filename)
 		self.head=np.genfromtxt(filename,skip_header=1,skip_footer=numLines-4,names=True)
 		skip_lines=0
 		if max_num_lines > 0 and max_num_lines<numLines:
 			skip_lines=numLines-max_num_lines
-		self.data=np.genfromtxt(filename,skip_header=5,names=True,skip_footer=skip_lines)
+			
+		#Just the names
+		names=np.genfromtxt(filename,skip_header=5,names=True,skip_footer=numLines-5)
+		names=names.dtype.names
+			
+		usecols=None
+		if cols is not None:
+			if ('model_number' not in cols and 'model_number' in names):
+				cols.append('model_number')
+			if ('zone' not in cols and 'zone' in names):
+				cols.append('zone')
+			
+			colsSet=set(cols)
+			usecols=[i for i, e in enumerate(names) if e in colsSet]
+			
+		self.data=np.genfromtxt(filename,skip_header=5,names=True,skip_footer=skip_lines,usecols=usecols)
 		self.head_names=self.head.dtype.names
 		self.data_names=self.data.dtype.names
 		self._loaded=True
@@ -145,7 +160,7 @@ class MESA(object):
 		self.cache_limit=100
 		self._cache_wd=''
 	
-	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1):
+	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=None):
 		"""
 		Reads a MESA history file.
 		
@@ -154,6 +169,8 @@ class MESA(object):
 		not set trys the folder LOGS/
 		filename_in: Reads the file given by name
 		max_model: Maximum model to read into, may help when having to clean files with many retres, backups and restarts by not proccesing data beyond max_model
+		cols: If none returns all columns, else if set as a list only stores those columns
+		
 		
 		Returns:
 		self.hist.head: The header data in the history file as a structured dtype
@@ -176,7 +193,7 @@ class MESA(object):
 		else:
 			filename=filename_in
 
-		self.hist.loadFile(filename,max_num_lines)
+		self.hist.loadFile(filename,max_num_lines,cols)
 		
 		if max_model>0:
 			self.hist.data=self.hist.data[self.hist.model_number<=max_model]
@@ -206,7 +223,7 @@ class MESA(object):
 				print(' '.join([str(self.hist.data[i][j]) for i in self.hist.data_names]),file=f)	
 	
 		
-	def loadProfile(self,f='',num=None,prof=None,mode='nearest',silent=False,cache=True):
+	def loadProfile(self,f='',num=None,prof=None,mode='nearest',silent=False,cache=True,cols=None):
 		if num is None and prof is None:
 			self._readProfile(f) #f is a filename
 			return
@@ -252,7 +269,7 @@ class MESA(object):
 		filename=f+"/profile"+str(int(profile_num))+".data"
 		if not silent:
 			print(filename)
-		self._readProfile(filename,cache=cache)
+		self._readProfile(filename,cache=cache,cols=cols)
 		return
 			
 	#def loadMod(self,filename=None):
@@ -325,7 +342,7 @@ class MESA(object):
 	def _loadProfileIndex(self,f):
 		self.prof_ind=np.genfromtxt(f+"/profiles.index",skip_header=1,names=["model","priority","profile"])
 
-	def _readProfile(self,filename,cache=True):
+	def _readProfile(self,filename,cache=True,cols=None):
 		"""
 		Reads a MESA profile file.
 		
@@ -349,7 +366,7 @@ class MESA(object):
 			self.prof=self._cache_prof[self._cache_prof_name.index(filename)]
 		else:
 			x=data()
-			x.loadFile(filename)
+			x.loadFile(filename,cols=cols)
 			if cache:
 				if len(self._cache_prof_name)==self.cache_limit:
 					self._cache_prof.pop(0)
@@ -844,7 +861,7 @@ class plot(object):
 		ax.xaxis.set_minor_locator(AutoMinorLocator(10))
 	
 	def _plotBurnRegions(self,m,ax,x,y,show_x,show_line,yrng=None,ind=None):
-		# non 0.0, yellow 1, ornage 10**4, red 10**7
+		# non 0.0, yellow 1, orange 10**4, red 10**7
 		ylim=ax.get_ylim()
 		
 		if show_x:
