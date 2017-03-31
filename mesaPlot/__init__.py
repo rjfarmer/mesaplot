@@ -169,7 +169,8 @@ class MESA(object):
 		not set trys the folder LOGS/
 		filename_in: Reads the file given by name
 		max_model: Maximum model to read into, may help when having to clean files with many retres, backups and restarts by not proccesing data beyond max_model
-		cols: If none returns all columns, else if set as a list only stores those columns
+		max_num_lines: Maximum number of lines to read from the file, maps ~maxium model number but not quite (retrys, backups and restarts effect this)
+		cols: If none returns all columns, else if set as a list only stores those columns, will allways add model_number to the list
 		
 		
 		Returns:
@@ -348,6 +349,10 @@ class MESA(object):
 		
 		Required:
 		filename: Path to profile to read
+		
+		Optional:
+		cache: If true caches the profile data so multiple profile loads do not need to rerad the data
+		cols: cols: If none returns all columns, else if set as a list only stores those columns, will allways add zone to the list of columns
 		
 		Returns:
 		self.prof.head: The header data in the profile as a structured dtype
