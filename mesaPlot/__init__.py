@@ -1546,7 +1546,7 @@ class plot(object):
 	def _plotMultiHist(self,m,list_y=[],model=None,show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,y1rng=[None,None],y1log=False,
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
 					fig=None,fx=None,fy=None,minMod=-1,maxMod=-1,y1col='k',
-					show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,y1label=None,
+					show_title_name=False,title=None,annotate_line=True,linestyle='-',colors=None,show_core=False,y1label=None,
 					y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
 		
 		fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
@@ -1577,6 +1577,12 @@ class plot(object):
 		
 		self._setXLabel(fig,ax,xlabel,xaxis)
 		self._setYLabel(fig,ax,y1label,i)
+		
+		if title is not None:
+			ax.set_title(title)
+		elif show_title_name:
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'',show_title_model=False,show_title_age=False)
+		
 
 		if show:
 			plt.show()
@@ -1610,7 +1616,7 @@ class plot(object):
 				
 			
 	def plotAbunByA(self,m,m2=None,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
-					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
+					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
 					line_labels=True,yrng=None):
 		
@@ -1710,8 +1716,10 @@ class plot(object):
 			ax.set_ylabel(r'$\log_{10}$ Abundance')
 		else:
 			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}_1}{\rm{Abun}_2}\right)$')
-		
-		if show_title_name or show_title_model or show_title_age:
+
+		if title is not None:
+			ax.set_title(title)		
+		elif show_title_name or show_title_model or show_title_age:
 			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		ax.set_xlim(0,ax.get_xlim()[1])
@@ -1726,7 +1734,7 @@ class plot(object):
 
 
 	def plotAbunByA_Stable(self,m,m2=None,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,mass_range2=None,abun=None,
-					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
+					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
 					line_labels=True,yrng=None):
 		
@@ -1843,8 +1851,10 @@ class plot(object):
 			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}}{\rm{Abun}_{Sol}}\right)$')
 		else:
 			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{m_1}}{\rm{m}_{2}}\right)$')
-		
-		if show_title_name or show_title_model or show_title_age:
+
+		if title is not None:
+			ax.set_title(title)		
+		elif show_title_name or show_title_model or show_title_age:
 			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		ax.set_xlim(0,ax.get_xlim()[1])
@@ -1859,7 +1869,7 @@ class plot(object):
 
 			
 	def plotAbunPAndN(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
-					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,
+					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.jet,colors=None,abun_random=False,abun_scaler=None,line_labels=True,mass_frac_lim=10**-10):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
@@ -1936,6 +1946,11 @@ class plot(object):
 		ax.set_ylabel('Protons')
 		ax.set_xlim(neutron.min()-1,neutron.max()+1)
 		ax.set_ylim(proton.min()-1,proton.max()+1)
+		
+		if title is not None:
+			ax.set_title(title)		
+		elif show_title_name or show_title_model or show_title_age:
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Network',m.prof.head["model_number"],m.prof.head["star_age"])
 
 		if show:
 			plt.show()
@@ -1957,7 +1972,7 @@ class plot(object):
 									
 									
 	def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=None,y2rng=None,
-					show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,
+					show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,title=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,show_rotation=True,show_shock=False):
 
 
@@ -2028,7 +2043,11 @@ class plot(object):
 		ax.set_xlim(xrngL)
 		self._setYLim(ax,ax.get_ylim(),y1rng)
 		self._setYLim(ax2,ax2.get_ylim(),y2rng)
-		self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Dynamo',m.prof.head["model_number"],m.prof.head["star_age"])
+		
+		if title is not None:
+			ax.set_title(title)		
+		elif show_title_name or show_title_model or show_title_age:
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Dynamo',m.prof.head["model_number"],m.prof.head["star_age"])
 		
 		
 		if show:
@@ -2370,6 +2389,9 @@ class plot(object):
 		
 		self._setTicks(ax)
 		
+		if title is not None:
+			ax.set_title(title)		
+
 		if show:
 			plt.show()
 			
