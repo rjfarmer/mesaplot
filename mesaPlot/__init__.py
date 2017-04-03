@@ -1339,7 +1339,7 @@ class plot(object):
 				ax.set_xscale("log", nonposx='clip')
 			if ylog:
 				ax.set_yscale("log", nonposx='clip')
-				if np.all(y)<=0:
+				if np.all(y<=0):
 					return
 				
 			if fy is not None:
