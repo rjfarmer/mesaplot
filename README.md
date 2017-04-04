@@ -261,6 +261,13 @@ p.plotAbunPAndN(m)
 
 ![Nuclear abundances plot](/examples/abun_bypandn.png?raw=true "Nuclear chart")
 
+````python
+import mesaPlot as mp
+m=mp.MESA()
+p=mp.plot()
+m.loadProfile(num=-1)
+p.plotAbunPAndN(m,plot_type='history',model=1000,prefix='log_center_')
+````
 
 ````python
 import mesaPlot as mp

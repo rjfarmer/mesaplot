@@ -1767,6 +1767,17 @@ class plot(object):
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
 					line_labels=True,yrng=[None,None],ind=None,ind2=None,mass_range2=None,stable=False):
 		
+		data,data2,ind,ind2,age,model=self._abunPlotSetup(m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2)
+			
+		self._plotAbunByA(data=data,data2=data2,
+					prefix=prefix,show=show,ax=ax,xmin=xmin,xmax=xmax,abun=abun,fig=fig,
+					show_title_name=show_title_name,show_title_model=show_title_model,
+					show_title_age=show_title_age,title=title,
+					cmap=cmap,colors=colors,abun_random=abun_random,
+					line_labels=line_labels,yrng=yrng,stable=stable,ind=ind,ind2=ind2,
+					age=age,model_number=model)
+
+	def _abunPlotSetup(self,m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2):
 		data=None
 		data2=None
 		
@@ -1809,100 +1820,105 @@ class plot(object):
 				
 			age=m.prof.star_age
 			model=m.prof.model_number
-			
-		self._plotAbunByA(data=data,data2=data2,
-					prefix=prefix,show=show,ax=ax,xmin=xmin,xmax=xmax,abun=abun,fig=fig,
-					show_title_name=show_title_name,show_title_model=show_title_model,
-					show_title_age=show_title_age,title=title,
-					cmap=cmap,colors=colors,abun_random=abun_random,
-					line_labels=line_labels,yrng=yrng,stable=stable,ind=ind,ind2=ind2,
-					age=age,model_number=model)
+
+		return data,data2,ind,ind2,age,model
 
 
+	def plotAbunPAndN(self,m,plot_type='profile',model=-1,show=True,ax=None,xmin=None,xmax=None,ymin=None,ymax=None,
+					mass_range=None,abun=None,ind=None,
+					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
+					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],prefix=''):
+
+		data,data2,ind,ind2,age,model=self._abunPlotSetup(m,None,plot_type,model,-1,ind,None,mass_range,None)
 			
-	def plotAbunPAndN(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
-					num_labels=3,fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
-					cmap=plt.cm.jet,colors=None,abun_random=False,abun_scaler=None,line_labels=True,mass_frac_lim=10**-10):
+		self._plotAbunPAndN(data,show=show,ax=ax,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,abun=abun,ind=ind,
+					fig=fig,show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,title=title,
+					cmap=cmap,mass_frac_rng=mass_frac_rng,
+					model_number=model,age=age,prefix=prefix)
+			
+
+			
+	def _plotAbunPAndN(self,data,show=True,ax=None,xmin=None,xmax=None,ind=None,abun=None,ymin=None,ymax=None,
+					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
+					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],
+					model_number=-1,age=-1,prefix='',element_names=True):
 		
-		fig,ax=self._setupProf(fig,ax,m,model)
-				
-		if mass_range is None:
-			ymin=0.0
-			ymax=m.prof.star_mass
-		else:
-			ymin=mass_range[0]
-			ymax=mass_range[1]
+		fig,ax=self._setupPlot(fig,ax)	
 		
 		if abun is None:
-			abun_list=self._listAbun(m.prof)
-			log=''
+			abun_names=self._listAbun(data,prefix=prefix)
 		else:
-			abun_list=abun
-			log=""
+			abun_names=abun
 			
-		abun_log=True
-		if len(log)>0:
-			abun_log=False
+		log_abun=False
+		if 'log' in prefix:
+			log_abun=True
 			
-		massInd=(m.prof.mass>=ymin)&(m.prof.mass<=ymax)
-		
-		if xmin is None:
-			xmin=-1
-		if xmax is None:
-			xmax=999999
-		
 		name_all=[]
-		name=[]
+		names=[]
 		proton=[]
 		neutron=[]
-		for i in abun_list:
-			na,pr,ne=self._getIso(i)
-			name.append(na)
-			proton.append(pr)
-			neutron.append(ne)
-
+		mass=[]
+		for i in abun_names:
+			na,pr,ne=self._getIso(i,prefix=prefix)
+			names.append(na)
+			proton.append(int(pr))
+			neutron.append(int(ne))
+			mass.append(self._getMassFrac(data,i,ind,log_abun))
 	
 		proton=np.array(proton)
 		neutron=np.array(neutron)
+		mass=np.log10(np.array(mass))
+	
+		if xmin is None:
+			xmin=np.min(neutron)-5
+		if xmax is None:
+			xmax=np.max(neutron)+1
+		
+		if ymin is None:
+			ymin=np.min(proton)-1
+			
+		if ymax is None:
+			ymax=np.max(proton)+1
+
+	
+		min_col=np.log10(mass_frac_rng[0])
+		max_col=np.log10(mass_frac_rng[1])
+
+		for idx,i in enumerate(abun_names):
+			if 'neut' in i or 'prot' in i:
+				continue
+			if proton[idx]>ymin and proton[idx]<=ymax and neutron[idx]>xmin and neutron[idx]<=xmax:			
+				if mass[idx]>=min_col and mass[idx]<=max_col:
+					ax.add_patch(mpl.patches.Rectangle((float(neutron[idx]-0.5),float(proton[idx]-0.5)),1.0,1.0,facecolor=cmap((mass[idx]-min_col)/(max_col-min_col))))
+				else:
+					ax.add_patch(mpl.patches.Rectangle((float(neutron[idx]-0.5),float(proton[idx]-0.5)),1.0,1.0,fill=False))
+			
+		if element_names:
+			uniq_names=set(names)
+			for i in uniq_names:
+				if i == 'neut':
+					continue
+				ax.text(-2,self.elements.index(i)-0.25,i.title(),fontsize=14).set_clip_on(True)
+			
+		norm = mpl.colors.Normalize(vmin=min_col, vmax=max_col)
 		
 		outArr=np.zeros((10,10))
 		outArr[:]=np.nan
-	
-		mf=[]	
-		for i in abun_list:
-			na,pr,ne=self._getIso(i)
-			idx=name.index(na)
-			massFrac=np.log10(np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd])))
-			mf.append(massFrac)
-		
-		min_col=np.maximum(np.log10(mass_frac_lim),np.min(mf))
-		max_col=np.minimum(np.max(mf),0.0)
-
-		for i in abun_list:
-			na,pr,ne=self._getIso(i)
-			idx=name.index(na)
-			massFrac=np.log10(np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd])))
-			if massFrac >=np.log10(mass_frac_lim):
-				ax.add_patch(mpl.patches.Rectangle((float(ne-0.5),float(pr-0.5)),1.0,1.0,facecolor=cmap((massFrac-min_col)/(max_col-min_col))))
-			else:
-				ax.add_patch(mpl.patches.Rectangle((float(ne-0.5),float(pr-0.5)),1.0,1.0,fill=False))
-			#outArr[ne,pr]=massFrac
-			
-		norm = mpl.colors.Normalize(vmin=min_col, vmax=max_col)
 		im=ax.imshow(outArr, aspect='auto',cmap=cmap, norm=norm)
 		cb = fig.colorbar(im,ax=ax,cmap=cmap,norm=norm)
 		cb.solids.set_edgecolor("face")
-		cb.set_label('Log Mass Frac')
+		cb.set_label(r'$\log_{10}\,$ \rm{Mass Frac}')
 
 		ax.set_xlabel('Neutrons')
 		ax.set_ylabel('Protons')
-		ax.set_xlim(neutron.min()-1,neutron.max()+1)
-		ax.set_ylim(proton.min()-1,proton.max()+1)
+		ax.set_xlim(xmin,xmax)
+		ax.set_ylim(ymin,ymax)
 		
 		if title is not None:
 			ax.set_title(title)		
 		elif show_title_name or show_title_model or show_title_age:
-			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Network',m.prof.head["model_number"],m.prof.head["star_age"])
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Network',model_number,age)
 
 		if show:
 			plt.show()
