@@ -72,6 +72,7 @@ class data(object):
 		self.data={}
 		self.head={}
 		self._loaded=False
+		self._mph=''
 		
 	def __getattr__(self, name):
 		x=None
@@ -113,14 +114,22 @@ class data(object):
 			raise AttributeError
 			
 	def __getitem__(self,key):
-		if key> np.size(self.data[self.data_names[0]]):
+		tmp=data()
+		if key > np.size(self.data[self.data_names[0]]):
 			raise IndexError
 		elif key <0:
-			return self.data[key-1:key]
+			x=self.data[key-1:key]
 		else:
-			return self.data[key:key+1]
+			x=self.data[key:key+1]
 		
-
+		tmp.data=np.array(x,dtype=self.data.dtype)
+		tmp.head=self.head
+		tmp._loaded=True
+		tmp._mph=self._mph
+		tmp.data_names=self.data_names
+		tmp.head_names=self.head_names
+		return tmp
+		
 	def loadFile(self,filename,max_num_lines=-1,cols=None):
 		numLines=self._filelines(filename)
 		self.head=np.genfromtxt(filename,skip_header=1,skip_footer=numLines-4,names=True)
@@ -168,6 +177,9 @@ class MESA(object):
 		self.clearProfCache()
 		self.cache_limit=100
 		self._cache_wd=''
+	
+		self.hist._mph='history'
+		self.prof._mph='profile'
 	
 	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=None):
 		"""
@@ -218,7 +230,6 @@ class MESA(object):
 		mod_rev=self.hist.model_number[::-1]
 		mod_uniq,mod_ind=np.unique(mod_rev,return_index=True)
 		self.hist.data=self.hist.data[np.size(self.hist.model_number)-mod_ind-1]
-
 		
 	def scrubHistory(self,f="",fileOut="LOGS/history.data.scrubbed"):
 		self.loadHistory(f)
@@ -806,21 +817,22 @@ class plot(object):
 					abun_list.append(j)
 		return abun_list
 	
-	def _splitIso(self,iso):
+	def _splitIso(self,iso,prefix=''):
 		name=''
 		mass=''
+		iso=iso[len(prefix):]
 		for i in iso:
 			if i.isdigit():
 				mass+=i
 			else:
 				name+=i
-		if name=='neut' or name=='prot':
+		if 'neut' in name or 'prot' in name:
 			mass=1
 		return name,int(mass)
 	
-	def _getIso(self,iso):
-		name,mass=self._splitIso(iso)
-		if name=='prot':
+	def _getIso(self,iso,prefix=''):
+		name,mass=self._splitIso(iso,prefix)
+		if 'prot' in name:
 			p=1
 			n=0
 		else:
@@ -1247,18 +1259,28 @@ class plot(object):
 			xx=[xaxis[ind][k],xaxis[ind][k]]
 			ax.plot(xx,yrng,'--',color=self.colors['clr_DarkGray'],linewidth=2)
 			
-	def _getMassFrac(self,m,i,massInd):
-		return np.sum(m.prof.data[i][massInd]*10**(m.prof.logdq[massInd]))
+	def _getMassFrac(self,data,i,ind,log=False):
+		if data._mph=='profile':
+			scale=10**(data.data['logdq'][ind])
+		else:
+			scale=1.0
+			
+		if log:
+			x=np.sum(10**data.data[i][ind]*scale)
+		else:
+			x=np.sum(data.data[i][ind]*scale)
 		
-	def _getMassIso(self,m,i,massInd):
+		return x
+		
+	def _getMassIso(self,data,i,massInd,log=False):
 		mcen=0.0
 		try:
-			mcen=m.prof.M_center
+			mcen=data.M_center
 		except AttributeError:
 			pass
-		mass=m.prof.star_mass-mcen/self.msun	
+		mass=data.star_mass-mcen/self.msun	
 			
-		return self._getMassFrac(m,i,massInd)*mass
+		return self._getMassFrac(data,i,ind,log=log)*mass
 		
 	def _addExtraLabelsToAxis(self,fig,labels,colors=None,num_left=0,num_right=0,left_pad=85,right_pad=85):
 
@@ -1337,7 +1359,7 @@ class plot(object):
 			ax.set_title(s,loc="left",fontsize=fontOther)
 			
 
-	def _plotAnnotatedLine(self,ax,x,y,fy,xmin,xmax,ymin=None,ymax=None,annotate_line=False,label=None,
+	def _plotAnnotatedLine(self,ax,x,y,xmin,xmax,fy=None,ymin=None,ymax=None,annotate_line=False,label=None,
 							points=False,xlog=False,ylog=False,xrev=False,yrev=False,linecol=None,
 							linewidth=2,num_labels=5,linestyle='-',ind=None):
 			if ind is not None:
@@ -1393,16 +1415,20 @@ class plot(object):
 			#self._setTicks(ax)
 	
 			return x,y
+			
+	def _setupPlot(self,fig,ax):
+		if fig is None:
+			fig=plt.figure(figsize=(12,12))
+		if ax is None:
+			ax=fig.add_subplot(111)
+		return fig,ax
 		
 	def _setupHist(self,fig,ax,m,minMod,maxMod):
 		
 		if m.hist._loaded is False:
 			raise ValueError("Must call loadHistory first")
 		
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111)
+		fig,ax=self._setupPlot(fig,ax)
 		
 		if maxMod<0:
 			maxMod=m.hist.data["model_number"][-1]
@@ -1415,11 +1441,7 @@ class plot(object):
 		if m.prof._loaded is False:
 			raise ValueError("Must call loadProfile first")
 		
-		if fig==None:
-			fig=plt.figure(figsize=(12,12))
-		if ax==None:
-			ax=fig.add_subplot(111,label=label)
-		#m.loadProfile(num=int(model))
+		fig,ax=self._setupPlot(fig,ax)
 		
 		if model is not None:
 			try:
@@ -1456,18 +1478,17 @@ class plot(object):
 		plt.sca(ax)
 
 
-	def _decay2Stable(self,m,massInd):
-		abun_list=self._listAbun(m.prof)
-		
+	def _decay2Stable(self,data,abun_list,ind,log=False,prefix=''):
 		res=[]
 		for i,j,p in zip(self.stable_isos,self._stable_a,self._stable_charge):
 			res.append({'name':i,'p':p,'a':j,'mass':0})
 
 		msum=0
+		mass=np.zeros(len(abun_list))
 		for i in abun_list:
-			element,p,n=self._getIso(i)
+			element,p,n=self._getIso(i,prefix=prefix)
 			a=p+n
-			massFrac=self._getMassFrac(m,i,massInd)
+			massFrac=self._getMassFrac(data,i,ind,log=log)
 			for idj,j in enumerate(res):
 				if j['a'] != a:
 					continue
@@ -1475,13 +1496,12 @@ class plot(object):
 					(p>=self._stable_charge[idj] and self._jcode[idj]==1) or 
 					(p<=self._stable_charge[idj] and self._jcode[idj]==2) or 
 					(p==self._stable_charge[idj] and self._jcode[idj]==3)):
-					res[idj]['mass']=res[idj]['mass']+massFrac
+					mass[idj]=mass[idj]+massFrac
 					msum=msum+massFrac
 			
-		for i in res:
-			i['mass']=i['mass']/msum
+		mass=mass/msum
 			
-		return res
+		return mass
 		
 	def get_solar(self):
 		self.is_solar_set()
@@ -1622,85 +1642,89 @@ class plot(object):
 							show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
 							colors=colors,y1label=y1label,title=title,show_shock=show_shock,
 							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)
-				
-			
-	def plotAbunByA(self,m,m2=None,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
+
+
+	def _plotAbunByA(self,data=None,data2=None,prefix='',show=True,ax=None,xmin=None,xmax=None,abun=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
-					line_labels=True,yrng=None):
-		
-		fig,ax=self._setupProf(fig,ax,m,model)
-				
-		if mass_range is None:
-			mass_range=[0.0,m.prof.star_mass]
+					line_labels=True,yrng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,stable=False):
+	
+		fig,ax=self._setupPlot(fig,ax)	
 		
 		if abun is None:
-			abun_list=self._listAbun(m.prof)
-			log=''
+			abun_names=self._listAbun(data,prefix=prefix)
 		else:
-			abun_list=abun
-			log=""
+			abun_names=abun
 			
-		ax.set_yscale('log')
+		log_abun=False
+		if 'log' in prefix:
+			log_abun=True
 			
-		abun_log=True
-		if len(log)>0:
-			abun_log=False
-			
-		massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
-		
-		if m2 is not None:
-			massInd2=(m2.prof.mass>=mass_range[0])&(m2.prof.mass<=mass_range[1])
+		if stable:
+			abun_solar=self.get_solar()
+			abun_data_stable=self._decay2Stable(data,abun_names,ind,log_abun,prefix=prefix)
+			if data2 is not None:
+				abun_data_stable2=self._decay2Stable(data2,abun_names,ind,log_abun,prefix=prefix)
+
+		ele_names=[]
+		iso_mass=[]
+		abun_mass=[]
+		for idx,i in enumerate(abun_names):
+			name,mass=self._splitIso(i,prefix=prefix)
+			if name=='neut' or name=='prot':
+				continue	
+			ele_names.append(name)
+			iso_mass.append(mass)
+			if stable:
+				if abun_data_stable[idx]==0:
+					abun_mass.append(-1)
+				else:
+					abun_mass.append(abun_data_stable[idx])
+			else:
+				abun_mass.append(self._getMassFrac(data,i,ind,log_abun))
+				
+			if data2 is not None:
+				if stable:
+					if abun_data_stable2[idx]==0:
+						abun_mass[-1]=-1
+					else:
+						abun_mass[-1]=abun_mass[-1]/abun_data_stable2[idx]
+				else:
+					xx=self._getMassFrac(data2,i,ind2,log_abun)
+					if xx==0:
+						abun_mass[-1]=-1
+					else:
+						abun_mass[-1]=abun_mass[-1]/self._getMassFrac(data2,i,ind2,log_abun)
+
+		uniq_names=set(i for i in ele_names)
+		sorted_names=sorted(uniq_names,key=self.elements.index)					
+
+		self._cycleColors(ax,colors,cmap,len(uniq_names),abun_random)		
 		
 		if xmin is None:
-			xmin=-1
+			xmin=np.min(iso_mass)-1
 		if xmax is None:
-			xmax=999999
-	
-			
-		data=[]
-		ys=[]
+			xmax=np.max(iso_mass)+1
 		
-		for i in abun_list:
-			name,mass=self._splitIso(i)
-			if name=='neut' or name=='prot':
-				continue
-			if mass >= xmin and mass <= xmax:
-				total_mass=self._getMassFrac(m,i,massInd)
-				total_mass2=1.0
-				if m2 is not None:
-					total_mass2=self._getMassFrac(m2,i,massInd2)
-				data.append({'name':name,'mass':mass,
-							'totmass1':total_mass,
-							'totmass2':total_mass2,
-							'rel':total_mass/total_mass2})
-				ys.append(total_mass/total_mass2)
-		
-		uniq_names=set(dic['name'] for dic in data)
-		sorted_names=sorted(uniq_names,key=self.elements.index)
-		
-		self._cycleColors(ax,colors,cmap,len(uniq_names),abun_random)
-		
-		ymax=np.max(ys)
-		ymin=np.min(ys)
-		
-		if yrng is not None:
-			ymax=yrng[1]
+		abun_mass=np.array(abun_mass)
+		if yrng[0] is None:
+			ymin=np.nanmin(abun_mass[abun_mass>0])
+		else:
 			ymin=yrng[0]
+		if yrng[1] is None:
+			ymax=np.nanmax(abun_mass[abun_mass>0])	
+		else:
+			ymax=yrng[1]
 		
-			
-		levels=[-1,0,1]
-		for idj,j in enumerate(sorted_names):
+		
+		for i in uniq_names:
 			x=[]
 			y=[]
-			line,=ax.plot(1,1)
-			col=line.get_color()
-			for i in data:
-				if i['name']==j:
-					if i['rel']<=ymax and i['rel'] >=ymin:
-						ax.scatter(i['mass'],i['rel'],color=col)
-						x.append(i['mass'])
-						y.append(i['rel'])	
+			for idx,j in enumerate(ele_names):
+				if i==j:
+					x.append(iso_mass[idx])
+					y.append(abun_mass[idx])
+					
 			x=np.array(x)
 			y=np.array(y)
 			if np.size(x)==0:
@@ -1709,19 +1733,23 @@ class plot(object):
 			ind=np.argsort(x)
 			if np.count_nonzero(ind)>1:
 				x=x[ind]
-				y=y[ind]	
-			line,=ax.plot(x,y,linewidth=2,color=col)
-			if np.size(x)>1:
-				f=interp1d(x,y)
-				xx=np.median(x)
-				yy=f(np.median(x))
-			else:
-				xx=x
-				yy=y
-			ax.text(xx,yy,j,color=col,fontsize=14).set_clip_on(True)
+				y=y[ind]
 				
+			
+			ind=(y>=ymin)&(y<=ymax)
+			if np.count_nonzero(ind)>1:
+				x=x[ind]
+				y=y[ind]
+			else:
+				continue
+			
+			
+			self._plotAnnotatedLine(ax=ax,x=x,y=y,ylog=True,ymin=ymin,ymax=ymax,
+									points=True,annotate_line=line_labels,label=i,
+									num_labels=1,xmin=xmin,xmax=xmax)
+	
 		ax.set_xlabel("A")
-		if m2 is None:
+		if data2 is None:
 			ax.set_ylabel(r'$\log_{10}$ Abundance')
 		else:
 			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}_1}{\rm{Abun}_2}\right)$')
@@ -1729,152 +1757,67 @@ class plot(object):
 		if title is not None:
 			ax.set_title(title)		
 		elif show_title_name or show_title_model or show_title_age:
-			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',m.prof.head["model_number"],m.prof.head["star_age"])
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',model,age)
 		
-		ax.set_xlim(0,ax.get_xlim()[1])
-	
-		if yrng is not None:
-			ax.set_ylim(ymin,ymax+0.5*(ymax-ymin))
-		else:
-			ax.set_ylim(ymin,ymax)
-	
 		if show:
-			plt.show()			
-
-
-	def plotAbunByA_Stable(self,m,m2=None,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,mass_range2=None,abun=None,
+			plt.show()		
+			
+	def plotAbunByA(self,m,m2=None,plot_type='profile',prefix='',model=-1,model2=-1,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
-					line_labels=True,yrng=None):
+					line_labels=True,yrng=[None,None],ind=None,ind2=None,mass_range2=None,stable=False):
 		
-		fig,ax=self._setupProf(fig,ax,m,model)
-				
-		if mass_range is None:
-			mass_range=[0.0,m.prof.star_mass]
-			
-		massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
-			
-		ax.set_yscale('log')
-			
-			
-		abun=self._decay2Stable(m,massInd)
+		data=None
+		data2=None
 		
-		abun_solar=self.get_solar()
-		
-		if len(abun_solar) != len(abun):
-			raise ValueError("Bad length for solar data "+len(abun_solar)+","+len(abun))
-		
-		if m2 is not None:
-			if mass_range2 is None:
-				massInd2=(m2.prof.mass>=mass_range[0])&(m2.prof.mass<=mass_range[1])
+		if plot_type=='history':
+			if model > 0:
+				data=m.hist[np.where(m.hist.model_number==model)[0][0]]
 			else:
-				massInd2=(m2.prof.mass>=mass_range2[0])&(m2.prof.mass<=mass_range2[1])
-			abun2=self._decay2Stable(m2,massInd2)
-		else:
-			abun2=[]
-		
-		if xmin is None:
-			xmin=-1
-		if xmax is None:
-			xmax=999999
-	
-			
-		data=[]
-		ys=[]
-		
-		for k in range(len(abun)):
-			i=abun[k]
-			j=abun_solar[k]
-			try:
-				l=abun2[k]
-			except IndexError:
-				l=0
-			name,mass=self._splitIso(i['name'])
-			if mass >= xmin and mass <= xmax:
-				total_mass=i['mass']
-				total_massSol=j['mass']
-				try:
-					total_mass2=l['mass']/total_massSol
-				except TypeError:
-					total_mass2=1.0
-					
-				if total_mass==0.0 and total_mass2==0.0:
-					continue
-					
-				if total_mass==0.0 or total_mass2==0.0:
-					print("Skipping "+i['name']+" mass frac is 0")
-					continue
-				
-				data.append({'name':name,'mass':mass,
-							'totmass1':total_mass,
-							'totmass2':total_mass2,
-							'totmasssol':total_massSol,
-							'rel':(total_mass/total_massSol)/total_mass2})
-				ys.append(data[-1]['rel'])
-		
-		uniq_names=set(dic['name'] for dic in data)
-		sorted_names=sorted(uniq_names,key=self.elements.index)
-		
-		self._cycleColors(ax,colors,cmap,len(uniq_names),abun_random)
-		
-		ymax=np.max(ys)
-		ymin=np.min(ys)
-		
-		if yrng is not None:
-			ymax=yrng[1]
-			ymin=yrng[0]
-		
-		levels=[-1,0,1]
-		for idj,j in enumerate(sorted_names):
-			x=[]
-			y=[]
-			line,=ax.plot(1,1)
-			col=line.get_color()
-			for i in data:
-				if i['name']==j:
-					if i['rel']<=ymax and i['rel'] >=ymin:
-						ax.scatter(i['mass'],i['rel'],color=col)
-						x.append(i['mass'])
-						y.append(i['rel'])	
-			x=np.array(x)
-			y=np.array(y)
-			if np.size(x)==0:
-				continue
-			
-			ind=np.argsort(x)
-			if np.count_nonzero(ind)>1:
-				x=x[ind]
-				y=y[ind]	
-			line,=ax.plot(x,y,linewidth=2,color=col)
-			if np.size(x)>1:
-				f=interp1d(x,y)
-				xx=np.median(x)
-				yy=f(np.median(x))
+				raise ValueError("Must set model")
+			if model2 > 0:
+				data2=m.hist[np.where(m.hist.model_number==model2)[0][0]]
 			else:
-				xx=x
-				yy=y
-			ax.text(xx,yy,j,color=col,fontsize=14).set_clip_on(True)
+				data2=None
 				
-		ax.set_xlabel("A")
-		if m2 is None:
-			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}}{\rm{Abun}_{Sol}}\right)$')
+			ind=None
+			ind2=None
+			
+			age=data.data['star_age']
+			
 		else:
-			ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{m_1}}{\rm{m}_{2}}\right)$')
+			data=m.prof	
+			
+			if m2 is not None:
+				data2=m2.prof
+				
+			if mass_range is None:
+				mass_range=[0.0,m.prof.star_mass]		
+			massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
 
-		if title is not None:
-			ax.set_title(title)		
-		elif show_title_name or show_title_model or show_title_age:
-			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',m.prof.head["model_number"],m.prof.head["star_age"])
+			if mass_range2 is None:
+				mass_range2=mass_range
 		
-		ax.set_xlim(0,ax.get_xlim()[1])
-	
-		if yrng is not None:
-			ax.set_ylim(ymin,ymax+0.5*(ymax-ymin))
-		else:
-			ax.set_ylim(ymin,ymax)
-	
-		if show:
-			plt.show()			
+			if m2 is not None:
+				massInd2=(m2.prof.mass>=mass_range[0])&(m2.prof.mass<=mass_range[1])		
+		
+			if ind is not None:
+				ind=massInd&ind
+			
+			if ind2 is not None:
+				ind2=massInd2&ind2	
+				
+			age=m.prof.star_age
+			model=m.prof.model_number
+			
+		self._plotAbunByA(data=data,data2=data2,
+					prefix=prefix,show=show,ax=ax,xmin=xmin,xmax=xmax,abun=abun,fig=fig,
+					show_title_name=show_title_name,show_title_model=show_title_model,
+					show_title_age=show_title_age,title=title,
+					cmap=cmap,colors=colors,abun_random=abun_random,
+					line_labels=line_labels,yrng=yrng,stable=stable,ind=ind,ind2=ind2,
+					age=age,model_number=model)
+
 
 			
 	def plotAbunPAndN(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
@@ -1963,6 +1906,8 @@ class plot(object):
 
 		if show:
 			plt.show()
+				
+				
 						
 	def plotAbunHist(self,m,prefix='center_',show=True,ax=None,xaxis='model_number',xmin=None,xmax=None,y1rng=[10**-5,1.0],y1log=True,
 					cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,

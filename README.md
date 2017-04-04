@@ -214,7 +214,7 @@ p=mp.plot()
 p.set_solar('ag89')
 m.loadProfile(num=-1)
 #Plot the mass fractions relative to solar
-p.plotAbunByA_Stable(m)
+p.plotAbunByA(m,stable=True)
 ````
 
 ````python
@@ -227,8 +227,29 @@ m2=mp.MESA()
 m2.log_fold='../some/other/mesa/result'
 m2.loadprofile(num=-1)
 #Plot the mass fractions relative to solar relative to 2nd model
-p.plotAbunByA_Stable(m,m2=m2)
+p.plotAbunByA(m,m2=m2,stable=True)
 ````
+
+````python
+import mesaPlot as mp
+m=mp.MESA()
+p=mp.plot()
+m.loadHistory()
+#Use the data in the history file at model_number==model
+p.plotAbunByA(m,plot_type='history',model=1000,prefix='log_center_')
+````
+
+
+````python
+import mesaPlot as mp
+m=mp.MESA()
+p=mp.plot()
+p.set_solar('ag89')
+m.loadHistory()
+#Use the data in the history file, plotting relative to another model number after decaying the isotopes to thier stable versions
+p.plotAbunByA(m,plot_type='history',model=1000,model2=1,prefix='surface_',stable=True)
+````
+
 
 ````python
 import mesaPlot as mp
