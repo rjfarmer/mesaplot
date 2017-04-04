@@ -111,6 +111,15 @@ class data(object):
 			return x
 		else:
 			raise AttributeError
+			
+	def __getitem__(self,key):
+		if key> np.size(self.data[self.data_names[0]]):
+			raise IndexError
+		elif key <0:
+			return self.data[key-1:key]
+		else:
+			return self.data[key:key+1]
+		
 
 	def loadFile(self,filename,max_num_lines=-1,cols=None):
 		numLines=self._filelines(filename)
