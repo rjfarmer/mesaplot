@@ -1470,7 +1470,7 @@ class plot(object):
 			ax2=ax.twinx()
 			ax2.set_label('abun_ax2')
 			y=data[y2]
-			px,py=self._plotAnnotatedLine(ax2,x,y,fy2,xrngL[0],xrngL[1],y2rng[0],y2rng[1],
+			px,py=self._plotAnnotatedLine(ax2,x,y,fy=fy2,xmin=xrngL[0],xmax=xrngL[1],ymin=y2rng[0],ymax=y2rng[1],
 					annotate_line=False,label=self.safeLabel(y2label,y2),
 					points=points,xlog=xlog,ylog=y2log,xrev=xrev,
 					yrev=y2rev,linecol=y2col,ind=mInd)  
