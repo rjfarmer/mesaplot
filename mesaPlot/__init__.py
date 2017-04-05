@@ -1897,7 +1897,7 @@ class plot(object):
 		if element_names:
 			uniq_names=set(names)
 			for i in uniq_names:
-				if i == 'neut':
+				if 'neut' in i or 'prot' in i:
 					continue
 				ax.text(-2,self.elements.index(i)-0.25,i.title(),fontsize=14).set_clip_on(True)
 			
