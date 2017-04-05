@@ -1836,21 +1836,26 @@ class plot(object):
 	def plotAbunPAndN(self,m,plot_type='profile',model=-1,show=True,ax=None,xmin=None,xmax=None,ymin=None,ymax=None,
 					mass_range=None,abun=None,ind=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
-					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],prefix=''):
-
+					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],prefix='',bounds=0):
+		"""
+			bounds option applies to the mass fractions for each isotope compared to the mass_frac_rng
+			0: Cut, so anything above or below mass_frac_rng is white
+			1: Truncate, so anything above or below mass_frac_rng is given the nearest color in the colormap
+			2: Warn, anything below is white, above is black
+		"""
 		data,data2,ind,ind2,age,model,prof=self._abunPlotSetup(m,None,plot_type,model,-1,ind,None,mass_range,None)
 			
 		self._plotAbunPAndN(data,show=show,ax=ax,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,abun=abun,ind=ind,
 					fig=fig,show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,title=title,
 					cmap=cmap,mass_frac_rng=mass_frac_rng,
-					model_number=model,age=age,prefix=prefix,prof=prof)
+					model_number=model,age=age,prefix=prefix,prof=prof,bounds=bounds)
 			
 
 			
 	def _plotAbunPAndN(self,data,show=True,ax=None,xmin=None,xmax=None,ind=None,abun=None,ymin=None,ymax=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],
-					model_number=-1,age=-1,prefix='',element_names=True,prof=True):
+					model_number=-1,age=-1,prefix='',element_names=True,prof=True,bounds=0):
 		
 		fig,ax=self._setupPlot(fig,ax)	
 		
@@ -1902,7 +1907,20 @@ class plot(object):
 				if mass[idx]>=min_col and mass[idx]<=max_col:
 					ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,facecolor=cmap((mass[idx]-min_col)/(max_col-min_col))))
 				else:
-					ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,fill=False))
+					if bounds==0:
+						ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,fill=False))
+					elif bounds==1:
+						if mass[idx]<min_col:
+							ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,facecolor=cmap(0.0)))
+						else:
+							ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,facecolor=cmap(1.0)))
+					elif bounds==2:
+						if mass[idx]<min_col:
+							ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,fill=False))
+						else:
+							ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,facecolor='k'))
+					else:
+						raise ValueError("Bad value for bounds option, either 0,1 or 2")
 			
 		if element_names:
 			uniq_names=set(names)
