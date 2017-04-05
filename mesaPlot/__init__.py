@@ -1259,9 +1259,16 @@ class plot(object):
 			xx=[xaxis[ind][k],xaxis[ind][k]]
 			ax.plot(xx,yrng,'--',color=self.colors['clr_DarkGray'],linewidth=2)
 			
-	def _getMassFrac(self,data,i,ind,log=False):
-		if data._mph=='profile':
-			scale=10**(data.data['logdq'][ind])
+	def _getMassFrac(self,data,i,ind,log=False,prof=True):
+		if prof:
+			if 'logdq' in data.data_names:
+				scale=10**(data.data['logdq'][ind])
+			elif 'dq' in data.data_names:
+				scale=data.data['logdq'][ind]
+			elif 'dm' in data.data_names:
+				scale=data.data['dm'][ind]/(self.msun*data.star_mass)
+			else:
+				raise AttributeError("No suitable mass co-oridinate available for _getMassFrac, need either logdq, dq or dm in profile")
 		else:
 			scale=1.0
 			
@@ -1272,7 +1279,7 @@ class plot(object):
 		
 		return x
 		
-	def _getMassIso(self,data,i,massInd,log=False):
+	def _getMassIso(self,data,i,massInd,log=False,prof=True):
 		mcen=0.0
 		try:
 			mcen=data.M_center
@@ -1280,7 +1287,7 @@ class plot(object):
 			pass
 		mass=data.star_mass-mcen/self.msun	
 			
-		return self._getMassFrac(data,i,ind,log=log)*mass
+		return self._getMassFrac(data,i,ind,log=log,prof=prof)*mass
 		
 	def _addExtraLabelsToAxis(self,fig,labels,colors=None,num_left=0,num_right=0,left_pad=85,right_pad=85):
 
@@ -1478,7 +1485,7 @@ class plot(object):
 		plt.sca(ax)
 
 
-	def _decay2Stable(self,data,abun_list,ind,log=False,prefix=''):
+	def _decay2Stable(self,data,abun_list,ind,log=False,prefix='',prof=True):
 		res=[]
 		for i,j,p in zip(self.stable_isos,self._stable_a,self._stable_charge):
 			res.append({'name':i,'p':p,'a':j,'mass':0})
@@ -1488,7 +1495,7 @@ class plot(object):
 		for i in abun_list:
 			element,p,n=self._getIso(i,prefix=prefix)
 			a=p+n
-			massFrac=self._getMassFrac(data,i,ind,log=log)
+			massFrac=self._getMassFrac(data,i,ind,log=log,prof=prof)
 			for idj,j in enumerate(res):
 				if j['a'] != a:
 					continue
@@ -1647,7 +1654,7 @@ class plot(object):
 	def _plotAbunByA(self,data=None,data2=None,prefix='',show=True,ax=None,xmin=None,xmax=None,abun=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
-					line_labels=True,yrng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,stable=False):
+					line_labels=True,yrng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,stable=False,prof=True):
 	
 		fig,ax=self._setupPlot(fig,ax)	
 		
@@ -1662,9 +1669,9 @@ class plot(object):
 			
 		if stable:
 			abun_solar=self.get_solar()
-			abun_data_stable=self._decay2Stable(data,abun_names,ind,log_abun,prefix=prefix)
+			abun_data_stable=self._decay2Stable(data,abun_names,ind,log_abun,prefix=prefix,prof=prof)
 			if data2 is not None:
-				abun_data_stable2=self._decay2Stable(data2,abun_names,ind,log_abun,prefix=prefix)
+				abun_data_stable2=self._decay2Stable(data2,abun_names,ind,log_abun,prefix=prefix,prof=prof)
 
 		ele_names=[]
 		iso_mass=[]
@@ -1681,7 +1688,7 @@ class plot(object):
 				else:
 					abun_mass.append(abun_data_stable[idx])
 			else:
-				abun_mass.append(self._getMassFrac(data,i,ind,log_abun))
+				abun_mass.append(self._getMassFrac(data,i,ind,log_abun,prof=prof))
 				
 			if data2 is not None:
 				if stable:
@@ -1694,7 +1701,7 @@ class plot(object):
 					if xx==0:
 						abun_mass[-1]=-1
 					else:
-						abun_mass[-1]=abun_mass[-1]/self._getMassFrac(data2,i,ind2,log_abun)
+						abun_mass[-1]=abun_mass[-1]/self._getMassFrac(data2,i,ind2,log_abun,prof=prof)
 
 		uniq_names=set(i for i in ele_names)
 		sorted_names=sorted(uniq_names,key=self.elements.index)					
@@ -1767,15 +1774,15 @@ class plot(object):
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
 					line_labels=True,yrng=[None,None],ind=None,ind2=None,mass_range2=None,stable=False):
 		
-		data,data2,ind,ind2,age,model=self._abunPlotSetup(m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2)
-			
+		data,data2,ind,ind2,age,model,prof=self._abunPlotSetup(m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2)
+		
 		self._plotAbunByA(data=data,data2=data2,
 					prefix=prefix,show=show,ax=ax,xmin=xmin,xmax=xmax,abun=abun,fig=fig,
 					show_title_name=show_title_name,show_title_model=show_title_model,
 					show_title_age=show_title_age,title=title,
 					cmap=cmap,colors=colors,abun_random=abun_random,
 					line_labels=line_labels,yrng=yrng,stable=stable,ind=ind,ind2=ind2,
-					age=age,model_number=model)
+					age=age,model_number=model,prof=prof)
 
 	def _abunPlotSetup(self,m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2):
 		data=None
@@ -1795,6 +1802,7 @@ class plot(object):
 			ind2=None
 			
 			age=data.data['star_age']
+			prof=False
 			
 		else:
 			data=m.prof	
@@ -1820,8 +1828,9 @@ class plot(object):
 				
 			age=m.prof.star_age
 			model=m.prof.model_number
+			prof=True
 
-		return data,data2,ind,ind2,age,model
+		return data,data2,ind,ind2,age,model,prof
 
 
 	def plotAbunPAndN(self,m,plot_type='profile',model=-1,show=True,ax=None,xmin=None,xmax=None,ymin=None,ymax=None,
@@ -1829,19 +1838,19 @@ class plot(object):
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],prefix=''):
 
-		data,data2,ind,ind2,age,model=self._abunPlotSetup(m,None,plot_type,model,-1,ind,None,mass_range,None)
+		data,data2,ind,ind2,age,model,prof=self._abunPlotSetup(m,None,plot_type,model,-1,ind,None,mass_range,None)
 			
 		self._plotAbunPAndN(data,show=show,ax=ax,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,abun=abun,ind=ind,
 					fig=fig,show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,title=title,
 					cmap=cmap,mass_frac_rng=mass_frac_rng,
-					model_number=model,age=age,prefix=prefix)
+					model_number=model,age=age,prefix=prefix,prof=prof)
 			
 
 			
 	def _plotAbunPAndN(self,data,show=True,ax=None,xmin=None,xmax=None,ind=None,abun=None,ymin=None,ymax=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],
-					model_number=-1,age=-1,prefix='',element_names=True):
+					model_number=-1,age=-1,prefix='',element_names=True,prof=True):
 		
 		fig,ax=self._setupPlot(fig,ax)	
 		
@@ -1864,22 +1873,22 @@ class plot(object):
 			names.append(na)
 			proton.append(int(pr))
 			neutron.append(int(ne))
-			mass.append(self._getMassFrac(data,i,ind,log_abun))
+			mass.append(self._getMassFrac(data,i,ind,log_abun,prof=prof))
 	
 		proton=np.array(proton)
 		neutron=np.array(neutron)
 		mass=np.log10(np.array(mass))
 	
 		if xmin is None:
-			xmin=np.min(neutron)-5
+			xmin=np.min(neutron)
 		if xmax is None:
-			xmax=np.max(neutron)+1
+			xmax=np.max(neutron)
 		
 		if ymin is None:
-			ymin=np.min(proton)-1
+			ymin=np.min(proton)
 			
 		if ymax is None:
-			ymax=np.max(proton)+1
+			ymax=np.max(proton)
 
 	
 		min_col=np.log10(mass_frac_rng[0])
@@ -1888,11 +1897,12 @@ class plot(object):
 		for idx,i in enumerate(abun_names):
 			if 'neut' in i or 'prot' in i:
 				continue
-			if proton[idx]>ymin and proton[idx]<=ymax and neutron[idx]>xmin and neutron[idx]<=xmax:			
+			if proton[idx]>=ymin and proton[idx]<=ymax and neutron[idx]>=xmin and neutron[idx]<=xmax:	
+				loctuple=(float(neutron[idx]-0.5),float(proton[idx]-0.5))
 				if mass[idx]>=min_col and mass[idx]<=max_col:
-					ax.add_patch(mpl.patches.Rectangle((float(neutron[idx]-0.5),float(proton[idx]-0.5)),1.0,1.0,facecolor=cmap((mass[idx]-min_col)/(max_col-min_col))))
+					ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,facecolor=cmap((mass[idx]-min_col)/(max_col-min_col))))
 				else:
-					ax.add_patch(mpl.patches.Rectangle((float(neutron[idx]-0.5),float(proton[idx]-0.5)),1.0,1.0,fill=False))
+					ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,fill=False))
 			
 		if element_names:
 			uniq_names=set(names)
@@ -1912,8 +1922,15 @@ class plot(object):
 
 		ax.set_xlabel('Neutrons')
 		ax.set_ylabel('Protons')
-		ax.set_xlim(xmin,xmax)
-		ax.set_ylim(ymin,ymax)
+		
+		
+		xminoffset=-5
+		xmaxoffset=1
+		yminoffset=-1
+		ymaxoffset=1
+		
+		ax.set_xlim(xmin+xminoffset,xmax+xmaxoffset)
+		ax.set_ylim(ymin+yminoffset,ymax+ymaxoffset)
 		
 		if title is not None:
 			ax.set_title(title)		
