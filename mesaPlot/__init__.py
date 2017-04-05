@@ -1757,7 +1757,7 @@ class plot(object):
 		if title is not None:
 			ax.set_title(title)		
 		elif show_title_name or show_title_model or show_title_age:
-			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',model,age)
+			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',model_number,age)
 		
 		if show:
 			plt.show()		
