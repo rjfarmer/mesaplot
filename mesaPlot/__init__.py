@@ -1408,6 +1408,7 @@ class plot(object):
 				line, =ax.plot(x,y,linestyle=linestyle,color=linecol,linewidth=linewidth)
 			if points:
 				ax.scatter(x,y)
+				
 			if annotate_line:
 				self._annotateLine(ax,x,y,num_labels,xmin,xmax,xlog=xlog,text=label,line=line)
 			
@@ -1488,10 +1489,9 @@ class plot(object):
 	def _decay2Stable(self,data,abun_list,ind,log=False,prefix='',prof=True):
 		res=[]
 		for i,j,p in zip(self.stable_isos,self._stable_a,self._stable_charge):
-			res.append({'name':i,'p':p,'a':j,'mass':0})
-
+			res.append({'name':i,'p':p,'a':j,'n':j-p,'mass':0})
+		
 		msum=0
-		mass=np.zeros(len(abun_list))
 		for i in abun_list:
 			element,p,n=self._getIso(i,prefix=prefix)
 			a=p+n
@@ -1503,12 +1503,13 @@ class plot(object):
 					(p>=self._stable_charge[idj] and self._jcode[idj]==1) or 
 					(p<=self._stable_charge[idj] and self._jcode[idj]==2) or 
 					(p==self._stable_charge[idj] and self._jcode[idj]==3)):
-					mass[idj]=mass[idj]+massFrac
+					res[idj]['mass']=res[idj]['mass']+massFrac
 					msum=msum+massFrac
-			
-		mass=mass/msum
-			
-		return mass
+					
+		for idx,i in enumerate(res):
+			res[idx]['mass']=res[idx]['mass']/msum
+	
+		return res
 		
 	def get_solar(self):
 		self.is_solar_set()
@@ -1670,15 +1671,31 @@ class plot(object):
 		if stable:
 			abun_solar=self.get_solar()
 			abun_data_stable=self._decay2Stable(data,abun_names,ind,log_abun,prefix=prefix,prof=prof)
+			
+			for idx,i in enumerate(abun_data_stable):
+				if abun_solar[idx]['mass'] >0:
+					abun_data_stable[idx]['mass']=abun_data_stable[idx]['mass']/abun_solar[idx]['mass']
+				else:
+					abun_data_stable[idx]['mass']=-1
+			
 			if data2 is not None:
 				abun_data_stable2=self._decay2Stable(data2,abun_names,ind,log_abun,prefix=prefix,prof=prof)
+				for idx,i in enumerate(abun_data_stable):
+					if abun_solar[idx]['mass']>0:
+						abun_data_stable2[idx]['mass']=abun_data_stable2[idx]['mass']/abun_solar[idx]['mass']
+					else:
+						abun_data_stable2[idx]['mass']=-1
+			
+			#_decay2Stable gives you a new abun list to work with so dont use the old one
+			abun_names=[i['name'] for i in abun_data_stable]
+			prefix=''
 
 		ele_names=[]
 		iso_mass=[]
 		abun_mass=[]
 		for idx,i in enumerate(abun_names):
 			name,mass=self._splitIso(i,prefix=prefix)
-			if name=='neut' or name=='prot':
+			if 'neut' in name or 'prot' in name:
 				continue	
 			ele_names.append(name)
 			iso_mass.append(mass)
@@ -1686,16 +1703,16 @@ class plot(object):
 				if abun_data_stable[idx]==0:
 					abun_mass.append(-1)
 				else:
-					abun_mass.append(abun_data_stable[idx])
+					abun_mass.append(abun_data_stable[idx]['mass'])
 			else:
 				abun_mass.append(self._getMassFrac(data,i,ind,log_abun,prof=prof))
 				
 			if data2 is not None:
 				if stable:
-					if abun_data_stable2[idx]==0:
+					if abun_data_stable2[idx]['mass']<=0:
 						abun_mass[-1]=-1
 					else:
-						abun_mass[-1]=abun_mass[-1]/abun_data_stable2[idx]
+						abun_mass[-1]=abun_mass[-1]/abun_data_stable2[idx]['mass']
 				else:
 					xx=self._getMassFrac(data2,i,ind2,log_abun)
 					if xx==0:
@@ -1708,23 +1725,26 @@ class plot(object):
 
 		self._cycleColors(ax,colors,cmap,len(uniq_names),abun_random)		
 		
-		if xmin is None:
-			xmin=np.min(iso_mass)-1
-		if xmax is None:
-			xmax=np.max(iso_mass)+1
-		
 		abun_mass=np.array(abun_mass)
+		iso_mass=np.array(iso_mass)
+		
+		if xmin is None:
+			xmin=np.min(iso_mass[abun_mass>0])
+		if xmax is None:
+			xmax=np.max(iso_mass[abun_mass>0])
+		
 		if yrng[0] is None:
 			ymin=np.nanmin(abun_mass[abun_mass>0])
 		else:
 			ymin=yrng[0]
+
 		if yrng[1] is None:
 			ymax=np.nanmax(abun_mass[abun_mass>0])	
 		else:
 			ymax=yrng[1]
 		
 		
-		for i in uniq_names:
+		for i in sorted_names:
 			x=[]
 			y=[]
 			for idx,j in enumerate(ele_names):
@@ -1738,19 +1758,15 @@ class plot(object):
 				continue
 			
 			ind=np.argsort(x)
-			if np.count_nonzero(ind)>1:
-				x=x[ind]
-				y=y[ind]
+			x=x[ind]
+			y=y[ind]
 				
 			
 			ind=(y>=ymin)&(y<=ymax)
-			if np.count_nonzero(ind)>1:
-				x=x[ind]
-				y=y[ind]
-			else:
-				continue
+			x=x[ind]
+			y=y[ind]
 			
-			
+			#print(i,x,y)
 			self._plotAnnotatedLine(ax=ax,x=x,y=y,ylog=True,ymin=ymin,ymax=ymax,
 									points=True,annotate_line=line_labels,label=i,
 									num_labels=1,xmin=xmin,xmax=xmax)
@@ -1765,6 +1781,11 @@ class plot(object):
 			ax.set_title(title)		
 		elif show_title_name or show_title_model or show_title_age:
 			self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',model_number,age)
+		
+		ax.set_xlim(xmin-5,xmax+5)
+		
+		diff=(np.log10(ymax)-np.log10(ymin))/10.0
+		ax.set_ylim(ymin-diff,ymax+diff)
 		
 		if show:
 			plt.show()		
