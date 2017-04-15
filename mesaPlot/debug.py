@@ -395,7 +395,7 @@ class plotEOS(object):
 			self.plot(name=i,save=True,only_neg=only_neg)
 	
 
-class plotNet(object):
+class plotRate(object):
 	def __init__(self):
 		self.data=[]
 		self.name=[]
@@ -403,10 +403,14 @@ class plotNet(object):
 	def load(self,filename):
 		from io import BytesIO
 		d=subprocess.check_output(os.path.expandvars('$MESA_DIR')+"/rates/test/show_rates "+filename,shell=True)
-		
-		self.name.append(os.path.basename(filename))
+	
 		if type(d) is not type('a'):
 			data=d.decode().replace('D','E')
+		
+		if 'failed' in data:
+			raise ValueError("Cant read rate "+filename)
+			
+		self.name.append(os.path.basename(filename))
 		
 		data=data.encode()
 		data=np.genfromtxt(BytesIO(data),names=['t8','rate'],skip_header=4)

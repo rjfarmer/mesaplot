@@ -18,6 +18,7 @@ from __future__ import print_function
 import numpy as np
 import mmap
 import os
+import bisect
 
 class data(object):
 	def __init__(self):
