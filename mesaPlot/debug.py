@@ -27,6 +27,7 @@ import matplotlib.patheffects as path_effects
 import os
 import glob
 import subprocess
+import collections
 
 	
 class debug_logs(object):
@@ -453,7 +454,114 @@ class plotRate(object):
 			self.plot(i,show,trng,rrng)
 			
 			
+	def load_reaclib(self,name='jina_reaclib_results_v2.2'):
+		reactions=[]
+		with open(os.path.join(os.path.expandvars('$MESA_DIR'),'data','rates_data',name),'r') as f:
+			c=0
+			lines=[]
+			for line in f:
+				lines.append(line)
+				c=c+1
+				if c==4:
+					print(lines)
+					reactions.append({})
+					reactions[-1]['chapter']=int(lines[0])
+					s=lines[1]
+					reactions[-1]['nuclides']=s[5:35]
+					reactions[-1]['setlablel']=s[43:47]
+					reactions[-1]['ratetype']=s[47]
+					reactions[-1]['revrate']=s[48]
+					reactions[-1]['q']=float(s[52:].strip())
+					reactions[-1]['num_lhs'],reactions[-1]['num_rhs']=self._reaclib_chapter(reactions[-1]['chapter'])
+					reactions[-1]['nuclides']=self._reaction_name(reactions[-1])
 
+					l2=[float(lines[2][i*13:(i*13)+13]) for i in range(4)]
+					l3=[float(lines[3][i*13:(i*13)+13]) for i in range(3)]
+					reactions[-1]['coef']=l2+l3
+					c=0
+					lines=[]
+					print()
+		self.reactions=reactions
+
+
+	def _reaclib_chapter(self,chap):
+		lhs=0
+		rhs=0
+		if chap==1:
+			lhs=1
+			rhs=1
+		elif chap==2:
+			lhs=1
+			rhs=2
+		elif chap==3:
+			lhs=1
+			rhs=3
+		elif chap==4:
+			lhs=2
+			rhs=1
+		elif chap==5:
+			lhs=2
+			rhs=2		
+		elif chap==6:
+			lhs=2
+			rhs=3			
+		elif chap==7:
+			lhs=2
+			rhs=4			
+		elif chap==8:
+			lhs=3
+			rhs=1			
+		elif chap==9:
+			lhs=3
+			rhs=2			
+		elif chap==10:
+			lhs=4
+			rhs=2			
+		elif chap==11:
+			lhs=1
+			rhs=4			
+		else:
+			raise ValueError("Bad Chapter "+str(chap))
+		
+		return lhs,rhs
+		
+	def _reaction_name(self,reac):
+		r=reac['nuclides']
+		nuclides=[r[i*5:(i*5)+5] for i in range(len(r))]
+		lhs_iso=nuclides[:reac['num_lhs']]
+		rhs_iso=nuclides[reac['num_lhs']:reac['num_rhs']+1]
+		
+		lhs_iso=[i.strip() for i in lhs_iso]
+		rhs_iso=[i.strip() for i in rhs_iso]
+		
+		lhs_iso=collections.Counter(lhs_iso)
+		rhs_iso=collections.Counter(rhs_iso)
+		
+		lhs_names=[]
+		rhs_names=[]
+		
+		for i in lhs_iso:
+			if lhs_iso[i]==1:
+				lhs_names.append(i)
+			else:
+				lhs_names.append(str(lhs_iso[i])+i)
+
+		for i in rhs_iso:
+			if rhs_iso[i]==1:
+				rhs_names.append(i)
+			else:
+				rhs_names.append(str(rhs_iso[i])+i)
+					
+		return [lhs_names,rhs_names]
+		
+		
+	def rate(self,reaction,T9):
+		c=reaction['coef']
+		s=c[0]
+		for i in range(1,6):
+			s=s+c[i]*T9**((2.0*i-5.0)/3.0)
+		s=s+c[6]*np.log(T9)
+		return s
 			
 class debug_mesh(object):
 	def __init__(self):
