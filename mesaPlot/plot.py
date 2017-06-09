@@ -2095,44 +2095,94 @@ class plot(object):
 	def _getHistBurnData(self,m,data_x,data_y,modInd):
 		z=np.zeros((np.count_nonzero(data_x[modInd]),np.size(data_y)))
 		
-		numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
-
-		k=0	
-		ind2=np.zeros(np.size(data_y),dtype='bool')
-		for jj in m.hist.data["model_number"][modInd]:
-			ind2[:]=False
-			i=m.hist.data["model_number"]==jj
-			for j in range(1,numBurnZones+1):
-				ind=(data_y<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
-				z[k,ind]=m.hist.data["burn_type_"+str(j)][i]
-				ind2=ind2|ind
-			k=k+1
+		#numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
+		#k=0	
+		#ind2=np.zeros(np.size(data_y),dtype='bool')
+		#for jj in m.hist.data["model_number"][modInd]:
+			#ind2[:]=False
+			#i=m.hist.data["model_number"]==jj
+			#for j in range(1,numBurnZones+1):
+				#ind=(data_y<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
+				#z[k,ind]=m.hist.data["burn_type_"+str(j)][i]
+				#ind2=ind2|ind
+			#k=k+1
 			
+		z=self._rebinKipqData(m,'burn',z,data_y,modInd)
+
 		z[z<-100.0]=0.0
 		return z
 
 	def _getHistMixData(self,m,data_x,data_y,modInd,mix):
 		z=np.zeros((np.count_nonzero(data_x[modInd]),np.size(data_y)))
-		numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
-		k=0
-		ind2=np.zeros(np.size(data_y),dtype='bool')
-		for jj in m.hist.data["model_number"][modInd]:
-			ind2[:]=False
-			i=m.hist.data["model_number"]==jj
-			for j in range(1,numMixZones+1):
-				ind=(data_y<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
-				if mix is None:
-					z[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-				elif mix ==-1 :
-					z[k,ind]=0.0
-				elif m.hist.data["mix_type_"+str(j)][i] in mix:
-					z[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-				else:
-					z[k,ind]=0.0
-				ind2=ind2|ind
-			k=k+1		
+		#numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
+		#k=0
+		#ind2=np.zeros(np.size(data_y),dtype='bool')
+		#for jj in m.hist.data["model_number"][modInd]:
+			#ind2[:]=False
+			#i=m.hist.data["model_number"]==jj
+			#for j in range(1,numMixZones+1):
+				#ind=(data_y<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
+				#if mix is None:
+					#z[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+				#elif mix ==-1 :
+					#z[k,ind]=0.0
+				#elif m.hist.data["mix_type_"+str(j)][i] in mix:
+					#z[k,ind]=m.hist.data["mix_type_"+str(j)][i]
+				#else:
+					#z[k,ind]=0.0
+				#ind2=ind2|ind
+			#k=k+1		
+	
 		
+		if mix is None or np.size(mix)>1:
+			z=self._rebinKipqData(m,'mix',z,data_y,modInd)
+			if np.size(mix)>1:
+				z[np.logical_not(np.in1d(z,mix))]=0
+								
 		return z
+		
+		
+	def _rebinKipqData(self,m,qtype,z,y,modInd):
+		if np.all(modInd):
+			z=self._rebinKipqDataNoModInd(m,qtype,z,y)
+		else:
+			# Much slower if we want to index over the x array (~factor 10), even if all modInd elements are True
+			z=self._rebinKipqDataWithModInd(m,qtype,z,y,modInd)
+		return z
+	
+	def _rebinKipqDataNoModInd(self,m,qtype,z,y):
+		qtop=qtype+"_qtop_"
+		qtyp=qtype+"_type_"
+		
+		numBurnZones=int([xx.split('_')[2] for xx in m.hist.data.dtype.names if qtop in xx][-1])
+
+		sm=m.hist.data['star_mass']
+
+		for i in range(numBurnZones,0,-1):
+			mass=np.abs(m.hist.data[qtop+str(i)]*sm)
+			ind=np.searchsorted(y,mass,side='left')
+			for j in range(np.size(ind)):
+				z[j,0:ind[j]]=m.hist.data[qtyp+str(i)][j]
+				
+		return z
+		
+	
+	def _rebinKipqDataWithModInd(self,m,qtype,z,y,modInd):
+		qtop=qtype+"_qtop_"
+		qtyp=qtype+"_type_"
+		
+		numBurnZones=int([xx.split('_')[2] for xx in m.hist.data.dtype.names if qtop in xx][-1])
+
+		sm=m.hist.data['star_mass'][modInd]
+
+		for i in range(numBurnZones,0,-1):
+			mass=np.abs(m.hist.data[qtop+str(i)][modInd]*sm)
+			ind=np.searchsorted(y,mass,side='left')
+			for j in range(np.size(ind)):
+				z[j,0:ind[j]]=m.hist.data[qtyp+str(i)][modInd][j]
+				
+		return z
+		
 		
 	def _getSafeAge(self,m,age_lookback=False,age_zero=None,age_units='sec',age_log=False,age_reverse=False,end_time=None):
 	
