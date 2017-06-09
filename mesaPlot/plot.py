@@ -2073,6 +2073,8 @@ class plot(object):
 		unit=''
 		if 'sec' in age_units:
 			unit=r'\rm{s}'
+		elif 'hour' in age_units:
+			unit=r'\rm{Hrs}'
 		elif 'mega' in age_units:
 			unit=r'\rm{Myr}'
 		elif 'year' in age_units:
@@ -2139,7 +2141,7 @@ class plot(object):
 		elif 'star_age' in m.hist.data.dtype.names:
 			if age_lookback:
 				#Age in years does not have enough digits to be able to distingush the final models in pre-sn progenitors
-				age=np.cumsum(10**np.longdouble(m.hist.log_dt))
+				age=np.cumsum(10**np.longdouble(m.hist.log_dt))*self.secyear
 			else:
 				age=m.hist.star_age*self.secyear
 		
@@ -2154,6 +2156,8 @@ class plot(object):
 		
 		if 'sec' in age_units:
 			pass
+		elif 'hour' in age_units:
+			age=age/(3600.0)	
 		elif 'mega' in age_units:
 			age=age/(self.secyear*10**6)
 		elif 'year' in age_units:
@@ -2506,10 +2510,10 @@ class plot(object):
 			except KeyError:
 				pass
 			try:
-				kwargs.pop('yrng')
+				kwargs.pop('y1rng')
 			except KeyError:
 				pass
-			f(m,fig=fig,ax=ax,xmin=xmin,xmax=xmax,yrng=[ymin,ymax],y2rng=[ymin2,ymax2],show_title_model=True,show=False,*args,**kwargs)
+			f(m,fig=fig,ax=ax,xmin=xmin,xmax=xmax,y1rng=[ymin,ymax],y2rng=[ymin2,ymax2],show_title_model=True,show=False,*args,**kwargs)
 			#fig.canvas.draw_idle()
 			fig.canvas.draw()
 		

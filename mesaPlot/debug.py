@@ -575,7 +575,7 @@ class debug_mesh(object):
 	def plot_gval(self,data,show=True):
 		for i in data.dtype.names:
 			if i.startswith('gval_'):
-				plt.plot(data['mass'],data[i],label=data.replace('_','\_'),linewidth=2)
+				plt.plot(data['mass'],data[i],label=i.replace('_','\_'),linewidth=2)
 	
 		plt.legend(loc=0)	
 		if show:
