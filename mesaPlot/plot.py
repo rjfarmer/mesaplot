@@ -440,7 +440,7 @@ class plot(object):
 			else:
 				l=label
 			
-		return l
+		return str(l)
 		
 	def safeLabel(self,label,axis,strip=None):
 		outLabel=''
@@ -495,7 +495,7 @@ class plot(object):
 		extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
 		for i in data.data_names:
 			if "burn_" in i or i in extraBurn:
-				burnList.append(i)
+				burnList.append(str(i))
 		return burnList
 		
 	def _listMix(self,data):
@@ -503,7 +503,7 @@ class plot(object):
 		mixListOut=[]		
 		for i in data.data_names:
 			if i in mixList:
-				mixListOut.append(i)
+				mixListOut.append(str(i))
 		return mixListOut
 	
 	def _abunSum(self,m,iso,mass_min=0.0,mass_max=9999.0):
@@ -636,7 +636,7 @@ class plot(object):
 				col=color
 			else:
 				col=line.get_color()
-			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize).set_clip_on(True)
+			ax.annotate(str(text), xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize).set_clip_on(True)
 	
 	def _setYLim(self,ax,yrngIn,yrngOut,rev=False,log=False):
 		yrng=[]
