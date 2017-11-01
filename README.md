@@ -16,6 +16,15 @@ make
 
 Can be called as well, which just wraps installing both the python and python3 versions
 
+## Contributing
+
+Bug reports should go to githubs issue tracker.
+
+Requests for new features should also got to the issue tracker.
+
+If you wish to submit your own fix/new feature please send a pull request.
+
+
 ## Reading data:
 
 ````python
