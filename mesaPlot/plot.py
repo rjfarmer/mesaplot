@@ -2156,6 +2156,12 @@ class plot(object):
 		qtop=qtype+"_qtop_"
 		qtyp=qtype+"_type_"
 		
+		try:
+			x = m.hist.data[qtop+"1"]
+		except ValueError:
+			raise("No field "+qtop+"* found, add mixing_regions 40 and burning_regions 40 to your history_columns.list")
+			
+		
 		numBurnZones=int([xx.split('_')[2] for xx in m.hist.data.dtype.names if qtop in xx][-1])
 
 		sm=m.hist.data['star_mass']
