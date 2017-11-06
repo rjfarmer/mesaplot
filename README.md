@@ -1,4 +1,9 @@
-﻿# mesaplot
+﻿
+
+[![DOI](https://zenodo.org/badge/30720868.svg)](https://zenodo.org/badge/latestdoi/30720868)
+
+
+# mesaplot
 Library of python routines to read MESA ouput files and plot MESA quantites
 
 ## Installation instructions:
