@@ -135,7 +135,14 @@ p.plotHR(m)
 
 [More on Kippenhan plots](docs/kipp.md)
 
-Kippenhan plot with model number vs mass
+Kippenhan plot with model number vs mass. Note all Kippenhan plots
+require your history file to have both mixing_regions X and burning_regions Y
+set in your history_columns.list file, where X and Y are integers that 
+specify the maximum number of mixing/burning
+zones in your model, values around 20 will usually suffice. Models going to
+core collapse may want to increase this limit to 40.
+
+
 ````python
 import mesaPlot as mp
 m=mp.MESA()
