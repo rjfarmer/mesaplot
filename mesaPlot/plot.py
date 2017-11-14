@@ -325,7 +325,7 @@ class plot(object):
 			
 	
 	def set_solar(self,solar='ag89'):
-		if solar=='ag89':
+		if str(solar)=='ag89':
 			self.sol_comp=self._sol_comp_ag89
 		else:
 			raise ValueError("Must pass ag89")
@@ -365,6 +365,8 @@ class plot(object):
 	def labels(self,label,log=False,center=False):
 		l=''
 		ls=''
+		if type(label) is bytes:
+			label=label.decode()
 		
 		if '$' in label:
 			return label
@@ -439,8 +441,11 @@ class plot(object):
 				l=label.replace('_',' ')
 			else:
 				l=label
+		
+		if type(l) is bytes:
+			l=l.decode()
 			
-		return str(l)
+		return l
 		
 	def safeLabel(self,label,axis,strip=None):
 		outLabel=''
@@ -450,6 +455,10 @@ class plot(object):
 			outLabel=self.labels(axis)
 		if strip is not None:
 			outLabel=outLabel.replace(strip,'')
+		
+		if type(outLabel) is bytes:
+			outLabel=outLabel.decode()
+		
 		return outLabel
 		
 	def _listAbun(self,data,prefix=''):
@@ -464,6 +473,11 @@ class plot(object):
 							abun_list.append(j)
 				if i=='neut' or i=='prot':
 					abun_list.append(j)
+		
+		for idx,i in enumerate(abun_list):
+			if type(i) is bytes:
+				abun_list[idx]=i.decode()	
+					
 		return abun_list
 	
 	def _splitIso(self,iso,prefix=''):
@@ -631,12 +645,15 @@ class plot(object):
 
 		yy=y[np.searchsorted(x,xx)]
 		
+		if type(text) is bytes:
+			text=text.decode()
+		
 		for xp1,yp1 in zip(xx,yy):
 			if line is None:
 				col=color
 			else:
 				col=line.get_color()
-			ax.annotate(str(text), xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize).set_clip_on(True)
+			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize).set_clip_on(True)
 	
 	def _setYLim(self,ax,yrngIn,yrngOut,rev=False,log=False):
 		yrng=[]
@@ -942,6 +959,10 @@ class plot(object):
 
 		total_num=len(labels)
 		
+		for idx,i in enumerate(labels):
+			if type(i) is bytes:
+				labels[idx]=i.decode()
+		
 		if colors is None:
 			colors=['k']
 			colors=colors*total_num
@@ -1049,6 +1070,9 @@ class plot(object):
 				tmp=xmin
 				xmin=xmax
 				xmax=tmp
+				
+			if label is not None and type(label) is bytes:
+				label=label.decode()
 			
 			#y[np.logical_not(np.isfinite(y))]=ymin-(ymax-ymin)
 			if linecol is None:
