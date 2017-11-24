@@ -622,7 +622,10 @@ class plot(object):
 	
 		ax.set_ylim(ylim)
 	
-	def _annotateLine(self,ax,x,y,num_labels,xmin,xmax,text,xlog=False,line=None,color=None,fontsize=mpl.rcParams['font.size']-12):
+	def _annotateLine(self,ax,x,y,num_labels,xmin,xmax,text,xlog=False,line=None,color=None,fontsize=None):
+		
+		if fontsize is None:
+			fontsize=int(mpl.rcParams['font.size']//2)
 		
 		if xmin<np.nanmin(x):
 			xmin=np.nanmin(x)
@@ -653,6 +656,7 @@ class plot(object):
 				col=color
 			else:
 				col=line.get_color()
+			#print(text,type(text))
 			ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize).set_clip_on(True)
 	
 	def _setYLim(self,ax,yrngIn,yrngOut,rev=False,log=False):
@@ -1311,7 +1315,7 @@ class plot(object):
 		else:
 			abun_list=abun
 			log=''
-			
+		
 		abun_log=True
 		if len(log)>0:
 			abun_log=False

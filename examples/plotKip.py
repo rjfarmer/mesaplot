@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 
 m=mp.MESA()
+m.log_fold='examples/LOGS/'
 m.loadHistory()
 p=mp.plot()
 
