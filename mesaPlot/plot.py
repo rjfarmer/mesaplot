@@ -1756,7 +1756,7 @@ class plot(object):
 		if show:
 			plt.show()
 		
-	def plotAngMom(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,yrng=[0.0,10.0],
+	def plotAngMom(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[0.0,10.0],
 				cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
 				show_burn=False,show_mix=False,fig=None,fx=None,fy=None,
 				show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
