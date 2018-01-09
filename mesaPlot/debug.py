@@ -603,30 +603,31 @@ class plotNeu(object):
 				x=np.genfromtxt(i)
 				self.data.append(x.reshape((np.size(self.rho),np.size(self.teff))))
 		
-	def plot(self,name,save=False,only_neg=False):
+	def plot(self,name,save=False,only_neg=False,log=True):
 		idx=self.name.index(name)
 
 		if np.all(self.data[idx]==0.0):
 			print('Empty ',name)
 			return
 		
-		plt.figure(figsize=(12,12))
-		plt.title(name.replace('_',' '))
+		fig=plt.figure(figsize=(12,12))
+		ax=fig.add_subplot(111)
+		ax.set_title(name.replace('_',' '))
 
 		data=self.data[idx]
 		
 		vmin=np.nanmin(data)
 		vmax=np.nanmax(data)
-		
 		label=''
-		if vmax>100.0 or vmin<-100.0:
+		if log:
+			ind=data==0.0
 			data=np.log10(np.abs(data))
 			label='Log'
+			data[ind]=np.nan
 			vmin=np.nanmin(data)
 			vmax=np.nanmax(data)
 
 		if vmin>=0.0:
-			vmin=0.0
 			cmap='Reds'
 		else:
 			cmap='seismic'
@@ -642,14 +643,14 @@ class plotNeu(object):
 			data[data>0.0]=np.nan
 			
 
-		plt.imshow(data,extent=(np.nanmin(self.rho),np.nanmax(self.rho),np.nanmin(self.teff),np.nanmax(self.teff)),aspect='auto',cmap=cmap,vmin=vmin,vmax=vmax,
+		cax=ax.imshow(data,extent=(np.nanmin(self.rho),np.nanmax(self.rho),np.nanmin(self.teff),np.nanmax(self.teff)),aspect='auto',cmap=cmap,vmin=vmin,vmax=vmax,
 				interpolation='nearest',origin='lower')
 
-		plt.xlim(np.nanmin(self.rho),np.nanmax(self.rho))
-		plt.ylim(np.nanmin(self.teff),np.nanmax(self.teff))
-		plt.xlabel('LogRho')
-		plt.ylabel('LogT')
-		cb=plt.colorbar()
+		ax.set_xlim(np.nanmin(self.rho),np.nanmax(self.rho))
+		ax.set_ylim(np.nanmin(self.teff),np.nanmax(self.teff))
+		ax.set_xlabel('Log Rho')
+		ax.set_ylabel('Log T')
+		cb=plt.colorbar(cax)
 		cb.solids.set_edgecolor("face")
 		cb.set_label(label)
 		
