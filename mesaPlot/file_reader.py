@@ -26,6 +26,7 @@ class data(object):
 		self.head={}
 		self._loaded=False
 		self._mph=''
+		self._type=''
 		
 	def __getattr__(self, name):
 		x=None
@@ -46,7 +47,7 @@ class data(object):
 				else:
 					raise AttributeError("No value "+name+" available")
 						
-		raise AttributeError("Must call loadHistory or loadProfile first")
+		raise AttributeError("Must call "+str(self._type)+" first")
 	
 	def __dir__(self):
 		x=[]
@@ -125,6 +126,7 @@ class MESA(object):
 	def __init__(self):
 		self.hist=data()
 		self.prof=data()
+		self.binary=data()
 		self.prof_ind=""
 		self.log_fold=""
 		self.clearProfCache()
@@ -133,27 +135,33 @@ class MESA(object):
 	
 		self.hist._mph='history'
 		self.prof._mph='profile'
+		self.hist._type='loadHistory'
+		self.prof._type='loadProfile'
+		
+		self.hist._mph='binary'
+		self.hist._mph='loadBinary'
+		
 	
 	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=None):
 		"""
 		Reads a MESA history file.
 		
 		Optional:
-		f: Folder in which history.data exists, if not present uses self.log_fold, if thats
-		not set trys the folder LOGS/
+		f: Folder in which history.data exists, if not present uses self.log_fold, if that is
+		not set try the current working directory.
 		filename_in: Reads the file given by name
-		max_model: Maximum model to read into, may help when having to clean files with many retres, backups and restarts by not proccesing data beyond max_model
-		max_num_lines: Maximum number of lines to read from the file, maps ~maxium model number but not quite (retrys, backups and restarts effect this)
-		cols: If none returns all columns, else if set as a list only stores those columns, will allways add model_number to the list
+		max_model: Maximum model to read into, may help when having to clean files with many retires, backups and restarts by not processing data beyond max_model
+		max_num_lines: Maximum number of lines to read from the file, maps ~maximum model number but not quite (retires, backups and restarts effect this)
+		cols: If none returns all columns, else if set as a list only stores those columns, will always add model_number to the list
 		
 		
 		Returns:
 		self.hist.head: The header data in the history file as a structured dtype
-		self.hist.data:  The data in the main body of the histor file as a structured dtype
+		self.hist.data:  The data in the main body of the history file as a structured dtype
 		self.hist.head_names: List of names of the header fields
 		self.hist.data_names: List of names of the data fields
 		
-		Note it will clean the file up of bakups,retries and restarts, prefering to use
+		Note it will clean the file up of backups,retries and restarts, preferring to use
 		the newest data line.
 		"""
 		if len(f)==0:
@@ -324,8 +332,8 @@ class MESA(object):
 		filename: Path to profile to read
 		
 		Optional:
-		cache: If true caches the profile data so multiple profile loads do not need to rerad the data
-		cols: cols: If none returns all columns, else if set as a list only stores those columns, will allways add zone to the list of columns
+		cache: If true caches the profile data so multiple profile loads do not need to reread the data
+		cols: cols: If none returns all columns, else if set as a list only storing those columns, it will always add zone to the list of columns
 		
 		Returns:
 		self.prof.head: The header data in the profile as a structured dtype
@@ -372,3 +380,54 @@ class MESA(object):
 			except:
 				pass
 		return xx
+
+	def loadBinary(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=None):
+		"""
+		Reads a MESA binary history file.
+		
+		Optional:
+		f: Folder in which binary_history.data exists, if not present uses self.log_fold, if that is
+		not set try the current working directory.
+		filename_in: Reads the file given by name
+		max_model: Maximum model to read into, may help when having to clean files with many retries, backups and restarts by not processing data beyond max_model
+		max_num_lines: Maximum number of lines to read from the file, maps ~maximum model number but not quite (retries, backups and restarts effect this)
+		cols: If none returns all columns, else if set as a list only stores those columns, it will always add model_number to the list
+		
+		
+		Returns:
+		self.binary.head: The header data in the history file as a structured dtype
+		self.binary.data:  The data in the main body of the history file as a structured dtype
+		self.binary.head_names: List of names of the header fields
+		self.binary.data_names: List of names of the data fields
+		
+		Note it will clean the file up of backups, retries and restarts, preferring to use
+		the newest data line.
+		"""
+		if len(f)==0:
+			if len(self.log_fold)==0:
+				self.log_fold='./'
+			f=self.log_fold
+		else:
+			self.log_fold=f+"/"
+
+		if filename_in is None:               
+			filename=os.path.join(self.log_fold,'binary_history.data')
+		else:
+			filename=filename_in
+
+		self.binary.loadFile(filename,max_num_lines,cols)
+		
+		if max_model>0:
+			self.binary.data=self.binary.data[self.binary.model_number<=max_model]
+
+		# Reverse model numbers, we want the unique elements
+		# but keeping the last not the first.
+		
+		#Fix case where we have at end of file numbers:
+		# 1 2 3 4 5 3, without this we get the extra 4 and 5
+		self.binary.data=self.binary.data[self.binary.model_number<=self.binary.model_number[-1]]
+		
+		mod_rev=self.binary.model_number[::-1]
+		mod_uniq,mod_ind=np.unique(mod_rev,return_index=True)
+		self.binary.data=self.binary.data[np.size(self.binary.model_number)-mod_ind-1]
+
