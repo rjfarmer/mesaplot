@@ -2612,3 +2612,13 @@ class plot(object):
 		smodels.on_changed(update)
 		
 		plt.show()
+
+	def accretionSum(m):
+		for idx,i in enumerate(self._listAbun(m.prof)):
+			if i=='neut' or i=='prot':
+				continue
+			print('accretion_species_id('+str(idx)+') = "'+str(i)+'"')
+			print('accretion_species_xa('+str(idx)+') = '+str(self._abunSum(m,i)))
+		print('num_accretion_species ='+str(idx))
+
+
