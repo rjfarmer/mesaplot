@@ -1026,7 +1026,8 @@ class plot(object):
 		
 	def setTitle(self,ax,show_title_name=False,show_title_model=False,show_title_age=False,
 				name=None,model=None,age=None,age_units=None,
-				fontCent=mpl.rcParams['font.size']-6,fontOther=mpl.rcParams['font.size']-12):
+				fontCent=None,fontOther=None):
+					
 		if show_title_name:
 			ax.set_title(name,loc="center",fontsize=fontCent)
 		if show_title_model:
@@ -1316,6 +1317,9 @@ class plot(object):
 			abun_list=abun
 			log=''
 		
+		if len(abun_list)==0:
+			raise ValueError("Found no isotopes in the data")
+		
 		abun_log=True
 		if len(log)>0:
 			abun_log=False
@@ -1340,6 +1344,10 @@ class plot(object):
 			abun_names=self._listAbun(data,prefix=prefix)
 		else:
 			abun_names=abun
+			
+		
+		if len(abun_names)==0:
+			raise ValueError("Found no isotopes in the data")
 			
 		log_abun=False
 		if 'log' in prefix:
@@ -1561,6 +1569,10 @@ class plot(object):
 			abun_names=self._listAbun(data,prefix=prefix)
 		else:
 			abun_names=abun
+			
+		
+		if len(abun_names)==0:
+			raise ValueError("Found no isotopes in the data")
 			
 		log_abun=False
 		if 'log' in prefix:
@@ -2124,19 +2136,6 @@ class plot(object):
 		
 	def _getHistBurnData(self,m,data_x,data_y,modInd):
 		z=np.zeros((np.count_nonzero(data_x[modInd]),np.size(data_y)))
-		
-		#numBurnZones=int([x.split('_')[2] for x in m.hist.data.dtype.names if "burn_qtop" in x][-1])
-		#k=0	
-		#ind2=np.zeros(np.size(data_y),dtype='bool')
-		#for jj in m.hist.data["model_number"][modInd]:
-			#ind2[:]=False
-			#i=m.hist.data["model_number"]==jj
-			#for j in range(1,numBurnZones+1):
-				#ind=(data_y<= m.hist.data["burn_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
-				#z[k,ind]=m.hist.data["burn_type_"+str(j)][i]
-				#ind2=ind2|ind
-			#k=k+1
-			
 		z=self._rebinKipqData(m,'burn',z,data_y,modInd)
 
 		z[z<-100.0]=0.0
@@ -2144,26 +2143,6 @@ class plot(object):
 
 	def _getHistMixData(self,m,data_x,data_y,modInd,mix):
 		z=np.zeros((np.count_nonzero(data_x[modInd]),np.size(data_y)))
-		#numMixZones=int([x.split('_')[2] for  x in m.hist.data.dtype.names if "mix_qtop" in x][-1])
-		#k=0
-		#ind2=np.zeros(np.size(data_y),dtype='bool')
-		#for jj in m.hist.data["model_number"][modInd]:
-			#ind2[:]=False
-			#i=m.hist.data["model_number"]==jj
-			#for j in range(1,numMixZones+1):
-				#ind=(data_y<= m.hist.data["mix_qtop_"+str(j)][i]*m.hist.data['star_mass'][i])&np.logical_not(ind2)
-				#if mix is None:
-					#z[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-				#elif mix ==-1 :
-					#z[k,ind]=0.0
-				#elif m.hist.data["mix_type_"+str(j)][i] in mix:
-					#z[k,ind]=m.hist.data["mix_type_"+str(j)][i]
-				#else:
-					#z[k,ind]=0.0
-				#ind2=ind2|ind
-			#k=k+1		
-	
-		
 		if mix is None or np.size(mix)>1:
 			z=self._rebinKipqData(m,'mix',z,data_y,modInd)
 			if np.size(mix)>1:
