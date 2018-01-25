@@ -2592,7 +2592,7 @@ class plot(object):
 		
 		plt.show()
 
-	def accretionSum(m):
+	def accretionSum(self,m):
 		for idx,i in enumerate(self._listAbun(m.prof)):
 			if i=='neut' or i=='prot':
 				continue
