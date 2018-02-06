@@ -1879,12 +1879,12 @@ class plot(object):
 							y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
 
 	def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ax=None,xrng=[None,None],mix=None,show_mix=True,
-				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
+				cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,ylabel=None,
 				show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None,y2rng=None):	
 				
 		self.plotKip3(m,plot_type='history',xaxis='model_number',show=show,
 				reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
-				cmin=cmin,cmax=cmax,cmap=burnMap,fig=fig,yrng=yrng,
+				cmin=cmin,cmax=cmax,cmap=burnMap,fig=fig,yrng=yrng,ylabel=ylabel,
 				show_mass_loc=show_mass_loc,show_mix_labels=show_mix_labels,mix_alpha=mix_alpha,
 				xstep=step,y2=y2,title=title,y2rng=y2rng)
 		
@@ -1898,7 +1898,7 @@ class plot(object):
 				reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
 				cmin=cmin,cmax=cmax,cmap=burnMap,fig=fig,yrng=yrng,
 				show_mass_loc=show_mass_loc,show_mix_labels=show_mix_labels,mix_alpha=mix_alpha,
-				xstep=step,y2=y2,title=title,y2rng=y2rng,
+				xstep=step,y2=y2,title=title,y2rng=y2rng,colorbar=colorbar,ylabel=ylabel,
 				age_zero=age_zero,age_lookback=age_collapse,age_log=age_log,age_reverse=age_reverse,
 				mod_index=mod_out,xlabel=xlabel,show_burn=burn,end_time=end_time)
 			
@@ -2061,9 +2061,11 @@ class plot(object):
 			ax.imshow(mix_data.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
 				
 
-
 		if plot_type=='history':
-			ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
+			if ylabel is None:
+				ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
+			elif len(ylabel):
+				ax.set_ylabel(self.safeLabel(ylabel,yaxis))
 		else:
 			ax.set_ylabel(self.safeLabel(ylabel,yaxis))
 		
@@ -2146,7 +2148,7 @@ class plot(object):
 		if mix is None or np.size(mix)>1:
 			z=self._rebinKipqData(m,'mix',z,data_y,modInd)
 			if np.size(mix)>1:
-				z[np.logical_not(np.in1d(z,mix))]=0
+				z[np.isin(z,mix,invert=True)]=0
 								
 		return z
 		
