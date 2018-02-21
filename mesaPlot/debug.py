@@ -667,3 +667,93 @@ class plotNeu(object):
 		for i in self.name:
 			print('Plot',i)
 			self.plot(name=i,save=True,only_neg=only_neg)
+			
+			
+class plotKap(object):
+	def __init__(self):
+		self.data=[]
+		self.name=[]
+		self.teff=0
+		self.rho=0
+
+	def load(self,folder='plot_data'):
+		self.folder=folder
+		self.teff=np.genfromtxt(folder+'/logT.data')
+		self.rho=np.genfromtxt(folder+'/logRho.data')
+		
+		for i in glob.glob(folder+'/*.data'):
+			if '/logT.data' not in i and '/logRho.data' not in i and 'params.data' not in i:
+				print('Load',i)
+				self.name.append(i.replace(folder,'').replace('.data','').replace('/',''))
+				x=np.genfromtxt(i)
+				self.data.append(x.reshape((np.size(self.rho),np.size(self.teff))))
+		
+	def plot(self,name,save=False,only_neg=False,log=True):
+		idx=self.name.index(name)
+
+		if np.all(self.data[idx]==0.0):
+			print('Empty ',name)
+			return
+		
+		fig=plt.figure(figsize=(12,12))
+		ax=fig.add_subplot(111)
+		ax.set_title(name.replace('_',' '))
+
+		data=self.data[idx]
+		
+		vmin=np.nanmin(data)
+		vmax=np.nanmax(data)
+		label=''
+		if log:
+			ind=data==0.0
+			data=np.log10(np.abs(data))
+			label='Log'
+			data[ind]=np.nan
+			vmin=np.nanmin(data)
+			vmax=np.nanmax(data)
+
+		if vmin>=0.0:
+			cmap='Reds'
+		else:
+			cmap='seismic'
+			if np.abs(vmin) < np.abs(vmax):
+				vmin=-vmax
+			else:
+				vmax=np.abs(vmin)
+				
+		if only_neg:
+			vmax=0.0
+			vmin=np.nanmin(data)
+			cmap='Reds_r'
+			data[data>0.0]=np.nan
+			
+
+		cax=ax.imshow(data,extent=(np.nanmin(self.rho),np.nanmax(self.rho),np.nanmin(self.teff),np.nanmax(self.teff)),aspect='auto',cmap=cmap,vmin=vmin,vmax=vmax,
+				interpolation='nearest',origin='lower')
+
+		ax.set_xlim(np.nanmin(self.rho),np.nanmax(self.rho))
+		ax.set_ylim(np.nanmin(self.teff),np.nanmax(self.teff))
+		ax.set_xlabel('Log Rho')
+		ax.set_ylabel('Log T')
+		cb=plt.colorbar(cax)
+		cb.solids.set_edgecolor("face")
+		cb.set_label(label)
+		
+		if save:
+			plt.savefig(os.path.join(self.folder,name+'.pdf'))
+		else:
+			plt.show()
+		
+		plt.close()
+		
+
+
+	def plot_all(self,only_neg=False):
+		for i in self.name:
+			print('Plot',i)
+			if 'dfr' in i:
+				self.plot(name=i,save=True,only_neg=True,log=False)
+			elif 'log' in i:
+				self.plot(name=i,save=True,only_neg=only_neg,log=False)
+			else:
+				self.plot(name=i,save=True,only_neg=only_neg,log=True)
