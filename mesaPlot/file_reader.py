@@ -303,23 +303,24 @@ class MESA(object):
 		self._loadProfileIndex(f)
 		for x in self.prof_ind:
 			if priority != None:
-				if type(priority) is not list: priority= [ priority ]
+				if type(priority) is not list: priority = [ priority ]
 				if x["priority"] in priority or 0 in priority:
 					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
-				yield
+					yield
 			if len(rng)==2 and rng[0]>0:
 				if x["model"] >=rng[0] and x["model"] <= rng[1] and np.remainder(x["model"]-rng[0],step)==0:
 					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
+					yield
 				elif x["model"]>rng[1]:
 					raise StopIteration
-				yield
 			elif len(rng)>2 and rng[0]>0:
 				if x["model"] in rng:
 					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
-				yield
+					yield
 			else:
 				self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
 				yield 
+		raise StopIteration
 				
 	def _loadProfileIndex(self,f):
 		self.prof_ind=np.genfromtxt(f+"/profiles.index",skip_header=1,names=["model","priority","profile"])

@@ -2007,15 +2007,13 @@ class plot(object):
 				zones.append(m.prof.head['num_zones'])
 				count=count+1
 				
-			modInd=np.zeros(count,dtype='bool')
-			modInd[:]=True
 			data_x=np.array(data_x)
-			num_zones=np.max(zones)
-			data_z,lin_x,data_y=self._rebinKipDataXY(data_z,data_x[modInd],data_y,count,num_zones)
+			num_zones=np.max(zones) * 1.0/zone_frac
+			data_z,lin_x,data_y=self._rebinKipDataXY(data_z,data_x,data_y,count,num_zones)
 
 
-		xmin=data_x[modInd][0]
-		xmax=data_x[modInd][-1]
+		xmin=lin_x[0]
+		xmax=lin_x[-1]
 		
 		ymin=data_y[0]
 		ymax=data_y[-1]
@@ -2315,7 +2313,7 @@ class plot(object):
 			data_z2[i,:]=f(data_y2)
 
 		lin_x=np.linspace(np.nanmin(data_x),np.nanmax(data_x),num_x_zones)
-		data_z=self._rebinKipDataX(data_z2,lin_x)
+		data_z=self._rebinKipDataX(data_z2,data_x,lin_x)
 		return data_z,lin_x,data_y2
 		
 	def plotTRho(self,m,model=None,show=True,ax=None,xmin=None,xmax=None,fig=None,yrng=[None,None],
