@@ -2036,7 +2036,6 @@ class plot(object):
 			vmin=-vmax
 			newCm=self.mergeCmaps(cmap,[[0.0,0.5],[0.5,1.0]])
 		else:
-			vmin=0
 			if not isinstance(cmap, str):
 				newCm=cmap[-1]
 			else:
@@ -2505,63 +2504,43 @@ class plot(object):
 		self.plotAbun(m,ax=ax,show=False,xlabel=self.labels('mass'))
 		
 		if show==True:
-			plt.show()
-			
-	def plotSliderProf(self,m,func,*args,**kwargs):
-		from matplotlib.widgets import Slider, Button, RadioButtons
-		class DiscreteSlider(Slider):
-			"""A matplotlib slider widget with discrete steps."""
-			def __init__(self, *args, **kwargs):
-				"""
-				Identical to Slider.__init__, except for the new keyword 'allowed_vals'.
-				This keyword specifies the allowed positions of the slider
-				"""
-				self.allowed_vals = kwargs.pop('allowed_vals',None)
-				self.previous_val = kwargs['valinit']
-				Slider.__init__(self, *args, **kwargs)
-				if self.allowed_vals is None:
-					self.allowed_vals = [self.valmin,self.valmax]
-		
-			def set_val(self, val):
-				discrete_val = self.allowed_vals[abs(val-self.allowed_vals).argmin()]
-				xy = self.poly.xy
-				xy[2] = discrete_val, 1
-				xy[3] = discrete_val, 0
-				self.poly.xy = xy
-				self.valtext.set_text(self.valfmt % discrete_val)
-				if self.drawon: 
-					self.ax.figure.canvas.draw()
-				self.val = discrete_val
-				if self.previous_val!=discrete_val:
-					self.previous_val = discrete_val
-					if not self.eventson: 
-						return
-					for cid, func in self.observers.items():
-						func(discrete_val)
 
-		fig=plt.figure(figsize=(12,12))
-		ax=plt.axes([0.1,0.15,0.7,0.75])
+
+	def plotSliderProf(self,m,func,*args,**kwargs):
+		from matplotlib.widgets import Button
+
+		class Index(object):
+			ind = 1
+			
+			def safe_ind(self):
+				if self.ind < 0:
+					return 0
+				elif self.ind > len(models):
+					return len(models)
+				else:
+					return models[self.ind]
+			
+			def next(self, event):
+				self.ind += 1
+				update(self.safe_ind())
+			
+			def prev(self, event):
+				self.ind -= 1
+				update(self.safe_ind())
+
+
+		fig, ax = plt.subplots()
+		plt.subplots_adjust(bottom=0.2)
+		
 		f=getattr(self,func)
 		
-		m.loadProfile(num=1)
+		models=m.prof_ind['model']
+		
+		m.loadProfile(num=models[0])
 		f(m,fig=fig,ax=ax,show=False,show_title_model=True,*args,**kwargs)
 		
-		axcolor = 'white'
-		axmodels = plt.axes([0.15, 0.025, 0.75, 0.03], axisbg=axcolor,label='slider')
-		
-		num_models=np.size(m.prof_ind['model'])
-		
-		smodels=DiscreteSlider(axmodels,'Model',0.0,1.0*num_models-1.0,valinit=0.0,allowed_vals=np.arange(0.0,num_models,1.0))
-		
-		smodels.set_val(np.argmin(np.abs(m.prof_ind['model']-m.prof.model_number)))
-		
-		smodels.ax.set_xticks(np.arange(0.0,num_models,1.0))
-		smodels.ax.set_xticklabels([])
-		smodels.valtext.set_visible(False)
-		
 		def update(val):
-			mo = smodels.val
-			m.loadProfile(num=m.prof_ind['model'][int(mo)])
+			m.loadProfile(num=val)
 			xmin,xmax=ax.get_xlim()
 			ymin,ymax=ax.get_ylim()
 			ymin2=None
@@ -2585,10 +2564,17 @@ class plot(object):
 			except KeyError:
 				pass
 			f(m,fig=fig,ax=ax,xmin=xmin,xmax=xmax,y1rng=[ymin,ymax],y2rng=[ymin2,ymax2],show_title_model=True,show=False,*args,**kwargs)
-			#fig.canvas.draw_idle()
 			fig.canvas.draw()
-		
-		smodels.on_changed(update)
+			
+		callback = Index()
+		axprev = plt.axes([0.7, 0.05, 0.05, 0.055])
+		axnext = plt.axes([0.81, 0.05, 0.05, 0.055])
+		bnext = Button(axnext, 'Next')
+		bnext.label.set_fontsize('12')
+		bnext.on_clicked(callback.next)
+		bprev = Button(axprev, 'Previous')
+		bprev.on_clicked(callback.prev)
+		bprev.label.set_fontsize('12')
 		
 		plt.show()
 
