@@ -2504,7 +2504,7 @@ class plot(object):
 		self.plotAbun(m,ax=ax,show=False,xlabel=self.labels('mass'))
 		
 		if show==True:
-
+			plt.show()
 
 	def plotSliderProf(self,m,func,*args,**kwargs):
 		from matplotlib.widgets import Button
@@ -2514,9 +2514,9 @@ class plot(object):
 			
 			def safe_ind(self):
 				if self.ind < 0:
-					return 0
+					return models[0]
 				elif self.ind > len(models):
-					return len(models)
+					return models[-1]
 				else:
 					return models[self.ind]
 			
