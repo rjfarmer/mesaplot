@@ -1335,7 +1335,7 @@ class plot(object):
 
 	def _plotAbunByA(self,data=None,data2=None,prefix='',show=True,ax=None,xmin=None,xmax=None,abun=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
-					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
+					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,min_abun=10**-16,
 					line_labels=True,yrng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,stable=False,prof=True):
 	
 		fig,ax=self._setupPlot(fig,ax)	
@@ -1345,13 +1345,21 @@ class plot(object):
 		else:
 			abun_names=abun
 			
-		
 		if len(abun_names)==0:
 			raise ValueError("Found no isotopes in the data")
 			
 		log_abun=False
 		if 'log' in prefix:
 			log_abun=True
+			
+		# Filter out low level iso's:
+		remove={}
+		for i in abun_names:
+			if np.all(data.data[prefix+i][ind] < min_abun) or np.all(data2.data[prefix+i][ind2] < min_abun):
+				remove[i]=True
+				print("Removing ",str(i))
+		abun_names=[i for i in abun_names if i not in remove]
+		
 			
 		if stable:
 			abun_solar=self.get_solar()
@@ -1371,7 +1379,7 @@ class plot(object):
 					else:
 						abun_data_stable2[idx]['mass']=-1
 			
-			#_decay2Stable gives you a new abun list to work with so dont use the old one
+			#_decay2Stable gives you a new abun list to work with so don't use the old one
 			abun_names=[i['name'] for i in abun_data_stable]
 			prefix=''
 
@@ -1399,7 +1407,7 @@ class plot(object):
 					else:
 						abun_mass[-1]=abun_mass[-1]/abun_data_stable2[idx]['mass']
 				else:
-					xx=self._getMassFrac(data2,i,ind2,log_abun)
+					xx=self._getMassFrac(data2,i,ind2,log_abun,prof=prof)
 					if xx==0:
 						abun_mass[-1]=-1
 					else:
@@ -1475,17 +1483,18 @@ class plot(object):
 		if show:
 			plt.show()		
 			
-	def plotAbunByA(self,m,m2=None,plot_type='profile',prefix='',model=-1,model2=-1,show=True,ax=None,xmin=None,xmax=None,mass_range=None,abun=None,
+	def plotAbunByA(self,m,m2=None,plot_type='profile',prefix='',model=-1,model2=-1,show=True,ax=None,xmin=None,xmax=None,
+					mass_range=None,abun=None,min_abun=10**-16,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
 					line_labels=True,yrng=[None,None],ind=None,ind2=None,mass_range2=None,stable=False):
 		
 		data,data2,ind,ind2,age,model,prof=self._abunPlotSetup(m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2)
-		
+
 		self._plotAbunByA(data=data,data2=data2,
 					prefix=prefix,show=show,ax=ax,xmin=xmin,xmax=xmax,abun=abun,fig=fig,
 					show_title_name=show_title_name,show_title_model=show_title_model,
-					show_title_age=show_title_age,title=title,
+					show_title_age=show_title_age,title=title,min_abun=min_abun,
 					cmap=cmap,colors=colors,abun_random=abun_random,
 					line_labels=line_labels,yrng=yrng,stable=stable,ind=ind,ind2=ind2,
 					age=age,model_number=model,prof=prof)
