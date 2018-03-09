@@ -1336,7 +1336,7 @@ class plot(object):
 	def _plotAbunByA(self,data=None,data2=None,prefix='',show=True,ax=None,xmin=None,xmax=None,abun=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,min_abun=10**-16,
-					line_labels=True,yrng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,stable=False,prof=True):
+					line_labels=True,y1rng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,stable=False,prof=True):
 	
 		fig,ax=self._setupPlot(fig,ax)	
 		
@@ -1426,15 +1426,15 @@ class plot(object):
 		if xmax is None:
 			xmax=np.max(iso_mass[abun_mass>0])
 		
-		if yrng[0] is None:
+		if y1rng[0] is None:
 			ymin=np.nanmin(abun_mass[abun_mass>0])
 		else:
-			ymin=yrng[0]
+			ymin=y1rng[0]
 
-		if yrng[1] is None:
+		if y1rng[1] is None:
 			ymax=np.nanmax(abun_mass[abun_mass>0])	
 		else:
-			ymax=yrng[1]
+			ymax=y1rng[1]
 		
 		
 		for i in sorted_names:
@@ -1487,7 +1487,7 @@ class plot(object):
 					mass_range=None,abun=None,min_abun=10**-16,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
-					line_labels=True,yrng=[None,None],ind=None,ind2=None,mass_range2=None,stable=False):
+					line_labels=True,y1rng=[None,None],ind=None,ind2=None,mass_range2=None,stable=False):
 		
 		data,data2,ind,ind2,age,model,prof=self._abunPlotSetup(m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2)
 
@@ -1496,7 +1496,7 @@ class plot(object):
 					show_title_name=show_title_name,show_title_model=show_title_model,
 					show_title_age=show_title_age,title=title,min_abun=min_abun,
 					cmap=cmap,colors=colors,abun_random=abun_random,
-					line_labels=line_labels,yrng=yrng,stable=stable,ind=ind,ind2=ind2,
+					line_labels=line_labels,y1rng=y1rng,stable=stable,ind=ind,ind2=ind2,
 					age=age,model_number=model,prof=prof)
 
 	def _abunPlotSetup(self,m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2):
@@ -1546,7 +1546,6 @@ class plot(object):
 			prof=True
 
 		return data,data2,ind,ind2,age,model,prof
-
 
 	def plotAbunPAndN(self,m,plot_type='profile',model=-1,show=True,ax=None,xmin=None,xmax=None,ymin=None,ymax=None,
 					mass_range=None,abun=None,ind=None,
