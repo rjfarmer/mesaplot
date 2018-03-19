@@ -1487,7 +1487,7 @@ class plot(object):
 					mass_range=None,abun=None,min_abun=10**-16,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
-					line_labels=True,y1rng=[None,None],ind=None,ind2=None,mass_range2=None,stable=False):
+					line_labels=True,y1rng=[None,None],ind=None,ind2=None,mass_range2=None,stable=False,y2rng=None):
 		
 		data,data2,ind,ind2,age,model,prof=self._abunPlotSetup(m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2)
 
