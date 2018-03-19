@@ -312,7 +312,7 @@ class MESA(object):
 					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
 					yield
 				elif x["model"]>rng[1]:
-					raise StopIteration
+					return
 			elif len(rng)>2 and rng[0]>0:
 				if x["model"] in rng:
 					self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
@@ -320,7 +320,7 @@ class MESA(object):
 			else:
 				self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
 				yield 
-		raise StopIteration
+		return
 				
 	def _loadProfileIndex(self,f):
 		self.prof_ind=np.genfromtxt(f+"/profiles.index",skip_header=1,names=["model","priority","profile"])
