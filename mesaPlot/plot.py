@@ -1550,7 +1550,7 @@ class plot(object):
 	def plotAbunPAndN(self,m,plot_type='profile',model=-1,show=True,ax=None,xmin=None,xmax=None,ymin=None,ymax=None,
 					mass_range=None,abun=None,ind=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
-					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],prefix='',bounds=0):
+					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],prefix='',bounds=0,n_minus_p=False):
 		"""
 			bounds option applies to the mass fractions for each isotope compared to the mass_frac_rng
 			0: Cut, so anything above or below mass_frac_rng is white
@@ -1562,14 +1562,14 @@ class plot(object):
 		self._plotAbunPAndN(data,show=show,ax=ax,xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax,abun=abun,ind=ind,
 					fig=fig,show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,title=title,
 					cmap=cmap,mass_frac_rng=mass_frac_rng,
-					model_number=model,age=age,prefix=prefix,prof=prof,bounds=bounds)
+					model_number=model,age=age,prefix=prefix,prof=prof,bounds=bounds,n_minus_p=n_minus_p)
 			
 
 			
 	def _plotAbunPAndN(self,data,show=True,ax=None,xmin=None,xmax=None,ind=None,abun=None,ymin=None,ymax=None,
 					fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
 					cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],
-					model_number=-1,age=-1,prefix='',element_names=True,prof=True,bounds=0):
+					model_number=-1,age=-1,prefix='',element_names=True,prof=True,bounds=0,n_minus_p=False):
 		
 		fig,ax=self._setupPlot(fig,ax)	
 		
@@ -1602,16 +1602,22 @@ class plot(object):
 		neutron=np.array(neutron)
 		mass=np.log10(np.array(mass))
 	
+	
+		if n_minus_p:
+			xdata = neutron-proton
+		else:
+			xdata = neutron
+	
 		if xmin is None:
-			xmin=np.min(neutron)
+			xmin = np.min(xdata)
 		if xmax is None:
-			xmax=np.max(neutron)
+			xmax = np.max(xdata)
 		
 		if ymin is None:
-			ymin=np.min(proton)
+			ymin = np.min(proton)
 			
 		if ymax is None:
-			ymax=np.max(proton)
+			ymax = np.max(proton)
 
 	
 		min_col=np.log10(mass_frac_rng[0])
@@ -1620,8 +1626,8 @@ class plot(object):
 		for idx,i in enumerate(abun_names):
 			if 'neut' in i or 'prot' in i:
 				continue
-			if proton[idx]>=ymin and proton[idx]<=ymax and neutron[idx]>=xmin and neutron[idx]<=xmax:	
-				loctuple=(float(neutron[idx]-0.5),float(proton[idx]-0.5))
+			if proton[idx]>=ymin and proton[idx]<=ymax and xdata[idx]>=xmin and xdata[idx]<=xmax:	
+				loctuple=(float(xdata[idx]-0.5),float(proton[idx]-0.5))
 				if mass[idx]>=min_col and mass[idx]<=max_col:
 					ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,facecolor=cmap((mass[idx]-min_col)/(max_col-min_col))))
 				else:
@@ -1640,12 +1646,13 @@ class plot(object):
 					else:
 						raise ValueError("Bad value for bounds option, either 0,1 or 2")
 			
+		label_loc = xmin -2
 		if element_names:
 			uniq_names=set(names)
 			for i in uniq_names:
 				if 'neut' in i or 'prot' in i:
 					continue
-				ax.text(-2,self.elements.index(i)-0.25,i.title(),fontsize=14).set_clip_on(True)
+				ax.text(label_loc,self.elements.index(i)-0.25,i.title(),fontsize=14).set_clip_on(True)
 			
 		norm = mpl.colors.Normalize(vmin=min_col, vmax=max_col)
 		
@@ -1656,7 +1663,10 @@ class plot(object):
 		cb.solids.set_edgecolor("face")
 		cb.set_label(r'$\log_{10}\,$ \rm{Mass Frac}')
 
-		ax.set_xlabel('Neutrons')
+		if n_minus_p:
+			ax.set_xlabel('Neutrons - Protons')
+		else:
+			ax.set_xlabel('Neutrons')
 		ax.set_ylabel('Protons')
 		
 		
