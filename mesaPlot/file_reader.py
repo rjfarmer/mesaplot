@@ -84,31 +84,32 @@ class data(object):
 		tmp.head_names=self.head_names
 		return tmp
 		
-	def loadFile(self,filename,max_num_lines=-1,cols=None):
-		numLines=self._filelines(filename)
-		self.head=np.genfromtxt(filename,skip_header=1,skip_footer=numLines-4,names=True)
-		skip_lines=0
-		if max_num_lines > 0 and max_num_lines<numLines:
-			skip_lines=numLines-max_num_lines
+	def loadFile(self, filename, max_num_lines=-1, cols=None):
+		numLines = self._filelines(filename)
+		self.head = np.genfromtxt(filename, skip_header=1, skip_footer=numLines-4, names=True)
+		skip_lines = 0
+		if max_num_lines > 0 and max_num_lines < numLines:
+			skip_lines = numLines - max_num_lines
 			
 		#Just the names
-		names=np.genfromtxt(filename,skip_header=5,names=True,skip_footer=numLines-5)
-		names=names.dtype.names
+		names = np.genfromtxt(filename, skip_header=5, names=True, skip_footer=numLines-5)
+		names = names.dtype.names
 			
-		usecols=None
+		usecols = None
+		cols = tuple(cols)
 		if cols is not None:
 			if ('model_number' not in cols and 'model_number' in names):
-				cols.append('model_number')
+				cols = cols + ('model_number',)
 			if ('zone' not in cols and 'zone' in names):
-				cols.append('zone')
+				cols = cols + ('zone',)
 			
-			colsSet=set(cols)
-			usecols=[i for i, e in enumerate(names) if e in colsSet]
+			colsSet = set(cols)
+			usecols = [i for i, e in enumerate(names) if e in colsSet]
 			
-		self.data=np.genfromtxt(filename,skip_header=5,names=True,skip_footer=skip_lines,usecols=usecols)
-		self.head_names=self.head.dtype.names
-		self.data_names=self.data.dtype.names
-		self._loaded=True
+		self.data = np.genfromtxt(filename, skip_header=5, names=True, skip_footer=skip_lines, usecols=usecols)
+		self.head_names = self.head.dtype.names
+		self.data_names = self.data.dtype.names
+		self._loaded = True
 
 	def _filelines(self,filename):
 		"""Get the number of lines in a file."""
