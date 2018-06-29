@@ -84,7 +84,7 @@ class data(object):
 		tmp.head_names=self.head_names
 		return tmp
 		
-	def loadFile(self, filename, max_num_lines=-1, cols=None):
+	def loadFile(self, filename, max_num_lines=-1, cols=[]):
 		numLines = self._filelines(filename)
 		self.head = np.genfromtxt(filename, skip_header=1, skip_footer=numLines-4, names=True)
 		skip_lines = 0
@@ -96,8 +96,8 @@ class data(object):
 		names = names.dtype.names
 			
 		usecols = None
-		cols = tuple(cols)
-		if cols is not None:
+		cols = list(cols)
+		if len(cols):
 			if ('model_number' not in cols and 'model_number' in names):
 				cols = cols + ('model_number',)
 			if ('zone' not in cols and 'zone' in names):
@@ -143,7 +143,7 @@ class MESA(object):
 		self.hist._mph='loadBinary'
 		
 	
-	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=None):
+	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[]):
 		"""
 		Reads a MESA history file.
 		
@@ -206,7 +206,7 @@ class MESA(object):
 				print(' '.join([str(self.hist.data[i][j]) for i in self.hist.data_names]),file=f)	
 	
 		
-	def loadProfile(self,f='',num=None,prof=None,mode='nearest',silent=False,cache=True,cols=None):
+	def loadProfile(self,f='',num=None,prof=None,mode='nearest',silent=False,cache=True,cols=[]):
 		if num is None and prof is None:
 			self._readProfile(f) #f is a filename
 			return
@@ -255,43 +255,44 @@ class MESA(object):
 		self._readProfile(filename,cache=cache,cols=cols)
 		return
 			
-	#def loadMod(self,filename=None):
-		#"""
-		#Fails to read a MESA .mod file.
-		#"""
-		#from io import BytesIO
+	def loadMod(self,filename=None):
+		"""
+		Fails to read a MESA .mod file.
+		"""
+		from io import BytesIO
 		
-		#count=0
-		#with open(filename,'r') as f:
-			#for l in f:
-				#count=count+1
-				#if '!' not in l:
-				#break
-			#self.mod_head=[]
-			#self.mod_head_names=[]
-			#self.mod_head.append(int(l.split()[0]))
-			#self.mod_head_names.append('mod_version')
-			##Blank line
-			#f.readline()
-			#count=count+1
-			##Gap between header and main data
-			#for l in f:
-				#count=count+1
-				#if l=='\n':
-				#break
-				#self.mod_head.append(l.split()[1])
-				#self.mod_head_names.append(l.split()[0])
-			#self.mod_dat_names=[]
-			#l=f.readline()
-			#count=count+1
-			#self.mod_dat_names.append('zone')
-			#self.mod_dat_names.extend(l.split())
-			##Make a dictionary of converters 
+		count=0
+		with open(filename,'r') as f:
+			for l in f:
+				count=count+1
+				if '!' not in l:
+					break
+			self.mod_head=[]
+			self.mod_head_names=[]
+			self.mod_head.append(int(l.split()[0]))
+			self.mod_head_names.append('mod_version')
+			#Blank line
+			f.readline()
+			count=count+1
+			#Gap between header and main data
+			for l in f:
+				count=count+1
+				if l=='\n':
+					break
+				self.mod_head.append(l.split()[1])
+				self.mod_head_names.append(l.split()[0])
+			self.mod_dat_names=[]
+			l=f.readline()
+			count=count+1
+			self.mod_dat_names.append('zone')
+			self.mod_dat_names.extend(l.split())
+			#Make a dictionary of converters 
 			
-		#d = {k:self._fds2f for k in range(len(self.mod_dat_names))}	
+		d = {k:self._fds2f for k in range(len(self.mod_dat_names))}	
 			
-		#self.mod_dat=np.genfromtxt(filename,skip_header=count,
-						#names=self.mod_dat_names,skip_footer=5,dtype=None,converters=d)
+		self.mod_dat=np.genfromtxt(filename,skip_header=count,
+						names=self.mod_dat_names,skip_footer=5,dtype=None,converters=d)
+		
 		
 	def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1,cache=True):
 		if len(f)==0:
@@ -326,7 +327,7 @@ class MESA(object):
 	def _loadProfileIndex(self,f):
 		self.prof_ind=np.genfromtxt(f+"/profiles.index",skip_header=1,names=["model","priority","profile"])
 
-	def _readProfile(self,filename,cache=True,cols=None):
+	def _readProfile(self,filename,cache=True,cols=[]):
 		"""
 		Reads a MESA profile file.
 		
@@ -367,12 +368,12 @@ class MESA(object):
 		self._cache_prof=[]
 		self._cache_prof_name=[]
 	
-	#def _fds2f(self,x):
-		#if isinstance(x, str):
-			#f=np.float(x.replace('D','E'))
-		#else:
-			#f=np.float(x.decode().replace('D','E'))
-		#return f
+	def _fds2f(self,x):
+		if isinstance(x, str):
+			f=np.float(x.replace('D','E'))
+		else:
+			f=np.float(x.decode().replace('D','E'))
+		return f
 		
 	def abun(self,element):
 		xx=0
@@ -383,7 +384,7 @@ class MESA(object):
 				pass
 		return xx
 
-	def loadBinary(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=None):
+	def loadBinary(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[]):
 		"""
 		Reads a MESA binary history file.
 		
