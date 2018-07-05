@@ -288,16 +288,7 @@ class plot(object):
          0,   0,   1,   1,   0,   0,   2,   2,   0,   1,   1,   0,   0, 
          0,   0,   2,   0,   0,   1,   0,   0,   0,   0,   0,   0,   0]		
 	
-	
-		try:
-		   #Can be a problem on mac's
-		   mpl.rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-		except:
-		   pass
-		## for Palatino and other serif fonts use:
-		#mpl.rc('font',**{'family':'serif','serif':['Palatino']})   
-		
-		
+
 		try:
 		   #Again can be problematic on mac's
 		   #TODO: create a flag and fix labels
