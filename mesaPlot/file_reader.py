@@ -19,6 +19,8 @@ import numpy as np
 import mmap
 import os
 import bisect
+import subprocess
+from io import BytesIO
 
 class data(object):
 	def __init__(self):
@@ -84,29 +86,33 @@ class data(object):
 		tmp.head_names=self.head_names
 		return tmp
 		
-	def loadFile(self, filename, max_num_lines=-1, cols=[]):
-		numLines = self._filelines(filename)
-		self.head = np.genfromtxt(filename, skip_header=1, skip_footer=numLines-4, names=True)
-		skip_lines = 0
-		if max_num_lines > 0 and max_num_lines < numLines:
-			skip_lines = numLines - max_num_lines
+	def loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
+		# numLines = self._filelines(filename)
+		self.head = np.genfromtxt(filename, skip_header=1, max_rows=1, names=True)
 			
 		#Just the names
-		names = np.genfromtxt(filename, skip_header=5, names=True, skip_footer=numLines-5)
+		names = np.genfromtxt(filename, skip_header=5, names=True, max_rows=1)
 		names = names.dtype.names
 			
 		usecols = None
 		cols = list(cols)
 		if len(cols):
 			if ('model_number' not in cols and 'model_number' in names):
-				cols = cols + ('model_number',)
+				cols = cols + ['model_number']
 			if ('zone' not in cols and 'zone' in names):
-				cols = cols + ('zone',)
+				cols = cols + ['zone']
 			
 			colsSet = set(cols)
 			usecols = [i for i, e in enumerate(names) if e in colsSet]
 			
-		self.data = np.genfromtxt(filename, skip_header=5, names=True, skip_footer=skip_lines, usecols=usecols)
+		if final_lines > 0:	
+			line = subprocess.check_output(['tail', '-'+str(final_lines), filename])
+			self.data = np.genfromtxt(BytesIO(line), names=names, usecols=usecols)
+		else:
+			if max_num_lines > 0:
+				self.data = np.genfromtxt(filename, skip_header=5, names=True, max_rows = max_num_lines, usecols=usecols)
+			else:
+				self.data = np.genfromtxt(filename, skip_header=5, names=True, usecols=usecols)
 		self.head_names = self.head.dtype.names
 		self.data_names = self.data.dtype.names
 		self._loaded = True
@@ -143,7 +149,7 @@ class MESA(object):
 		self.hist._mph='loadBinary'
 		
 	
-	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[]):
+	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[],final_lines=-1):
 		"""
 		Reads a MESA history file.
 		
@@ -154,6 +160,7 @@ class MESA(object):
 		max_model: Maximum model to read into, may help when having to clean files with many retires, backups and restarts by not processing data beyond max_model
 		max_num_lines: Maximum number of lines to read from the file, maps ~maximum model number but not quite (retires, backups and restarts effect this)
 		cols: If none returns all columns, else if set as a list only stores those columns, will always add model_number to the list
+		final_lines: Reads number of lines from end of the file if > 0
 		
 		
 		Returns:
@@ -177,7 +184,7 @@ class MESA(object):
 		else:
 			filename=filename_in
 
-		self.hist.loadFile(filename,max_num_lines,cols)
+		self.hist.loadFile(filename,max_num_lines,cols,final_lines=final_lines)
 		
 		if max_model>0:
 			self.hist.data=self.hist.data[self.hist.model_number<=max_model]
@@ -187,11 +194,11 @@ class MESA(object):
 		
 		#Fix case where we have at end of file numbers:
 		# 1 2 3 4 5 3, without this we get the extra 4 and 5
-		self.hist.data=self.hist.data[self.hist.model_number<=self.hist.model_number[-1]]
-		
-		mod_rev=self.hist.model_number[::-1]
-		mod_uniq,mod_ind=np.unique(mod_rev,return_index=True)
-		self.hist.data=self.hist.data[np.size(self.hist.model_number)-mod_ind-1]
+		if np.size(self.hist.model_number) > 1:
+			self.hist.data=self.hist.data[self.hist.model_number<=self.hist.model_number[-1]]
+			mod_rev=self.hist.model_number[::-1]
+			mod_uniq,mod_ind=np.unique(mod_rev,return_index=True)
+			self.hist.data=self.hist.data[np.size(self.hist.model_number)-mod_ind-1]
 		
 	def scrubHistory(self,f="",fileOut="LOGS/history.data.scrubbed"):
 		self.loadHistory(f)
