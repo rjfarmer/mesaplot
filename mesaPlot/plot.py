@@ -1042,7 +1042,7 @@ class plot(object):
 			if xlog:
 				ax.set_xscale("log", nonposx='clip')
 			if ylog:
-				ax.set_yscale("log", nonposx='clip')
+				ax.set_yscale("log", nonposy='clip')
 				if np.all(y<=0):
 					return
 				
