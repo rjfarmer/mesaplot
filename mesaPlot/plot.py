@@ -2333,7 +2333,7 @@ class plot(object):
 				show_burn=False,show_mix=False,show_burn_labels=False,show_mix_labels=False,
 				showAll=False,showBurn=False,showPgas=False,showDegeneracy=False,
 				showGamma=False,showEOS=False,logT=False,logRho=False,title=None,
-				ycol='k'):
+				ycol='k',points=False):
 		
 		fig,ax=self._setupProf(fig,ax,m,model)
 			
@@ -2359,7 +2359,7 @@ class plot(object):
                show_mix=show_mix,show_burn=show_burn,show_mix_line=True,show_burn_line=True,show_mix_x=False,show_burn_x=False,
                xmin=xmin,xmax=xmax,ax=ax,y1label=self.labels('teff',log=True),
                xlabel=self.labels('rho',log=True),fig=fig,y1rng=yrng,y2rng=None,y1col=ycol,
-               show_burn_labels=show_burn_labels,show_mix_labels=show_mix_labels,title=title)
+               show_burn_labels=show_burn_labels,show_mix_labels=show_mix_labels,title=title,points=points)
 
 		if showBurn or showAll:
 			self._showBurnData(ax)
