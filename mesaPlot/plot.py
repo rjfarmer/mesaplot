@@ -1346,9 +1346,14 @@ class plot(object):
 		# Filter out low level iso's:
 		remove={}
 		for i in abun_names:
-			if np.all(data.data[prefix+i][ind] < min_abun) or np.all(data2.data[prefix+i][ind2] < min_abun):
+			if np.all(data.data[prefix+i][ind] < min_abun):
 				remove[i]=True
 				print("Removing ",str(i))
+				continue
+			if data2 is not None:
+				if np.all(data2.data[prefix+i][ind2] < min_abun):
+					remove[i]=True
+					print("Removing ",str(i))		
 		abun_names=[i for i in abun_names if i not in remove]
 		
 			
