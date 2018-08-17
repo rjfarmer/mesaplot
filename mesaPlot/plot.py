@@ -362,17 +362,15 @@ class plot(object):
         if '$' in label:
             return label
         
-        print(label,ls)
         if log or 'log_' in label:
             ls=r'$\log_{10}\;$'
             label=label.replace('log_','')
-        print(label,ls)
             
         if 'D_' in label:
             ls=''
-            l=r"$D_{"+label.split('_')[2]+"}$"
+            l=r"$D_{"+label.split('_')[-1]+"}$"
         elif 'am_D_' in label:
-            l=r"$D_{"+label.split('_')[3]+"}$"
+            l=r"$D_{"+label.split('_')[-1]+"}$"
         elif label=='xq':
             # ls=''
             l=r'$\left(1-q\right)$'
@@ -387,6 +385,7 @@ class plot(object):
                 l=l+r"$T_{eff,c}\; [K]$"
             else:
                 l=l+r"$T_{eff}\; [K]$"
+            label=label.replace('teff','')
         elif 'rho' in label or 'Rho' in label:
             if center:
                 l=l+r"$\rho_{c}\; [\rm{g\;cm^{-3}}]$"
@@ -428,11 +427,12 @@ class plot(object):
             l=l+r'$\epsilon_{other}$'
         elif 'abundance' in label:
             l=l+r'$\chi\; [M_{\odot}]$'
-                
-        if '$' not in label:
-            l=label.replace('_',' ')
-        else:
-            l=label
+             
+        if len(l)==0:
+            if '$' not in label:
+                l=label.replace('_',' ')
+            else:
+                l=label
             
         l=ls+l	            
 
