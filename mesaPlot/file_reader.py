@@ -22,6 +22,8 @@ import bisect
 import subprocess
 from io import BytesIO
 
+from distutils.version import StrictVersion
+
 class data(object):
 	def __init__(self):
 		self.data={}
@@ -86,7 +88,46 @@ class data(object):
 		tmp.head_names=self.head_names
 		return tmp
 		
-	def loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
+	def loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1,_dbg=False):
+		if StrictVersion(np.__version__) < StrictVersion('1.10.0') or _dbg:
+			f = self._loadFile1
+		else:
+			f = self._loadFile2
+		f(filename, max_num_lines, cols, final_lines)
+		
+	def _loadFile1(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
+		numLines = self._filelines(filename)
+		self.head = np.genfromtxt(filename, skip_header=1, skip_footer=numLines-4, names=True)
+		skip_lines = 0
+		if max_num_lines > 0 and max_num_lines < numLines:
+			skip_lines = numLines - max_num_lines
+		
+		#Just the names
+		names = np.genfromtxt(filename, skip_header=5, names=True, skip_footer=numLines-5)
+		names = names.dtype.names
+		
+		usecols = None
+		cols = list(cols)
+		if len(cols):
+			if ('model_number' not in cols and 'model_number' in names):
+				cols = cols + ('model_number',)
+			if ('zone' not in cols and 'zone' in names):
+				cols = cols + ('zone',)
+		
+			colsSet = set(cols)
+			usecols = [i for i, e in enumerate(names) if e in colsSet]
+		
+		if final_lines > 0:	
+			line = subprocess.check_output(['tail', '-'+str(final_lines), filename])
+			self.data = np.genfromtxt(BytesIO(line), names=names, usecols=usecols)
+		else:
+			self.data = np.genfromtxt(filename, skip_header=5, names=True, skip_footer=skip_lines, usecols=usecols)
+		self.head_names = self.head.dtype.names
+		self.data_names = self.data.dtype.names
+		self._loaded = True
+		
+		
+	def _loadFile2(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
 		# numLines = self._filelines(filename)
 		self.head = np.genfromtxt(filename, skip_header=1, max_rows=1, names=True)
 			
@@ -149,7 +190,7 @@ class MESA(object):
 		self.hist._mph='loadBinary'
 		
 	
-	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[],final_lines=-1):
+	def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[],final_lines=-1,_dbg=False):
 		"""
 		Reads a MESA history file.
 		
@@ -184,7 +225,7 @@ class MESA(object):
 		else:
 			filename=filename_in
 
-		self.hist.loadFile(filename,max_num_lines,cols,final_lines=final_lines)
+		self.hist.loadFile(filename,max_num_lines,cols,final_lines=final_lines,_dbg=_dbg)
 		
 		if max_model>0:
 			self.hist.data=self.hist.data[self.hist.model_number<=max_model]
