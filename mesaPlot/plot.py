@@ -925,11 +925,11 @@ class plot(object):
             if 'logdq' in data.data_names:
                 scale=10**(data.data['logdq'][ind])
             elif 'dq' in data.data_names:
-                scale=data.data['logdq'][ind]
+                scale=data.data['dq'][ind]
             elif 'dm' in data.data_names:
                 scale=data.data['dm'][ind]/(self.msun*data.star_mass)
             else:
-                raise AttributeError("No suitable mass co-oridinate available for _getMassFrac, need either logdq, dq or dm in profile")
+                raise AttributeError("No suitable mass co-ordinate available for _getMassFrac, need either logdq, dq or dm in profile")
         else:
             scale=1.0
             
