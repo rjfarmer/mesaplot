@@ -482,3 +482,21 @@ class MESA(object):
 		mod_uniq,mod_ind=np.unique(mod_rev,return_index=True)
 		self.binary.data=self.binary.data[np.size(self.binary.model_number)-mod_ind-1]
 
+
+class inlist(object):
+    def __init__(self):
+        pass
+        
+    def read(self,filename):
+        res = {}
+        with open(filename,'r') as f:
+            for l in f:
+                l=l.strip()
+                if l.startswith('!') or not len(l.strip()):
+                    continue
+                if '=' in l:
+                    line = l.split('=')
+                    res[line[0].strip()] = line[1].strip()
+        return res
+                
+        
