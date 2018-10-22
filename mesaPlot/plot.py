@@ -685,12 +685,16 @@ class plot(object):
    
     def _cycleColors(self,ax,colors=None,cmap='',num_plots=0,random_col=False):
         if colors is None:
-            c=[cmap(i) for i in np.linspace(0.0,0.9,num_plots)]
+            c=[cmap(i) for i in np.linspace(0.0,1.0,num_plots)]
         else:
             c=colors
         if random_col:
             random.shuffle(c)
-        ax.set_prop_cycle(cycler('color',c))
+        try:
+            ax.set_prop_cycle(cycler('color',c))
+        except AttributeError:
+            ax.set_color_cylce(c) #Fallback for older matplotlibs
+
 
     def _showBurnData(self,ax):
         self._loadBurnData()
