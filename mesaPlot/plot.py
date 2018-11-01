@@ -2095,8 +2095,9 @@ class plot(object):
                 
         #Add line at outer mass location
         if show_outer_mass and plot_type=='history':
-            f = interp1d(data_x[modInd], m.hist.data['star_mass'][modInd])
-            ax.plot(lin_x,f(lin_x),c='k')
+            #f = interp1d(data_x[modInd], m.hist.data['star_mass'][modInd])
+            #ax.plot(lin_x,f(lin_x),c='k')
+            ax.plot(lin_x,m.hist.data['star_mass'][modInd],c='k')
         
         if y2 is not None and plot_type=='history':
             # Update axes 2 locations after ax1 is moved by the colorbar
