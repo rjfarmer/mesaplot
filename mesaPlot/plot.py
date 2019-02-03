@@ -1935,7 +1935,7 @@ class plot(object):
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
                 y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
                 mix_hatch=False,hatch_color='black',zaxis_norm=False,yaxis_norm=False,
-                zaxis_contour=False):
+                zaxis_contour=False,zaxis_levels=None):
                     
         if fig==None:
             fig=plt.figure(figsize=(12,12))
@@ -2086,7 +2086,10 @@ class plot(object):
             im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
         else:
             colorbar=False
-            ax.contour(lin_x, data_y, data_z.T,colors='black')
+            if zaxis_levels is None:
+                zaxis_levels = np.linspace(np.nanmin(data_z),np.nanmax(data_z),20)
+            print(zaxis_levels)
+            ax.contour(lin_x, data_y, data_z.T,colors='black',levels=zaxis_levels)
             
                 
         if show_mix:
