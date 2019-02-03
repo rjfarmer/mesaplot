@@ -1933,7 +1933,9 @@ class plot(object):
                 cmin=None,cmax=None,cmap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label=None,
                 show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
-                y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,mix_hatch=False,hatch_color='black'):
+                y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
+                mix_hatch=False,hatch_color='black',zaxis_norm=False,yaxis_norm=False,
+                zaxis_contour=False):
                     
         if fig==None:
             fig=plt.figure(figsize=(12,12))
@@ -1982,9 +1984,11 @@ class plot(object):
         mix_data=[]
         
         #Number of zones to plot
-        num_zones=np.max(m.hist.num_zones) * 1.0/zone_frac
         
         if plot_type=='history':
+            if num_zones is not None:
+                num_zones=np.max(m.hist.num_zones) * 1.0/zone_frac
+                
             if xaxis=='model_number':
                 data_x=m.hist.model_number
             else:
@@ -2024,11 +2028,19 @@ class plot(object):
                 data_x.append(m.prof.head[xaxis])
                 data_y.append(m.prof.data[yaxis])
                 data_z.append(m.prof.data[zaxis])
+                
+                if zaxis_norm:
+                    data_z[-1] = data_z[-1]/np.max(data_z[-1])
+                    
+                if yaxis_norm:
+                    data_y[-1] = data_y[-1]/np.max(data_y[-1])
+                
                 zones.append(m.prof.head['num_zones'])
                 count=count+1
                 
             data_x=np.array(data_x)
-            num_zones=np.max(zones) * 1.0/zone_frac
+            if num_zones is None:
+                num_zones=np.max(zones) * 1.0/zone_frac
             data_z,lin_x,data_y=self._rebinKipDataXY(data_z,data_x,data_y,count,num_zones)
 
 
@@ -2070,8 +2082,12 @@ class plot(object):
             vmin=np.nanmin(data_z)
             vmax=np.nanmax(data_z)
                         
-                    
-        im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
+        if not zaxis_contour:
+            im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
+        else:
+            colorbar=False
+            ax.contour(lin_x, data_y, data_z.T,colors='black')
+            
                 
         if show_mix:
             mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
