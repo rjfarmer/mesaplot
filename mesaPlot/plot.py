@@ -497,9 +497,10 @@ class plot(object):
 
     def _listBurn(self,data):
         burnList=[]
+        ignore=['qtop','type']
         extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
         for i in data.data_names:
-            if "burn_" in i or i in extraBurn:
+            if ("burn_" in i or i in extraBurn) and not any(j in i for j in ignore):
                 burnList.append(str(i))
         return burnList
         
@@ -648,7 +649,7 @@ class plot(object):
             else:
                 col=line.get_color()
             #print(text,type(text))
-            ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize).set_clip_on(True)
+            ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize,clip_on=True)
     
     def _setYLim(self,ax,yrngIn,yrngOut,rev=False,log=False):
         yrng=[]
@@ -1849,10 +1850,10 @@ class plot(object):
                     show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,
                     y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
         
-        burn_list=self._listBurnHistory(m.hist)
+        burn_list=self._listBurn(m.hist)
 
         self._plotMultiHist(m,list_y=burn_list,show=show,ax=ax,xaxis=xaxis,
-                            xmin=xmin,xmax=xmax,yrng=y1rng,ylog=y1log,
+                            xmin=xmin,xmax=xmax,y1rng=y1rng,y1log=y1log,
                             cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
                             fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,y1label=y1label,
                             show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
