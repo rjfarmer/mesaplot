@@ -297,9 +297,7 @@ class plot(object):
         except:
            mpl.rc('text', usetex=False)
         
-        
-        
-        mpl.rc('font',size=32)
+        mpl.rc('font',size=30)
         mpl.rc('xtick', labelsize=28) 
         mpl.rc('ytick', labelsize=28) 
         mpl.rcParams['axes.linewidth'] = 2.0
@@ -382,9 +380,9 @@ class plot(object):
             if label=='logT':
                 ls=r'$\log_{10}\;$' 
             if center:
-                l=l+r"$T_{eff,c}\; [K]$"
+                l=l+r"$T_{\rm{eff},c}\; [K]$"
             else:
-                l=l+r"$T_{eff}\; [K]$"
+                l=l+r"$T_{\rm{eff}}\; [K]$"
             label=label.replace('teff','')
         elif 'rho' in label or 'Rho' in label:
             if center:
