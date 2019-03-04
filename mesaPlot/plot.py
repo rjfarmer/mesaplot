@@ -1987,7 +1987,7 @@ class plot(object):
         #Number of zones to plot
         
         if plot_type=='history':
-            if num_zones is not None:
+            if num_zones is None:
                 num_zones=np.max(m.hist.num_zones) * 1.0/zone_frac
                 
             if xaxis=='model_number':
