@@ -102,6 +102,8 @@ class plot(object):
         self.msun=1.9892*10**33
         self.secyear=60.0*60.0*24.0*365.0
         
+        self._kip_cbar_label = r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$'
+        
         #..names of the stable isotopes
         self.stable_isos = [
             'h1','h2','he3','he4','li6','li7','be9','b10',
@@ -1898,20 +1900,21 @@ class plot(object):
     def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ax=None,xrng=[None,None],mix=None,show_mix=True,
                 cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,ylabel=None,
                 show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None,y2rng=None,zone_frac=1.0,
-                mix_hatch=False,hatch_color='black'):	
+                mix_hatch=False,hatch_color='black',cbar_label=None):	
                 
         self.plotKip3(m,plot_type='history',xaxis='model_number',show=show,
                 reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
                 cmin=cmin,cmax=cmax,cmap=burnMap,fig=fig,yrng=yrng,ylabel=ylabel,
                 show_mass_loc=show_mass_loc,show_mix_labels=show_mix_labels,mix_alpha=mix_alpha,
-                xstep=step,y2=y2,title=title,y2rng=y2rng,zone_frac=zone_frac,mix_hatch=mix_hatch,hatch_color=hatch_color)
+                xstep=step,y2=y2,title=title,y2rng=y2rng,zone_frac=zone_frac,mix_hatch=mix_hatch,hatch_color=hatch_color
+                cbar_label=cbar_label)
         
     def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[None,None],mix=None,
                 cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
                 show_mix=True,show_burn=True,
                 show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
                 mod_out=None,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None,y2=None,y2rng=None,zone_frac=1.0,
-                mix_hatch=False,hatch_color='black'):	
+                mix_hatch=False,hatch_color='black',cbar_label=None):	
                     
         self.plotKip3(m,plot_type='history',xaxis='star_age',show=show,
                 reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
@@ -1919,7 +1922,8 @@ class plot(object):
                 show_mass_loc=show_mass_loc,show_mix_labels=show_mix_labels,mix_alpha=mix_alpha,
                 xstep=step,y2=y2,title=title,y2rng=y2rng,colorbar=colorbar,ylabel=ylabel,
                 age_zero=age_zero,age_lookback=age_collapse,age_log=age_log,age_reverse=age_reverse,
-                mod_index=mod_out,xlabel=xlabel,show_burn=burn,end_time=end_time,zone_frac=zone_frac,mix_hatch=mix_hatch,hatch_color=hatch_color)
+                mod_index=mod_out,xlabel=xlabel,show_burn=burn,end_time=end_time,zone_frac=zone_frac,
+                mix_hatch=mix_hatch,hatch_color=hatch_color,cbar_label=cbar_label)
             
             
     #Will replace plotKip and plotKip2 when finished
@@ -1934,7 +1938,7 @@ class plot(object):
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
                 y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
                 mix_hatch=False,hatch_color='black',zaxis_norm=False,yaxis_norm=False,
-                zaxis_contour=False,zaxis_levels=None):
+                zaxis_contour=False,zaxis_levels=None,cbar_label=None):
                     
         if fig==None:
             fig=plt.figure(figsize=(12,12))
@@ -2113,8 +2117,8 @@ class plot(object):
             cb=fig.colorbar(im1,ax=ax)
             cb.solids.set_edgecolor("face")
 
-            if show_burn:
-                cb.set_label(r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$')
+            if cbar_label is None:
+                cb.set_label(self._kip_cbar_label)
             else:
                 cb.set_label(self.safeLabel(cbar_label,zaxis))
                 
