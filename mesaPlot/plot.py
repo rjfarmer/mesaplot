@@ -427,7 +427,19 @@ class plot(object):
             l=l+r'$\epsilon_{other}$'
         elif 'abundance' in label:
             l=l+r'$\chi\; [M_{\odot}]$'
-             
+        elif label=='non_nuc_neu':
+            l=l+r'$\epsilon_{\nu,total}$'
+        elif label=='nonnucneu_brem':
+            l=l+r'$\epsilon_{\nu,brem}$'
+        elif label=='nonnucneu_pair':
+            l=l+r'$\epsilon_{\nu,pair}$'
+        elif label=='nonnucneu_phot':
+            l=l+r'$\epsilon_{\nu,photo}$'
+        elif label=='nonnucneu_plas':
+            l=l+r'$\epsilon_{\nu,plasma}$'
+        elif label=='nonnucneu_reco':
+            l=l+r'$\epsilon_{\nu,reco}$'
+        
         if len(l)==0:
             if '$' not in label:
                 l=label.replace('_',' ')
@@ -631,7 +643,7 @@ class plot(object):
         ind=np.argsort(x)
         x=x[ind]
         y=y[ind]
-        
+                        
         #Dont add points at the edge of the plot 
         xx=np.linspace(xmin,xmax,num_labels+2)[1:-1]
         
@@ -1139,7 +1151,8 @@ class plot(object):
     def _setXLabel(self,fig,ax,xlabel,default=None,color='k'):	
         ax.set_xlabel(self.safeLabel(xlabel,default),color=color)
     
-    def _plotY2(self,fig,ax,x,data,xrngL,xlog,xrev,mInd,y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',points=False):
+    def _plotY2(self,fig,ax,x,data,xrngL,xlog,xrev,mInd,y2=None,y2rng=[None,None],fy2=None,
+                y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',points=False):
 
         if y2 is not None:
             ax2=ax.twinx()
@@ -1704,6 +1717,23 @@ class plot(object):
                             show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
                             y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
                                     
+    def plotNeu(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[10**-3,10**10.0],
+                cmap=plt.cm.tab20,num_labels=3,xlabel=None,points=False,rand_col=False,
+                show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_core_loc=False,
+                show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
+                colors=None,y1label=r'$\epsilon_{\nu}$',title=None,show_shock=False,show_burn_labels=False,show_mix_labels=False,
+                y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
+                show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,y1log=True):
+                
+        neu_list = ['nonnucneu_brem','nonnucneu_pair','nonnucneu_phot','nonnucneu_plas','nonnucneu_reco']
+        
+        self._plotMultiProf(m,list_y=neu_list,y1log=y1log,_axlabel='neu',
+                            show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,y1rng=y1rng,
+                            cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
+                            show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
+                            show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
+                            colors=colors,y1label=y1label,title=title,show_shock=show_shock,
+                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)
                                     
     def plotDynamo(self,m,xaxis='mass',model=None,show=True,ax=None,xmin=None,xmax=None,xlabel=None,y1rng=None,y2rng=None,
                     show_burn=False,show_mix=False,legend=True,annotate_line=True,fig=None,fx=None,fy=None,title=None,
@@ -1906,7 +1936,7 @@ class plot(object):
                 reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
                 cmin=cmin,cmax=cmax,cmap=burnMap,fig=fig,yrng=yrng,ylabel=ylabel,
                 show_mass_loc=show_mass_loc,show_mix_labels=show_mix_labels,mix_alpha=mix_alpha,
-                xstep=step,y2=y2,title=title,y2rng=y2rng,zone_frac=zone_frac,mix_hatch=mix_hatch,hatch_color=hatch_color
+                xstep=step,y2=y2,title=title,y2rng=y2rng,zone_frac=zone_frac,mix_hatch=mix_hatch,hatch_color=hatch_color,
                 cbar_label=cbar_label)
         
     def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[None,None],mix=None,
@@ -1938,7 +1968,7 @@ class plot(object):
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
                 y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
                 mix_hatch=False,hatch_color='black',zaxis_norm=False,yaxis_norm=False,
-                zaxis_contour=False,zaxis_levels=None,cbar_label=None):
+                zaxis_contour=False,zaxis_levels=None):
                     
         if fig==None:
             fig=plt.figure(figsize=(12,12))
