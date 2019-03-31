@@ -17,19 +17,13 @@
 
 from __future__ import print_function
 import numpy as np
-import mmap
 import matplotlib as mpl
-import matplotlib.colors as colors
-import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import bisect
-import scipy.interpolate as interpolate
 from matplotlib.ticker import MaxNLocator,AutoMinorLocator
 import matplotlib.patheffects as path_effects
 import os
 import random
-import glob
-import subprocess
 from io import BytesIO
 from cycler import cycler
 from scipy.interpolate import interp1d
