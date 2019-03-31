@@ -23,4 +23,5 @@ setup(name='mesaPlot',
 		'dev': [
 			'unittest2'
 			]
+		}
      )
