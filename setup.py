@@ -11,6 +11,8 @@ setup(name='mesaPlot',
       author_email='r.j.farmer@uva.nl',
       url='https://github.com/rjfarmer/mesaPlot',
       packages=["mesaPlot"],
+      tests_require=["unittest2"],
+      test_suite='tests',
       classifiers=[
 			"Development Status :: 5 - Production/Stable",
 			"Intended Audience :: Science/Research",
