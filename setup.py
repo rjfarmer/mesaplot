@@ -18,7 +18,7 @@ setup(name='mesaPlot',
 			"Intended Audience :: Science/Research",
 			"License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
 			"Topic :: Scientific/Engineering :: Astronomy",
-      ]
+      ],
       extras_require={
 		'dev': [
 			'unittest2'
