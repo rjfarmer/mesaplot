@@ -17,7 +17,6 @@
 
 from __future__ import print_function
 import numpy as np
-import mmap
 import matplotlib as mpl
 import matplotlib.colors as colors
 import matplotlib.cm as cm

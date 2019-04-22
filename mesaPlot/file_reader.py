@@ -238,7 +238,7 @@ class MESA(object):
 		if np.size(self.hist.model_number) > 1:
 			self.hist.data=self.hist.data[self.hist.model_number<=self.hist.model_number[-1]]
 			mod_rev=self.hist.model_number[::-1]
-			mod_uniq,mod_ind=np.unique(mod_rev,return_index=True)
+			_, mod_ind=np.unique(mod_rev,return_index=True)
 			self.hist.data=self.hist.data[np.size(self.hist.model_number)-mod_ind-1]
 		
 	def scrubHistory(self,f="",fileOut="LOGS/history.data.scrubbed"):
@@ -294,7 +294,7 @@ class MESA(object):
 						else:
 							pos=pos-1
 					else:
-						raise(ValueError,"Invalid mode")
+						raise ValueError("Invalid mode")
 						
 		profile_num=np.atleast_1d(self.prof_ind["profile"])[pos]		
 		filename=f+"/profile"+str(int(profile_num))+".data"
@@ -427,7 +427,7 @@ class MESA(object):
 		xx=0
 		for ii in range(0,1000):
 			try:
-				xx=xx+np.sum(self.prof.data[element+str(ii)]*10**m.prof.logdq)
+				xx=xx+np.sum(self.prof.data[element+str(ii)]*10**self.prof.logdq)
 			except:
 				pass
 		return xx
@@ -479,7 +479,7 @@ class MESA(object):
 		self.binary.data=self.binary.data[self.binary.model_number<=self.binary.model_number[-1]]
 		
 		mod_rev=self.binary.model_number[::-1]
-		mod_uniq,mod_ind=np.unique(mod_rev,return_index=True)
+		_, mod_ind=np.unique(mod_rev,return_index=True)
 		self.binary.data=self.binary.data[np.size(self.binary.model_number)-mod_ind-1]
 
 

@@ -27,6 +27,7 @@ import random
 from io import BytesIO
 from cycler import cycler
 from scipy.interpolate import interp1d
+from distutils.spawn import find_executable
 
     
 class plot(object):
@@ -283,16 +284,12 @@ class plot(object):
          0,   0,   2,   2,   0,   2,   1,   1,   1,   0,   0,   2,   2, 
          0,   0,   1,   1,   0,   0,   2,   2,   0,   1,   1,   0,   0, 
          0,   0,   2,   0,   0,   1,   0,   0,   0,   0,   0,   0,   0]		
-    
-
-        try:
-           #Again can be problematic on mac's
-           #TODO: create a flag and fix labels
-           mpl.rc('text', usetex=True)
-           x=r'$log_{10}$'
-        except:
-           mpl.rc('text', usetex=False)
         
+        if find_executable('latex'):
+           mpl.rc('text', usetex=True)
+        else:
+           mpl.rc('text', usetex=False)
+
         mpl.rc('font',size=30)
         mpl.rc('xtick', labelsize=28) 
         mpl.rc('ytick', labelsize=28) 
@@ -609,7 +606,7 @@ class plot(object):
     
         
         if isSet is None:
-            raise(ValueError,"Need mixing type in profile file for showing mix regions, either its mixing_type or conv_mixing_type")
+            raise ValueError("Need mixing type in profile file for showing mix regions, either its mixing_type or conv_mixing_type")
         
         if ind is not None:
             col=col[ind]
@@ -958,8 +955,8 @@ class plot(object):
         except AttributeError:
             pass
         mass=data.star_mass-mcen/self.msun	
-            
-        return self._getMassFrac(data,i,ind,log=log,prof=prof)*mass
+        
+        return self._getMassFrac(data,i,massInd,log=log,prof=prof)*mass
         
     def _addExtraLabelsToAxis(self,fig,labels,colors=None,num_left=0,num_right=0,left_pad=85,right_pad=85):
 
@@ -1291,7 +1288,7 @@ class plot(object):
             self._plotY2(fig,ax,x,m.hist.data,xrngL,xlog,xrev,mInd,y2,y2rng,fy2,y2Textcol,y2label,y2rev,y2log,y2col,points)
             
         if show_core:
-            self._showMassLocHist(m,fig,ax,x,y,mInd)
+            self._showMassLocHist(m,fig,ax,x,list_y[0],mInd)
         
         self._setXLabel(fig,ax,xlabel,xaxis)
         self._setYLabel(fig,ax,y1label,i)
@@ -1299,7 +1296,7 @@ class plot(object):
         if title is not None:
             ax.set_title(title)
         elif show_title_name:
-            self.setTitle(ax,show_title_name,show_title_model,show_title_age,'',show_title_model=False,show_title_age=False)
+            self.setTitle(ax,show_title_name,show_title_model=False,show_title_age=False)
         
 
         if show:
@@ -1558,7 +1555,7 @@ class plot(object):
     def plotAbunPAndN(self,m,plot_type='profile',model=-1,show=True,ax=None,xmin=None,xmax=None,ymin=None,ymax=None,
                     mass_range=None,abun=None,ind=None,
                     fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
-                    cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],prefix='',bounds=0,n_minus_p=False):
+                    cmap=plt.cm.gist_ncar,mass_frac_rng=[10**-10,1.0],prefix='',bounds=0,n_minus_p=False):
         """
             bounds option applies to the mass fractions for each isotope compared to the mass_frac_rng
             0: Cut, so anything above or below mass_frac_rng is white
@@ -1576,7 +1573,7 @@ class plot(object):
             
     def _plotAbunPAndN(self,data,show=True,ax=None,xmin=None,xmax=None,ind=None,abun=None,ymin=None,ymax=None,
                     fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
-                    cmap=plt.cm.jet,mass_frac_rng=[10**-10,1.0],
+                    cmap=plt.cm.gist_ncar,mass_frac_rng=[10**-10,1.0],
                     model_number=-1,age=-1,prefix='',element_names=True,prof=True,bounds=0,n_minus_p=False):
         
         fig,ax=self._setupPlot(fig,ax)	
@@ -1712,7 +1709,7 @@ class plot(object):
                             y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
                                     
     def plotNeu(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[10**-3,10**10.0],
-                cmap=plt.cm.tab20,num_labels=3,xlabel=None,points=False,rand_col=False,
+                cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
                 show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_core_loc=False,
                 show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
                 colors=None,y1label=r'$\epsilon_{\nu}$',title=None,show_shock=False,show_burn_labels=False,show_mix_labels=False,
@@ -1793,7 +1790,7 @@ class plot(object):
             self._plotMixRegions(m,ax,m.prof.data[xaxis],m.prof.data['dynamo_log_B_phi'],show_line=False,show_x=True,ind=mInd)
 
         if show_shock:
-            self._showShockLoc(m.prof,fig,ax,x,yrng,mInd)
+            self._showShockLoc(m.prof,fig,ax,x,ax.get_ylim(),mInd)
             
         self._setXLabel(fig,ax,xlabel,xaxis)
         self._setTicks(ax)
@@ -2473,7 +2470,7 @@ class plot(object):
                         y1=[],y2=[],y1log=[],y2log=[],y1col=[],
                         y2col=[],y1label=[],y2label=[]):
         if num<2:
-            raise(ValueError,'num must be >=2')
+            raise ValueError('num must be >=2')
         
         empty=[None]*len(y1)
         f=[False]*len(y1)
@@ -2502,12 +2499,12 @@ class plot(object):
         
         for i in range(num):
             if typ=="profile":
-                self.plotProfile(m=m,model=model,xaxis=xaxis,show=False,ax=axis[i],xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
+                self.plotProfile(m=m,model=model,xaxis=xaxis,show=False,ax=axis[i],xmin=xmin,xmax=xmax,xlog=xlog,xlabel=xlabel,
                             xrev=xrev,y1rev=y1rev[i],y2rev=y2rev[i],points=points,
                             y1=y1[i],y2=y2[i],y1log=y1log[i],y2log=y2log[i],y1col=y1col[i],
                             y2col=y2col[i],y1label=y1label[i],y2label=y2label[i])
             else:
-                self.plotHistory(m=m,xaxis=xaxis,show=False,ax=axis[i],xmin=xmin,xmax=xmax,xL=xL,xlabel=xlabel,
+                self.plotHistory(m=m,xaxis=xaxis,show=False,ax=axis[i],xmin=xmin,xmax=xmax,xlog=xlog,xlabel=xlabel,
                             xrev=xrev,y1rev=y1rev[i],y2rev=y2rev[i],points=points,
                             y1=y1[i],y2=y2[i],y1log=y1log[i],y2log=y2log[i],y1col=y1col[i],
                             y2col=y2col[i],y1label=y1label[i],y2label=y2label[i],minMod=minMod,maxMod=maxMod)
@@ -2567,7 +2564,7 @@ class plot(object):
         self.plotHR(m,ax=ax,maxMod=m.prof.head['model_number'],show=False)
         
         ax=plt.subplot(2,4,6)
-        self.plotHistory(m,ax=ax,show=False,xaxis='log_center_T',y1='log_center_Rho',y1L='linear',
+        self.plotHistory(m,ax=ax,show=False,xaxis='log_center_T',y1='log_center_Rho',y1log='linear',
                             minMod=0,maxMod=m.prof.head['model_number'],y1col='k',
                             xlabel=self.labels('teff',log=True,center=True),
                             y1label=self.labels('rho',log=True,center=True))
@@ -2582,15 +2579,17 @@ class plot(object):
         from matplotlib.widgets import Button
 
         class Index(object):
-            ind = 1
+            def __init__(self,models):
+                self.ind = 1
+                self.models = models
             
             def safe_ind(self):
                 if self.ind < 0:
-                    return models[0]
-                elif self.ind > len(models):
-                    return models[-1]
+                    return self.models[0]
+                elif self.ind > len(self.models):
+                    return self.models[-1]
                 else:
-                    return models[self.ind]
+                    return self.models[self.ind]
             
             def next(self, event):
                 self.ind += 1
@@ -2638,7 +2637,7 @@ class plot(object):
             f(m,fig=fig,ax=ax,xmin=xmin,xmax=xmax,y1rng=[ymin,ymax],y2rng=[ymin2,ymax2],show_title_model=True,show=False,*args,**kwargs)
             fig.canvas.draw()
             
-        callback = Index()
+        callback = Index(models)
         axprev = plt.axes([0.7, 0.05, 0.05, 0.055])
         axnext = plt.axes([0.81, 0.05, 0.05, 0.055])
         bnext = Button(axnext, 'Next')
