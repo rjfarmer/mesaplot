@@ -1212,7 +1212,7 @@ class plot(object):
     
 
         if not type(xaxis) is np.ndarray:
-            x = m.hist.data[i]
+            x = m.hist.data[xaxis]
         else:
             x = xaxis
 
@@ -1281,7 +1281,7 @@ class plot(object):
         fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
         
         if not type(xaxis) is np.ndarray:
-            x = m.hist.data[i]
+            x = m.hist.data[xaxis]
         else:
             x = xaxis
 
