@@ -443,10 +443,13 @@ class plot(object):
         
     def safeLabel(self,label,axis,strip=None):
         outLabel=''
-        if label is not None:
+        if not isinstance(label, str):
+            outLabel = ''
+        elif label is not None:
             outLabel=label
         else:
             outLabel=self.labels(axis)
+
         if strip is not None:
             outLabel=outLabel.replace(strip,'')
         
@@ -1207,7 +1210,13 @@ class plot(object):
                     
         fig,ax=self._setupProf(fig,ax,m,model,label=_axlabel)
     
-        x,xrngL,mInd=self._setXAxis(m.prof.data[xaxis],xmin,xmax,fx)
+
+        if not type(xaxis) is np.ndarray:
+            x = m.hist.data[i]
+        else:
+            x = xaxis
+
+        x,xrngL,mInd=self._setXAxis(x,xmin,xmax,fx)
 
         num_plots=len(list_y)
         #Helps when we have many elements not on the plot that stretch the colormap
@@ -1221,7 +1230,12 @@ class plot(object):
             linecol=y1col
         
         for i in list_y:
-            self._plotAnnotatedLine(ax=ax,x=x,y=m.prof.data[i],fy=fy,xmin=xrngL[0],xmax=xrngL[1],
+            if not type(i) is np.ndarray:
+                y = m.prof.data[i]
+            else:
+                y = i
+
+            self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy,xmin=xrngL[0],xmax=xrngL[1],
                 ymin=y1rng[0],ymax=y1rng[1],annotate_line=annotate_line,
                 label=self.safeLabel(None,i),points=points,ylog=y1log,num_labels=num_labels,
                 linestyle=linestyle,xrev=xrev,xlog=xlog,ind=mInd,linecol=linecol)
@@ -1266,7 +1280,12 @@ class plot(object):
         
         fig,ax,modelIndex=self._setupHist(fig,ax,m,minMod,maxMod)
         
-        x,xrngL,mInd=self._setXAxis(m.hist.data[xaxis][modelIndex],xmin,xmax,fx)
+        if not type(xaxis) is np.ndarray:
+            x = m.hist.data[i]
+        else:
+            x = xaxis
+
+        x,xrngL,mInd=self._setXAxis(x[modelIndex],xmin,xmax,fx)
         
         num_plots=len(list_y)
         if num_plots>1:
@@ -1274,12 +1293,15 @@ class plot(object):
             linecol=None
         else:
             linecol=y1col
-                
         
         self._cycleColors(ax,colors,cmap,len(list_y))
             
         for i in list_y:
-            self._plotAnnotatedLine(ax=ax,x=x,y=m.hist.data[i],fy=fy,xmin=xrngL[0],
+            if not type(i) is np.ndarray:
+                y = m.hist.data[i]
+            else:
+                y = i
+            self._plotAnnotatedLine(ax=ax,x=x,y=y,fy=fy,xmin=xrngL[0],
                                     xmax=xrngL[1],ymin=y1rng[0],ymax=y1rng[1],
                                     annotate_line=annotate_line,label=self.safeLabel(None,i),
                                     points=points,ylog=y1log,num_labels=num_labels,xlog=xlog,xrev=xrev,ind=mInd,linecol=linecol)
