@@ -1212,7 +1212,7 @@ class plot(object):
     
 
         if not type(xaxis) is np.ndarray:
-            x = m.hist.data[xaxis]
+            x = m.prof.data[xaxis]
         else:
             x = xaxis
 
