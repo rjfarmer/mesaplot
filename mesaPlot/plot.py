@@ -443,10 +443,9 @@ class plot(object):
         
     def safeLabel(self,label,axis,strip=None):
         outLabel=''
-        if not isinstance(label, str):
-            outLabel = ''
-        elif label is not None:
-            outLabel=label
+        if label is not None:
+            if isinstance(label, str) or isinstance(label,bytes):
+                outLabel=label
         else:
             outLabel=self.labels(axis)
 
