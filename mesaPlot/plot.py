@@ -444,10 +444,10 @@ class plot(object):
     def safeLabel(self,label,axis,strip=None):
         outLabel=''
         if label is not None:
-            if isinstance(label, str) or isinstance(label,bytes):
                 outLabel=label
         else:
-            outLabel=self.labels(axis)
+            if isinstance(axis, str) or isinstance(axis,bytes):
+                outLabel=self.labels(axis)
 
         if strip is not None:
             outLabel=outLabel.replace(strip,'')
@@ -540,10 +540,11 @@ class plot(object):
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
         return cmap,norm
         
-    def _setTicks(self,ax):
-        ax.yaxis.set_major_locator(MaxNLocator(5))
+    def _setTicks(self,ax,log=False):
         ax.xaxis.set_major_locator(MaxNLocator(5))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(10))
+        if not log:
+            ax.yaxis.set_major_locator(MaxNLocator(5))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(10))
         ax.xaxis.set_minor_locator(AutoMinorLocator(10))
     
     def _plotBurnRegions(self,m,ax,x,y,show_x,show_line,yrng=None,ind=None):
@@ -1942,36 +1943,36 @@ class plot(object):
     def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ax=None,xrng=[None,None],mix=None,show_mix=True,
                 cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,ylabel=None,
                 show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None,y2rng=None,zone_frac=1.0,
-                mix_hatch=False,hatch_color='black',cbar_label=None):	
+                mix_hatch=False,hatch_color='black',cbar_label=None,yaxis='mass',y1log=False):	
                 
-        self.plotKip3(m,plot_type='history',xaxis='model_number',show=show,
+        self.plotKip3(m,plot_type='history',xaxis='model_number',show=show,yaxis=yaxis,
                 reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
                 cmin=cmin,cmax=cmax,cmap=burnMap,fig=fig,yrng=yrng,ylabel=ylabel,
                 show_mass_loc=show_mass_loc,show_mix_labels=show_mix_labels,mix_alpha=mix_alpha,
                 xstep=step,y2=y2,title=title,y2rng=y2rng,zone_frac=zone_frac,mix_hatch=mix_hatch,hatch_color=hatch_color,
-                cbar_label=cbar_label)
+                cbar_label=cbar_label,y1log=y1log)
         
-    def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',ageZero=0.0,ax=None,xrng=[None,None],mix=None,
+    def plotKip2(self,m,show=True,reloadHistory=False,xaxis='num',yaxis='mass',ageZero=0.0,ax=None,xrng=[None,None],mix=None,
                 cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,
                 show_mix=True,show_burn=True,
                 show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
                 mod_out=None,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None,y2=None,y2rng=None,zone_frac=1.0,
-                mix_hatch=False,hatch_color='black',cbar_label=None):	
+                mix_hatch=False,hatch_color='black',cbar_label=None,y1log=False):	
                     
-        self.plotKip3(m,plot_type='history',xaxis='star_age',show=show,
+        self.plotKip3(m,plot_type='history',xaxis='star_age',show=show,yaxis=yaxis,
                 reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
                 cmin=cmin,cmax=cmax,cmap=burnMap,fig=fig,yrng=yrng,
                 show_mass_loc=show_mass_loc,show_mix_labels=show_mix_labels,mix_alpha=mix_alpha,
                 xstep=step,y2=y2,title=title,y2rng=y2rng,colorbar=colorbar,ylabel=ylabel,
                 age_zero=age_zero,age_lookback=age_collapse,age_log=age_log,age_reverse=age_reverse,
                 mod_index=mod_out,xlabel=xlabel,show_burn=burn,end_time=end_time,zone_frac=zone_frac,
-                mix_hatch=mix_hatch,hatch_color=hatch_color,cbar_label=cbar_label)
+                mix_hatch=mix_hatch,hatch_color=hatch_color,cbar_label=cbar_label,y1log=y1log)
             
             
     #Will replace plotKip and plotKip2 when finished
     def plotKip3(self,m,plot_type='history',xaxis='model_number',yaxis='mass',zaxis='logT',
                 xmin=None,xmax=None,mod_min=None,mod_max=None,
-                yrng=[-1,-1],xstep=1,
+                yrng=None,xstep=1,
                 xlabel=None,ylabel=None,title=None,
                 show=True,reloadHistory=False,ax=None,fig=None,
                 show_mix=True,mix=None,show_burn=True,show_outer_mass=True,
@@ -1980,7 +1981,7 @@ class plot(object):
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
                 y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
                 mix_hatch=False,hatch_color='black',zaxis_norm=False,yaxis_norm=False,
-                zaxis_contour=False,zaxis_levels=None):
+                zaxis_contour=False,zaxis_levels=None,y1log=False):
                     
         if fig==None:
             fig=plt.figure(figsize=(12,12))
@@ -1997,6 +1998,9 @@ class plot(object):
             
         if y2 is not None:
             ax2=ax.twinx()
+            
+        if y1log:
+            ax.set_yscale("log", nonposy='clip')
         
         if plot_type=='history':			
             try:
@@ -2018,8 +2022,20 @@ class plot(object):
             raise ValueError("plot_type must be either history or profile, got "+plot_type)	
     
         if not (xaxis=='model_number' or 'age' in xaxis):
-            raise ValueError("Kips can only plot model_number or age, got "+xaxis)
+            raise ValueError("kipenhan's can only plot model_number or age, got "+xaxis)
 
+        radius = False
+        if plot_type=='history':
+            if yaxis=='mass':
+                mix_prefix='mix_'
+                burn_prefix='burn_'
+                radius=False
+            elif yaxis=='radius':
+                mix_prefix='mix_relr_'
+                burn_prefix='burn_relr_'   
+                radius=True         
+            else:
+                raise ValueError("History based kipenhan's can only plot mass or radius, got "+yaxis)
                         
         #Extract Data
         data_x=[]
@@ -2041,17 +2057,20 @@ class plot(object):
                 
             modInd=self._getModInd(m,mod_index,mod_min,mod_max,xstep,xaxis,xmin,xmax)
                 
-            m_center=self._getSafeMCenter(m)	
-                
-            data_y=np.linspace(np.min(m_center),np.max(m.hist.data["star_mass"]),num_zones)	
+            if radius:
+                center=self._getSafeCenter(m,radius)
+                data_y=np.linspace(np.min(center),np.max(m.hist.data["radius"]),num_zones)
+            else:
+                center=self._getSafeCenter(m,radius)	
+                data_y=np.linspace(np.min(center),np.max(m.hist.data["star_mass"]),num_zones)	
             
             #Get burn data
             if show_burn:
-                data_z=self._getHistBurnData(m,data_x,data_y,modInd)
+                data_z=self._getHistBurnData(m,data_x,data_y,modInd,burn_prefix,radius)
             
             #Get mix data
             if show_mix:
-                    mix_data=self._getHistMixData(m,data_x,data_y,modInd,mix)	
+                    mix_data=self._getHistMixData(m,data_x,data_y,modInd,mix,mix_prefix,radius)	
                     
             #May need to interpolate data:
             lin_x=np.linspace(data_x[modInd][0],data_x[modInd][-1],np.count_nonzero(data_x[modInd]))
@@ -2149,7 +2168,13 @@ class plot(object):
 
         if plot_type=='history':
             if ylabel is None:
-                ax.set_ylabel(r"$\rm{Mass}\; [M_{\odot}]$")
+                lg=''
+                if y1log:
+                    lg = r'$\log_{10}\,$'
+                if radius:
+                  ax.set_ylabel(lg+r"$\rm{Radius}\; [R_{\odot}]$")
+                else:
+                    ax.set_ylabel(lg+r"$\rm{Mass}\; [M_{\odot}]$")
             elif len(ylabel):
                 ax.set_ylabel(self.safeLabel(ylabel,yaxis))
         else:
@@ -2168,7 +2193,10 @@ class plot(object):
         if show_outer_mass and plot_type=='history':
             #f = interp1d(data_x[modInd], m.hist.data['star_mass'][modInd])
             #ax.plot(lin_x,f(lin_x),c='k')
-            ax.plot(lin_x,m.hist.data['star_mass'][modInd],c='k')
+            if radius:
+                ax.plot(lin_x,m.hist.data['radius'][modInd],c='k')
+            else:
+                ax.plot(lin_x,m.hist.data['star_mass'][modInd],c='k')
         
         if y2 is not None and plot_type=='history':
             # Update axes 2 locations after ax1 is moved by the colorbar
@@ -2189,9 +2217,9 @@ class plot(object):
         if show_mass_loc:
             self._showMassLoc(m,fig,ax,np.linspace(xmin,xmax,np.count_nonzero(modInd)),modInd)
     
-        self._setYLim(ax,ax.get_ylim(),[ymin,ymax])
+        self._setYLim(ax,ax.get_ylim(),yrng)
         
-        self._setTicks(ax)
+        self._setTicks(ax,y1log)
         
         if title is not None:
             ax.set_title(title)		
@@ -2223,47 +2251,55 @@ class plot(object):
                 ax.set_xlabel(r"$\tau\; \left("+unit+r"\right)$")
         
         
-    def _getHistBurnData(self,m,data_x,data_y,modInd):
+    def _getHistBurnData(self,m,data_x,data_y,modInd,burn_prefix,radius):
         z=np.zeros((np.count_nonzero(data_x[modInd]),np.size(data_y)))
-        z=self._rebinKipqData(m,'burn',z,data_y,modInd)
+        z=self._rebinKipqData(m,burn_prefix,z,data_y,modInd,radius)
 
         z[z<-100.0]=0.0
         return z
 
-    def _getHistMixData(self,m,data_x,data_y,modInd,mix):
+    def _getHistMixData(self,m,data_x,data_y,modInd,mix,mix_prefix,radius):
         z=np.zeros((np.count_nonzero(data_x[modInd]),np.size(data_y)))
         if mix is None or np.size(mix)>1:
-            z=self._rebinKipqData(m,'mix',z,data_y,modInd)
+            z=self._rebinKipqData(m,mix_prefix,z,data_y,modInd,radius)
             if np.size(mix)>1:
                 z[np.isin(z,mix,invert=True)]=0
                                 
         return z
         
         
-    def _rebinKipqData(self,m,qtype,z,y,modInd):
+    def _rebinKipqData(self,m,qtype,z,y,modInd,radius):
         if np.all(modInd):
-            z=self._rebinKipqDataNoModInd(m,qtype,z,y)
+            z=self._rebinKipqDataNoModInd(m,qtype,z,y,radius)
         else:
             # Much slower if we want to index over the x array (~factor 10), even if all modInd elements are True
-            z=self._rebinKipqDataWithModInd(m,qtype,z,y,modInd)
+            z=self._rebinKipqDataWithModInd(m,qtype,z,y,modInd,radius)
         return z
     
-    def _rebinKipqDataNoModInd(self,m,qtype,z,y):
-        qtop=qtype+"_qtop_"
-        qtyp=qtype+"_type_"
+    def _rebinKipqDataNoModInd(self,m,qtype,z,y,radius):
+        if radius:
+            qtop=qtype+"top_"
+            add='add mix_relr_regions 40 and burn_relr_regions 40'
+        else:
+            qtop=qtype+"qtop_"
+            add='add mixing_regions 40 and burning_regions 40'
+        qtyp=qtype+"type_"
         
         try:
             x = m.hist.data[qtop+"1"]
         except ValueError:
-            raise KeyError("No field "+qtop+"* found, add mixing_regions 40 and burning_regions 40 to your history_columns.list")
+            raise KeyError("No field",qtop+"* found,",add,"to your history_columns.list")
             
         
-        numBurnZones=int([xx.split('_')[2] for xx in m.hist.data.dtype.names if qtop in xx][-1])
+        numBurnZones=int([xx.split('_')[-1] for xx in m.hist.data.dtype.names if qtop in xx][-1])
 
-        sm=m.hist.data['star_mass']
+        if radius:
+            scaler = m.hist.data['radius']
+        else:
+            scaler = m.hist.data['star_mass']
 
         for i in range(numBurnZones,0,-1):
-            mass=np.abs(m.hist.data[qtop+str(i)]*sm)
+            mass=np.abs(m.hist.data[qtop+str(i)]*scaler)
             ind=np.searchsorted(y,mass,side='left')
             for j in range(np.size(ind)):
                 z[j,0:ind[j]]=m.hist.data[qtyp+str(i)][j]
@@ -2271,22 +2307,30 @@ class plot(object):
         return z
         
     
-    def _rebinKipqDataWithModInd(self,m,qtype,z,y,modInd):
-        qtop=qtype+"_qtop_"
-        qtyp=qtype+"_type_"
+    def _rebinKipqDataWithModInd(self,m,qtype,z,y,modInd,radius):
+        if radius:
+            qtop=qtype+"top_"
+            add='add mix_relr_regions 40 and burn_relr_regions 40'
+        else:
+            qtop=qtype+"qtop_"
+            add='add mixing_regions 40 and burning_regions 40'
+        qtyp=qtype+"type_"
         
         try:
             x = m.hist.data[qtop+"1"]
         except ValueError:
-            raise KeyError("No field "+qtop+"* found, add mixing_regions 40 and burning_regions 40 to your history_columns.list")
+            raise KeyError("No field",qtop+"* found,",add,"to your history_columns.list")
             
         
-        numBurnZones=int([xx.split('_')[2] for xx in m.hist.data.dtype.names if qtop in xx][-1])
+        numBurnZones=int([xx.split('_')[-1] for xx in m.hist.data.dtype.names if qtop in xx][-1])
 
-        sm=m.hist.data['star_mass'][modInd]
+        if radius:
+            scaler = m.hist.data['radius']
+        else:
+            scaler = m.hist.data['star_mass']
 
         for i in range(numBurnZones,0,-1):
-            mass=np.abs(m.hist.data[qtop+str(i)][modInd]*sm)
+            mass=np.abs(m.hist.data[qtop+str(i)][modInd]*scaler)
             ind=np.searchsorted(y,mass,side='left')
             for j in range(np.size(ind)):
                 z[j,0:ind[j]]=m.hist.data[qtyp+str(i)][modInd][j]
@@ -2337,18 +2381,30 @@ class plot(object):
             
         return age
         
-    def _getSafeMCenter(self,m):
-        if 'm_center' in m.hist.data.dtype.names:
-            if np.any(m.hist.data['m_center'] > m.hist.star_mass):
-                #m_center in grams
-                m_center=m.hist.data['m_center']/self.msun
-            else:
-                #Solar units
-                m_center=m.hist.data['m_center']
+    def _getSafeCenter(self,m,radius):
+        center = None
+        if radius:
+            if 'r_center' in m.hist.data.dtype.names:
+                if np.any(m.hist.data['r_center'] > m.hist.star_radius):
+                    #r_center in cm
+                    center=m.hist.data['r_center']/self.rsun
+                else:
+                    #Solar units
+                    center=m.hist.data['r_center']          
         else:
-            m_center=np.zeros(np.size(m.hist.data['model_number']))
+            if 'm_center' in m.hist.data.dtype.names:
+                if np.any(m.hist.data['m_center'] > m.hist.star_mass):
+                    #m_center in grams
+                    center=m.hist.data['m_center']/self.msun
+                else:
+                    #Solar units
+                    center=m.hist.data['m_center']
+                    
+        if center is None:
+            center=np.zeros(np.size(m.hist.data['model_number']))
+            center = center + 10**-4
             
-        return m_center
+        return center
         
     def _getModInd(self,m,mod_index=None,mod_min=None,mod_max=None,step=1,xaxis='',xmin=None,xmax=None):
         
