@@ -2325,9 +2325,9 @@ class plot(object):
         numBurnZones=int([xx.split('_')[-1] for xx in m.hist.data.dtype.names if qtop in xx][-1])
 
         if radius:
-            scaler = m.hist.data['radius']
+            scaler = m.hist.data['radius'][modInd]
         else:
-            scaler = m.hist.data['star_mass']
+            scaler = m.hist.data['star_mass'][modInd]
 
         for i in range(numBurnZones,0,-1):
             mass=np.abs(m.hist.data[qtop+str(i)][modInd]*scaler)
