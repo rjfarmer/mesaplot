@@ -91,8 +91,10 @@ class data(object):
 	def loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1,_dbg=False):
 		if StrictVersion(np.__version__) < StrictVersion('1.10.0') or _dbg:
 			f = self._loadFile1
-		else:
+		elif StrictVersion(np.__version__) < StrictVersion('1.14.0'):
 			f = self._loadFile2
+		else:
+			f = self._loadFile3
 		f(filename, max_num_lines, cols, final_lines)
 		
 	def _loadFile1(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
@@ -157,6 +159,38 @@ class data(object):
 		self.head_names = self.head.dtype.names
 		self.data_names = self.data.dtype.names
 		self._loaded = True
+
+	def _loadFile3(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
+		# numLines = self._filelines(filename)
+		self.head = np.genfromtxt(filename, skip_header=1, max_rows=1, names=True,dtype=None,encoding=None)
+			
+		#Just the names
+		names = np.genfromtxt(filename, skip_header=5, names=True, max_rows=1,dtype=None,encoding=None)
+		names = names.dtype.names
+			
+		usecols = None
+		cols = list(cols)
+		if len(cols):
+			if ('model_number' not in cols and 'model_number' in names):
+				cols = cols + ['model_number']
+			if ('zone' not in cols and 'zone' in names):
+				cols = cols + ['zone']
+			
+			colsSet = set(cols)
+			usecols = [i for i, e in enumerate(names) if e in colsSet]
+			
+		if final_lines > 0:	
+			line = subprocess.check_output(['tail', '-'+str(final_lines), filename])
+			self.data = np.genfromtxt(BytesIO(line), names=names, usecols=usecols,dtype=None,encoding=None)
+		else:
+			if max_num_lines > 0:
+				self.data = np.genfromtxt(filename, skip_header=5, names=True, max_rows = max_num_lines, usecols=usecols,dtype=None,encoding=None)
+			else:
+				self.data = np.genfromtxt(filename, skip_header=5, names=True, usecols=usecols,dtype=None,encoding=None)
+		self.head_names = self.head.dtype.names
+		self.data_names = self.data.dtype.names
+		self._loaded = True
+
 
 	def _filelines(self,filename):
 		"""Get the number of lines in a file."""
