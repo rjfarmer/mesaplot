@@ -1901,6 +1901,25 @@ class plot(object):
                             fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,y1label=y1label,
                             show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
                             y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
+                            
+    def plotLdivM(self,m,xaxis='log_Teff',y2=None,show=True,
+                    ax=None,xmin=None,xmax=None,xlog=False,y1log=False,y1rng=[None,None],
+                    y2log=False,y1col='b',y2col='r',minMod=0,maxMod=-1,xrev=False,
+                    y1rev=False,y2rev=False,points=False,xlabel=None,y1label=None,
+                    y2label=None,fig=None,y2rng=[None,None],
+                    fx=None,fy1=None,fy2=None,show_core=False,y1Textcol=None,y2Textcol=None,
+                    show_title_name=False):
+        
+        list_y=[m.hist.log_L-np.log10(m.hist.star_mass)]
+        
+        
+        self._plotMultiHist(m,list_y=list_y,show=show,ax=ax,xaxis=xaxis,
+                            xmin=xmin,xmax=xmax,y1rng=y1rng,y1log=y1log,
+                            xlabel=xlabel,points=points,y1label=r'$\log_{10}\,\left(L/M\right)$',
+                            fig=fig,fx=fx,fy=fy1,minMod=minMod,maxMod=maxMod,annotate_line=False,
+                            show_title_name=show_title_name,show_core=show_core,
+                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
+                            
 
     def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,
                     xlog=False,y1log=False,y2log=False,y1col='b',

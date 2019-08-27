@@ -103,4 +103,7 @@ class TestPlot(unittest.TestCase):
 		
 	def test_plotTRho(self):
 		self.p.plotTRho(self.m,show=False)
+                
+	def test_plotLdivM(self):
+		self.p.plotLdivM(self.m,show=False)
 		
