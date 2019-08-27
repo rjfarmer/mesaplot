@@ -162,10 +162,10 @@ class data(object):
 
 	def _loadFile3(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
 		# numLines = self._filelines(filename)
-		self.head = np.genfromtxt(filename, skip_header=1, max_rows=1, names=True,dtype=None,encoding=None)
+		self.head = np.genfromtxt(filename, skip_header=1, max_rows=1, names=True,dtype=None,encoding='ascii')
 			
 		#Just the names
-		names = np.genfromtxt(filename, skip_header=5, names=True, max_rows=1,dtype=None,encoding=None)
+		names = np.genfromtxt(filename, skip_header=5, names=True, max_rows=1,dtype=None,encoding='ascii')
 		names = names.dtype.names
 			
 		usecols = None
@@ -181,12 +181,12 @@ class data(object):
 			
 		if final_lines > 0:	
 			line = subprocess.check_output(['tail', '-'+str(final_lines), filename])
-			self.data = np.genfromtxt(BytesIO(line), names=names, usecols=usecols,dtype=None,encoding=None)
+			self.data = np.genfromtxt(BytesIO(line), names=names, usecols=usecols,dtype=None,encoding='ascii')
 		else:
 			if max_num_lines > 0:
-				self.data = np.genfromtxt(filename, skip_header=5, names=True, max_rows = max_num_lines, usecols=usecols,dtype=None,encoding=None)
+				self.data = np.genfromtxt(filename, skip_header=5, names=True, max_rows = max_num_lines, usecols=usecols,dtype=None,encoding='ascii')
 			else:
-				self.data = np.genfromtxt(filename, skip_header=5, names=True, usecols=usecols,dtype=None,encoding=None)
+				self.data = np.genfromtxt(filename, skip_header=5, names=True, usecols=usecols,dtype=None,encoding='ascii')
 		self.head_names = self.head.dtype.names
 		self.data_names = self.data.dtype.names
 		self._loaded = True
