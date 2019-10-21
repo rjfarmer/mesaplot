@@ -2213,9 +2213,9 @@ class plot(object):
             #f = interp1d(data_x[modInd], m.hist.data['star_mass'][modInd])
             #ax.plot(lin_x,f(lin_x),c='k')
             if radius:
-                ax.plot(lin_x,m.hist.data['radius'][modInd],c='k')
+                ax.plot(data_x[modInd],m.hist.data['radius'][modInd],c='k')
             else:
-                ax.plot(lin_x,m.hist.data['star_mass'][modInd],c='k')
+                ax.plot(data_x[modInd],m.hist.data['star_mass'][modInd],c='k')
         
         if y2 is not None and plot_type=='history':
             # Update axes 2 locations after ax1 is moved by the colorbar
