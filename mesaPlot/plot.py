@@ -2082,22 +2082,20 @@ class plot(object):
             else:
                 center=self._getSafeCenter(m,radius)	
                 data_y=np.linspace(np.min(center),np.max(m.hist.data["star_mass"]),num_zones)	
+                
+            #May need to interpolate data:
+            lin_x=np.linspace(data_x[modInd][0],data_x[modInd][-1],np.count_nonzero(data_x[modInd]))
             
             #Get burn data
             if show_burn:
                 data_z=self._getHistBurnData(m,data_x,data_y,modInd,burn_prefix,radius)
+                data_z=self._rebinKipDataX(data_z,data_x[modInd],lin_x)
             
             #Get mix data
             if show_mix:
-                    mix_data=self._getHistMixData(m,data_x,data_y,modInd,mix,mix_prefix,radius)	
-                    
-            #May need to interpolate data:
-            lin_x=np.linspace(data_x[modInd][0],data_x[modInd][-1],np.count_nonzero(data_x[modInd]))
-            
-            data_z=self._rebinKipDataX(data_z,data_x[modInd],lin_x)
-            if show_mix:
+                mix_data=self._getHistMixData(m,data_x,data_y,modInd,mix,mix_prefix,radius)	
                 mix_data=self._rebinKipDataX(mix_data,data_x[modInd],lin_x,nan=True,nan_value=1)
-            
+                                
         else:
             show_mix=False
             show_burn=False
@@ -2122,6 +2120,9 @@ class plot(object):
                 count=count+1
                 
             data_x=np.array(data_x)
+            
+            
+            
             if num_zones is None:
                 num_zones=np.max(zones) * 1.0/zone_frac
             data_z,lin_x,data_y=self._rebinKipDataXY(data_z,data_x,data_y,count,num_zones)
@@ -2224,6 +2225,7 @@ class plot(object):
             ax2.plot(lin_x,f(lin_x),c='k')
             if y2rng is not None:
                 ax2.set_ylim(y2rng)
+            
         
         if xlabel is None:
             if xaxis=='model_number':
@@ -2359,14 +2361,13 @@ class plot(object):
         
     def _getSafeAge(self,m,age_lookback=False,age_zero=None,age_units='sec',age_log=False,age_reverse=False,end_time=None):
     
-        if 'star_age_sec' in m.hist.data.dtype.names:
+        if 'log_dt' in m.hist.data.dtype.names:
+            #Age in years does not have enough digits to be able to distingush the final models in pre-sn progenitors
+            age=np.cumsum(10**np.longdouble(m.hist.log_dt))*self.secyear
+        elif 'star_age_sec' in m.hist.data.dtype.names:
             age=m.hist.star_age_sec
         elif 'star_age' in m.hist.data.dtype.names:
-            if age_lookback:
-                #Age in years does not have enough digits to be able to distingush the final models in pre-sn progenitors
-                age=np.cumsum(10**np.longdouble(m.hist.log_dt))*self.secyear
-            else:
-                age=m.hist.star_age*self.secyear
+            age=m.hist.star_age*self.secyear
         
         if age_lookback:
             xx=age[-1]
@@ -2461,6 +2462,7 @@ class plot(object):
     def _rebinKipDataX(self,data,x,lin_x,nan=False,nan_value=1):
         sorter=np.argsort(x)
         ind=np.searchsorted(x,lin_x,sorter=sorter,side='left')
+        
         data=data[sorter[ind],:]
         if nan:
             data[data<nan_value]=np.nan

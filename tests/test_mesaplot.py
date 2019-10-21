@@ -97,9 +97,12 @@ class TestPlot(unittest.TestCase):
 		
 	def test_plotKip3(self):
 		self.p.plotKip3(self.m,show=False)
+		
+	def test_plotKip3(self):
+		self.p.plotKip3(self.m,show=False,age_lookback=True,xaxis='star_age')
 	
 	def test_plotMix(self):
-		self.p.plotKip3(self.m,show=False)	
+		self.p.plotMix(self.m,show=False)	
 		
 	def test_plotTRho(self):
 		self.p.plotTRho(self.m,show=False)
