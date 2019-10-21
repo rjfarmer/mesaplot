@@ -2220,8 +2220,12 @@ class plot(object):
         
         if y2 is not None and plot_type=='history':
             # Update axes 2 locations after ax1 is moved by the colorbar
+            
+			if not type(y2) is np.ndarray:
+				y2 = m.hist.data[y2]
+            
             ax2.set_position(ax.get_position())
-            f = interp1d(data_x[modInd], m.hist.data[y2][modInd])
+            f = interp1d(data_x[modInd], y2[modInd])
             ax2.plot(lin_x,f(lin_x),c='k')
             if y2rng is not None:
                 ax2.set_ylim(y2rng)
