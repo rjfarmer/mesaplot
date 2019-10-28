@@ -2200,15 +2200,6 @@ class plot(object):
         else:
             ax.set_ylabel(self.safeLabel(ylabel,yaxis))
         
-        if colorbar:
-            cb=fig.colorbar(im1,ax=ax)
-            cb.solids.set_edgecolor("face")
-
-            if cbar_label is None:
-                cb.set_label(self._kip_cbar_label)
-            else:
-                cb.set_label(self.safeLabel(cbar_label,zaxis))
-                
         #Add line at outer mass location
         if show_outer_mass and plot_type=='history':
             #f = interp1d(data_x[modInd], m.hist.data['star_mass'][modInd])
@@ -2229,11 +2220,20 @@ class plot(object):
             ax2.plot(lin_x,f(lin_x),c='k')
             if y2rng is not None:
                 ax2.set_ylim(y2rng)
+                
+        if colorbar:
+            cb=fig.colorbar(im1,ax=ax)
+            cb.solids.set_edgecolor("face")
+
+            if cbar_label is None:
+                cb.set_label(self._kip_cbar_label)
+            else:
+                cb.set_label(self.safeLabel(cbar_label,zaxis))
             
         
         if xlabel is None:
             if xaxis=='model_number':
-                ax.set_xlabel(r"$\rm{Model Number}$")
+                ax.set_xlabel(r"$\rm{Model\, Number}$")
             else:
                 self._setAgeLabel(ax,age_log,age_lookback,age_units)
         else:
