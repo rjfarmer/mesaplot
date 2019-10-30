@@ -2366,7 +2366,7 @@ class plot(object):
     def _getSafeAge(self,m,age_lookback=False,age_zero=None,age_units='sec',age_log=False,age_reverse=False,end_time=None):
     
         if 'log_dt' in m.hist.data.dtype.names:
-            #Age in years does not have enough digits to be able to distingush the final models in pre-sn progenitors
+            #Age in years does not have enough digits to be able to distinguish the final models in pre-sn progenitors
             age=np.cumsum(10**np.longdouble(m.hist.log_dt))*self.secyear
         elif 'star_age_sec' in m.hist.data.dtype.names:
             age=m.hist.star_age_sec
