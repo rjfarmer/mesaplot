@@ -2380,7 +2380,7 @@ class plot(object):
             age=xx-age
             
         if age_zero is not None:
-            age=age_zero-age
+            age=age-age_zero
         
         if 'sec' in age_units:
             pass
