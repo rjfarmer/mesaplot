@@ -2000,7 +2000,7 @@ class plot(object):
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
                 y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
                 mix_hatch=False,hatch_color='black',zaxis_norm=False,yaxis_norm=False,
-                zaxis_contour=False,zaxis_levels=None,y1log=False):
+                zaxis_contour=False,zaxis_levels=None,y1log=False,dbg=False):
                     
         if fig==None:
             fig=plt.figure(figsize=(12,12))
@@ -2073,6 +2073,9 @@ class plot(object):
                 data_x=m.hist.model_number
             else:
                 data_x=self._getSafeAge(m,age_lookback,age_zero,age_units,age_log,age_reverse,end_time)
+                
+            if dbg:
+				print(data_x)
                 
             modInd=self._getModInd(m,mod_index,mod_min,mod_max,xstep,xaxis,xmin,xmax)
                 
