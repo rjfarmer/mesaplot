@@ -2075,7 +2075,7 @@ class plot(object):
                 data_x=self._getSafeAge(m,age_lookback,age_zero,age_units,age_log,age_reverse,end_time)
                 
             if dbg:
-				print(data_x)
+                print(data_x)
                 
             modInd=self._getModInd(m,mod_index,mod_min,mod_max,xstep,xaxis,xmin,xmax)
                 
