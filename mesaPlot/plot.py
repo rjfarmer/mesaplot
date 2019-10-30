@@ -2093,6 +2093,8 @@ class plot(object):
             if show_burn:
                 data_z=self._getHistBurnData(m,data_x,data_y,modInd,burn_prefix,radius)
                 data_z=self._rebinKipDataX(data_z,data_x[modInd],lin_x)
+                if dbg:
+                    print(np.nanmin(data_z),np.nanmax(data_z)
             
             #Get mix data
             if show_mix:
