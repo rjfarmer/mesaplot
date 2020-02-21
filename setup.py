@@ -2,6 +2,12 @@
 
 import os
 from setuptools import setup
+import unittest
+
+def my_test_suite():
+    test_loader = unittest.TestLoader()
+    test_suite = test_loader.discover('tests', pattern='test_*.py')
+    return test_suite
 
 setup(name='mesaPlot',
       version='0.0',
@@ -12,7 +18,7 @@ setup(name='mesaPlot',
       url='https://github.com/rjfarmer/mesaPlot',
       packages=["mesaPlot"],
       tests_require=["unittest2"],
-      test_suite='tests',
+      test_suite='setup.my_test_suite',
       classifiers=[
 			"Development Status :: 5 - Production/Stable",
 			"Intended Audience :: Science/Research",
