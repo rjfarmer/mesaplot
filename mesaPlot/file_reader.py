@@ -268,7 +268,7 @@ class MESA(object):
         self.hist._mph='loadBinary'
         
     
-    def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[],final_lines=-1,_dbg=False):
+    def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[],final_lines=-1,_dbg=False,use_pickle=True,reload_pickle=False):
         """
         Reads a MESA history file.
         
@@ -303,7 +303,8 @@ class MESA(object):
         else:
             filename=filename_in
 
-        self.hist.loadFile(filename,max_num_lines,cols,final_lines=final_lines,_dbg=_dbg)
+        self.hist.loadFile(filename,max_num_lines,cols,final_lines=final_lines,_dbg=_dbg,
+                            use_pickle=use_pickle,reload_pickle=reload_pickle)
         
         if max_model>0:
             self.hist.data=self.hist.data[self.hist.model_number<=max_model]
@@ -332,7 +333,8 @@ class MESA(object):
                 print(' '.join([str(self.hist.data[i][j]) for i in self.hist.data_names]),file=f)    
     
         
-    def loadProfile(self,f='',num=None,prof=None,mode='nearest',silent=False,cache=True,cols=[]):
+    def loadProfile(self,f='',num=None,prof=None,mode='nearest',silent=False,cache=True,cols=[],
+                    use_pickle=True,reload_pickle=False):
         if num is None and prof is None:
             self._readProfile(f) #f is a filename
             return
@@ -378,7 +380,8 @@ class MESA(object):
         filename=f+"/profile"+str(int(profile_num))+".data"
         if not silent:
             print(filename)
-        self._readProfile(filename,cache=cache,cols=cols)
+        self._readProfile(filename,cache=cache,cols=cols,
+                            use_pickle=use_pickle,reload_pickle=reload_pickle)
         return
             
     def loadMod(self,filename=None):
