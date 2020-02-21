@@ -51,7 +51,7 @@ class data(object):
 				else:
 					raise AttributeError("No value "+name+" available")
 						
-		raise AttributeError("Must call "+str(self._type)+" first")
+		raise AttributeError("Must load data first")
 	
 	def __dir__(self):
 		x=[]
