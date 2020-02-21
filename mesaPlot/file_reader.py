@@ -108,27 +108,26 @@ class data(object):
         
         
     def loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1,_dbg=False,use_pickle=True,reload_pickle=False):
-        if use_pickle:
-            pickname = filename+'.pickle' 
-            if os.path.exists(pickname):
-                with open(pickname,'rb') as f:
-                    # Get checksum
-                    filehash = _hash(filename)
-                    pickhash = "-1"
-                    try:
-                        pickhash = pickle.load(f)
-                    except EOFError:
-                        pass
-                    if pickhash == filehash:
-                        # Data has not changed
-                        print("Using saved data")
-                        # Get Data
-                        x = pickle.load(f)
-                        self.data = x.data
-                        self.head = x.head
-                        self.head_names = x.head.dtype.names
-                        self.data_names = x.data.dtype.names
-                        self._loaded = x._loaded
+        pickname = filename+'.pickle' 
+        if use_pickle and os.path.exists(pickname):
+            with open(pickname,'rb') as f:
+                # Get checksum
+                filehash = _hash(filename)
+                pickhash = "-1"
+                try:
+                    pickhash = pickle.load(f)
+                except EOFError:
+                    pass
+                if pickhash == filehash:
+                    # Data has not changed
+                    print("Using saved data")
+                    # Get Data
+                    x = pickle.load(f)
+                    self.data = x.data
+                    self.head = x.head
+                    self.head_names = x.head.dtype.names
+                    self.data_names = x.data.dtype.names
+                    self._loaded = x._loaded
         else:
             if StrictVersion(np.__version__) < StrictVersion('1.10.0') or _dbg:
                 f = self._loadFile1
