@@ -27,12 +27,12 @@ from io import BytesIO
 from distutils.version import StrictVersion
 
 
-def _blake2b(fname):
-    hash_blake2b = hashlib.blake2b()
+def _hash(fname):
+    hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
-            hash_blake2b.update(chunk)
-    return hash_blake2b.hexdigest()
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 class data(object):
     def __init__(self):
@@ -100,7 +100,7 @@ class data(object):
         
         
     def _saveFile(self,filename):
-        filehash = _blake2b(filename)
+        filehash = _hash(filename)
         pickname = filename+'.pickle' 
         with open(filename+'.pickle','wb') as f:
             pickle.dump(filehash, f)
@@ -113,7 +113,7 @@ class data(object):
             if os.path.exists(pickname):
                 with open(pickname,'rb') as f:
                     # Get checksum
-                    filehash = _blake2b(filename)
+                    filehash = _hash(filename)
                     pickhash = "-1"
                     try:
                         pickhash = pickle.load(f)
