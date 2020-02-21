@@ -137,6 +137,7 @@ class data(object):
             else:
                 f = self._loadFile3
             f(filename, max_num_lines, cols, final_lines)
+            self._saveFile(filename)
             
         if reload_pickle:
             self._saveFile(filename)
@@ -268,7 +269,8 @@ class MESA(object):
         self.hist._mph='loadBinary'
         
     
-    def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[],final_lines=-1,_dbg=False,use_pickle=True,reload_pickle=False):
+    def loadHistory(self,f="",filename_in=None,max_model=-1,max_num_lines=-1,cols=[],
+                    final_lines=-1,_dbg=False,use_pickle=True,reload_pickle=False):
         """
         Reads a MESA history file.
         
