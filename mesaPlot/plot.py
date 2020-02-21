@@ -283,7 +283,7 @@ class plot(object):
          2,   2,   0,   3,   1,   1,   0,   0,   0,   2,   3,   0,   1, 
          0,   0,   2,   2,   0,   2,   1,   1,   1,   0,   0,   2,   2, 
          0,   0,   1,   1,   0,   0,   2,   2,   0,   1,   1,   0,   0, 
-         0,   0,   2,   0,   0,   1,   0,   0,   0,   0,   0,   0,   0]		
+         0,   0,   2,   0,   0,   1,   0,   0,   0,   0,   0,   0,   0]        
         
         if find_executable('latex'):
            mpl.rc('text', usetex=True)
@@ -437,7 +437,7 @@ class plot(object):
             else:
                 l=label
             
-        l=ls+l	            
+        l=ls+l                
 
         return l
         
@@ -472,7 +472,7 @@ class plot(object):
         
         for idx,i in enumerate(abun_list):
             if type(i) is bytes:
-                abun_list[idx]=i.decode()	
+                abun_list[idx]=i.decode()    
                     
         return abun_list
     
@@ -511,7 +511,7 @@ class plot(object):
         
     def _listMix(self,data):
         mixList=["log_D_conv","log_D_semi","log_D_ovr","log_D_th","log_D_thrm","log_D_minimum","log_D_anon","log_D_rayleigh_taylor","log_D_soft"]
-        mixListOut=[]		
+        mixListOut=[]        
         for i in data.data_names:
             if i in mixList:
                 mixListOut.append(str(i))
@@ -531,7 +531,7 @@ class plot(object):
                 x=x+np.sum(m.prof.data[i][ind]*10**m.prof.logdq[ind])*m.prof.star_mass/np.minimum(m.prof.star_mass,mass_max-mass_min)
         return x
 
-    def _setMixRegionsCol(self,kip=True,mix=False):		
+    def _setMixRegionsCol(self,kip=True,mix=False):        
         cmap = mpl.colors.ListedColormap(self.mix_col)
     
         cmap.set_over((1., 1., 1.))
@@ -567,7 +567,7 @@ class plot(object):
         else:
             netEng=m.prof.data['net_nuclear_energy']
         
-        ind2=(netEng>=1.0)&(netEng<=4.0)	
+        ind2=(netEng>=1.0)&(netEng<=4.0)    
         ax.scatter(x[ind2],yy[ind2],c='yellow',s=size,linewidths=0,alpha=1.0)
         ind2=(netEng>=4.0)&(netEng<=7.0)
         ax.scatter(x[ind2],yy[ind2],c='orange',s=size,linewidths=0,alpha=1.0)
@@ -921,7 +921,7 @@ class plot(object):
                 if vel[k+1]>=-cs[k] and vel[k]<-cs[k]:
                     fs=True
                     break
-        return fs,k		
+        return fs,k        
         
         
     def _showShockLoc(self,prof,fig,ax,xaxis,yrng,ind):
@@ -957,7 +957,7 @@ class plot(object):
             mcen=data.M_center
         except AttributeError:
             pass
-        mass=data.star_mass-mcen/self.msun	
+        mass=data.star_mass-mcen/self.msun    
         
         return self._getMassFrac(data,i,massInd,log=log,prof=prof)*mass
         
@@ -1120,7 +1120,7 @@ class plot(object):
         
         if maxMod<0:
             maxMod=m.hist.data["model_number"][-1]
-        modelIndex=(m.hist.data["model_number"]>=minMod)&(m.hist.data["model_number"]<=maxMod)		
+        modelIndex=(m.hist.data["model_number"]>=minMod)&(m.hist.data["model_number"]<=maxMod)        
         
         return fig,ax,modelIndex
         
@@ -1142,7 +1142,7 @@ class plot(object):
     def _setYLabel(self,fig,ax,ylabel,default=None,color='k'):
         ax.set_ylabel(self.safeLabel(ylabel,default),color=color)
             
-    def _setXLabel(self,fig,ax,xlabel,default=None,color='k'):	
+    def _setXLabel(self,fig,ax,xlabel,default=None,color='k'):    
         ax.set_xlabel(self.safeLabel(xlabel,default),color=color)
     
     def _plotY2(self,fig,ax,x,data,xrngL,xlog,xrev,mInd,y2=None,y2rng=[None,None],fy2=None,
@@ -1360,7 +1360,7 @@ class plot(object):
                     cmap=plt.cm.gist_ncar,colors=None,abun_random=False,min_abun=10**-16,
                     line_labels=True,y1rng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,stable=False,prof=True):
     
-        fig,ax=self._setupPlot(fig,ax)	
+        fig,ax=self._setupPlot(fig,ax)    
         
         if abun is None:
             abun_names=self._listAbun(data,prefix=prefix)
@@ -1384,7 +1384,7 @@ class plot(object):
             if data2 is not None:
                 if np.all(data2.data[prefix+i][ind2] < min_abun):
                     remove[i]=True
-                    print("Removing ",str(i))		
+                    print("Removing ",str(i))        
         abun_names=[i for i in abun_names if i not in remove]
         
             
@@ -1416,7 +1416,7 @@ class plot(object):
         for idx,i in enumerate(abun_names):
             name,mass=self._splitIso(i,prefix=prefix)
             if 'neut' in name or 'prot' in name:
-                continue	
+                continue    
             ele_names.append(name)
             iso_mass.append(mass)
             if stable:
@@ -1441,9 +1441,9 @@ class plot(object):
                         abun_mass[-1]=abun_mass[-1]/self._getMassFrac(data2,i,ind2,log_abun,prof=prof)
 
         uniq_names=set(i for i in ele_names)
-        sorted_names=sorted(uniq_names,key=self.elements.index)					
+        sorted_names=sorted(uniq_names,key=self.elements.index)                    
 
-        self._cycleColors(ax,colors,cmap,len(uniq_names),abun_random)		
+        self._cycleColors(ax,colors,cmap,len(uniq_names),abun_random)        
         
         abun_mass=np.array(abun_mass)
         iso_mass=np.array(iso_mass)
@@ -1459,7 +1459,7 @@ class plot(object):
             ymin=y1rng[0]
 
         if y1rng[1] is None:
-            ymax=np.nanmax(abun_mass[abun_mass>0])	
+            ymax=np.nanmax(abun_mass[abun_mass>0])    
         else:
             ymax=y1rng[1]
         
@@ -1498,7 +1498,7 @@ class plot(object):
             ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}_1}{\rm{Abun}_2}\right)$')
 
         if title is not None:
-            ax.set_title(title)		
+            ax.set_title(title)        
         elif show_title_name or show_title_model or show_title_age:
             self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',model_number,age)
         
@@ -1508,7 +1508,7 @@ class plot(object):
         ax.set_ylim(ymin-diff,ymax+diff)
         
         if show:
-            plt.show()		
+            plt.show()        
             
     def plotAbunByA(self,m,m2=None,plot_type='profile',prefix='',model=-1,model2=-1,show=True,ax=None,xmin=None,xmax=None,
                     mass_range=None,abun=None,min_abun=10**-16,
@@ -1547,26 +1547,26 @@ class plot(object):
             prof=False
             
         else:
-            data=m.prof	
+            data=m.prof    
             
             if m2 is not None:
                 data2=m2.prof
                 
             if mass_range is None:
-                mass_range=[0.0,m.prof.star_mass]		
+                mass_range=[0.0,m.prof.star_mass]        
             massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
 
             if mass_range2 is None:
                 mass_range2=mass_range
         
             if m2 is not None:
-                massInd2=(m2.prof.mass>=mass_range[0])&(m2.prof.mass<=mass_range[1])		
+                massInd2=(m2.prof.mass>=mass_range[0])&(m2.prof.mass<=mass_range[1])        
         
             if ind is not None:
                 ind=massInd&ind
             
             if ind2 is not None:
-                ind2=massInd2&ind2	
+                ind2=massInd2&ind2    
                 
             age=m.prof.star_age
             model=m.prof.model_number
@@ -1598,7 +1598,7 @@ class plot(object):
                     cmap=plt.cm.gist_ncar,mass_frac_rng=[10**-10,1.0],
                     model_number=-1,age=-1,prefix='',element_names=True,prof=True,bounds=0,n_minus_p=False):
         
-        fig,ax=self._setupPlot(fig,ax)	
+        fig,ax=self._setupPlot(fig,ax)    
         
         if abun is None:
             abun_names=self._listAbun(data,prefix=prefix)
@@ -1653,7 +1653,7 @@ class plot(object):
         for idx,i in enumerate(abun_names):
             if 'neut' in i or 'prot' in i:
                 continue
-            if proton[idx]>=ymin and proton[idx]<=ymax and xdata[idx]>=xmin and xdata[idx]<=xmax:	
+            if proton[idx]>=ymin and proton[idx]<=ymax and xdata[idx]>=xmin and xdata[idx]<=xmax:    
                 loctuple=(float(xdata[idx]-0.5),float(proton[idx]-0.5))
                 if mass[idx]>=min_col and mass[idx]<=max_col:
                     ax.add_patch(mpl.patches.Rectangle(loctuple,1.0,1.0,facecolor=cmap((mass[idx]-min_col)/(max_col-min_col))))
@@ -1706,7 +1706,7 @@ class plot(object):
         ax.set_ylim(ymin+yminoffset,ymax+ymaxoffset)
         
         if title is not None:
-            ax.set_title(title)		
+            ax.set_title(title)        
         elif show_title_name or show_title_model or show_title_age:
             self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Network',model_number,age)
 
@@ -1728,7 +1728,7 @@ class plot(object):
                             cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
                             fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,
                             show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
-                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
+                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)    
                                     
     def plotNeu(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[10**-3,10**10.0],
                 cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
@@ -1822,7 +1822,7 @@ class plot(object):
         self._setYLim(ax2,ax2.get_ylim(),y2rng)
         
         if title is not None:
-            ax.set_title(title)		
+            ax.set_title(title)        
         elif show_title_name or show_title_model or show_title_age:
             self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Dynamo',m.prof.head["model_number"],m.prof.head["star_age"])
         
@@ -1849,7 +1849,7 @@ class plot(object):
                             show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
                             show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
                             colors=colors,y1label=y1label,title=title,show_shock=show_shock,show_burn_labels=show_burn_labels,show_mix_labels=show_mix_labels,
-                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
+                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)    
             
             
     def plotBurn(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[1.0,10**10],
@@ -1867,7 +1867,7 @@ class plot(object):
                             show_burn=show_burn,show_mix=show_mix,fig=fig,fx=fx,fy=fy,
                             show_title_name=show_title_name,show_title_model=show_title_model,show_title_age=show_title_age,annotate_line=annotate_line,linestyle=linestyle,
                             colors=colors,y1label=y1label,title=title,show_shock=show_shock,show_core_loc=show_core_loc,show_burn_labels=show_burn_labels,show_mix_labels=show_mix_labels,
-                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)			
+                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)            
             
     def plotMix(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[1.0,20],
                 cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
@@ -1900,7 +1900,7 @@ class plot(object):
                             cmap=cmap,num_labels=num_labels,xlabel=xlabel,points=points,rand_col=rand_col,
                             fig=fig,fx=fx,fy=fy,minMod=minMod,maxMod=maxMod,y1label=y1label,
                             show_title_name=show_title_name,annotate_line=annotate_line,linestyle=linestyle,colors=colors,show_core=show_core,
-                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
+                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)    
                             
     def plotLdivM(self,m,xaxis='log_Teff',y2=None,show=True,
                     ax=None,xmin=None,xmax=None,xlog=False,y1log=False,y1rng=[None,None],
@@ -1918,7 +1918,7 @@ class plot(object):
                             xlabel=xlabel,points=points,y1label=r'$\log_{10}\,\left(L/M\right)$',
                             fig=fig,fx=fx,fy=fy1,minMod=minMod,maxMod=maxMod,annotate_line=False,
                             show_title_name=show_title_name,show_core=show_core,
-                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
+                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)    
                             
 
     def plotProfile(self,m,model=None,xaxis='mass',y1='logT',y2=None,show=True,ax=None,xmin=None,xmax=None,
@@ -1957,12 +1957,12 @@ class plot(object):
                             xlabel=xlabel,points=points,
                             fig=fig,fx=fx,fy=fy1,minMod=minMod,maxMod=maxMod,annotate_line=False,
                             show_title_name=show_title_name,show_core=show_core,
-                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)	
+                            y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)    
 
     def plotKip(self,m,show=True,reloadHistory=False,xaxis='num',ax=None,xrng=[None,None],mix=None,show_mix=True,
                 cmin=None,cmax=None,burnMap=[mpl.cm.Purples_r,mpl.cm.hot_r],fig=None,yrng=None,ylabel=None,
                 show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,y2=None,title=None,y2rng=None,zone_frac=1.0,
-                mix_hatch=False,hatch_color='black',cbar_label=None,yaxis='mass',y1log=False):	
+                mix_hatch=False,hatch_color='black',cbar_label=None,yaxis='mass',y1log=False):    
                 
         self.plotKip3(m,plot_type='history',xaxis='model_number',show=show,yaxis=yaxis,
                 reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
@@ -1976,7 +1976,7 @@ class plot(object):
                 show_mix=True,show_burn=True,
                 show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,step=1,max_mass=99999.0,age_collapse=False,age_log=True,age_reverse=False,
                 mod_out=None,xlabel=None,title=None,colorbar=True,burn=True,end_time=None,ylabel=None,age_zero=None,y2=None,y2rng=None,zone_frac=1.0,
-                mix_hatch=False,hatch_color='black',cbar_label=None,y1log=False):	
+                mix_hatch=False,hatch_color='black',cbar_label=None,y1log=False):    
                     
         self.plotKip3(m,plot_type='history',xaxis='star_age',show=show,yaxis=yaxis,
                 reloadHistory=reloadHistory,ax=ax,mod_min=xrng[0],mod_max=xrng[1],show_mix=show_mix,mix=mix,
@@ -2021,7 +2021,7 @@ class plot(object):
         if y1log:
             ax.set_yscale("log", nonposy='clip')
         
-        if plot_type=='history':			
+        if plot_type=='history':            
             try:
                 model_num=m.hist.data['model_number']
             except (KeyError,AttributeError):
@@ -2038,7 +2038,7 @@ class plot(object):
                 raise ValueError("No value "+yaxis+" found")
                             
         else:
-            raise ValueError("plot_type must be either history or profile, got "+plot_type)	
+            raise ValueError("plot_type must be either history or profile, got "+plot_type)    
     
         if not (xaxis=='model_number' or 'age' in xaxis):
             raise ValueError("kipenhan's can only plot model_number or age, got "+xaxis)
@@ -2083,8 +2083,8 @@ class plot(object):
                 center=self._getSafeCenter(m,radius)
                 data_y=np.linspace(np.min(center),np.max(m.hist.data["radius"]),num_zones)
             else:
-                center=self._getSafeCenter(m,radius)	
-                data_y=np.linspace(np.min(center),np.max(m.hist.data["star_mass"]),num_zones)	
+                center=self._getSafeCenter(m,radius)    
+                data_y=np.linspace(np.min(center),np.max(m.hist.data["star_mass"]),num_zones)    
                 
             #May need to interpolate data:
             lin_x=np.linspace(data_x[modInd][0],data_x[modInd][-1],np.count_nonzero(data_x[modInd]))
@@ -2098,7 +2098,7 @@ class plot(object):
             
             #Get mix data
             if show_mix:
-                mix_data=self._getHistMixData(m,data_x,data_y,modInd,mix,mix_prefix,radius)	
+                mix_data=self._getHistMixData(m,data_x,data_y,modInd,mix,mix_prefix,radius)    
                 mix_data=self._rebinKipDataX(mix_data,data_x[modInd],lin_x,nan=True,nan_value=1)
                                 
         else:
@@ -2106,7 +2106,7 @@ class plot(object):
             show_burn=False
             if mod_min is None:
                 mod_min=-1
-                mod_max=-1			
+                mod_max=-1            
             ip=m.iterateProfiles(rng=[mod_min,mod_max])
             count=0
             zones=[]
@@ -2172,7 +2172,7 @@ class plot(object):
             vmax=np.nanmax(data_z)
                         
         if not zaxis_contour:
-            im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)		
+            im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)        
         else:
             colorbar=False
             if zaxis_levels is None:
@@ -2252,7 +2252,7 @@ class plot(object):
         self._setTicks(ax,y1log)
         
         if title is not None:
-            ax.set_title(title)		
+            ax.set_title(title)        
 
         if show:
             plt.show()
@@ -2267,7 +2267,7 @@ class plot(object):
         elif 'mega' in age_units:
             unit=r'\rm{Myr}'
         elif 'year' in age_units:
-            unit=r'\rm{yr}'	
+            unit=r'\rm{yr}'    
         
         if age_log:
             if age_lookback:
@@ -2390,7 +2390,7 @@ class plot(object):
         if 'sec' in age_units:
             pass
         elif 'hour' in age_units:
-            age=age/(3600.0)	
+            age=age/(3600.0)    
         elif 'mega' in age_units:
             age=age/(self.secyear*10**6)
         elif 'year' in age_units:
@@ -2465,7 +2465,7 @@ class plot(object):
             
             modInd=modInd&(m.hist.data[xaxis]>=xmin)&(m.hist.data[xaxis]<=xmax)
     
-        return modInd	
+        return modInd    
         
         
     def _rebinKipDataX(self,data,x,lin_x,nan=False,nan_value=1):
