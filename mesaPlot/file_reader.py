@@ -457,7 +457,7 @@ class MESA(object):
     def _loadProfileIndex(self,f):
         self.prof_ind=np.genfromtxt(f+"/profiles.index",skip_header=1,names=["model","priority","profile"])
 
-    def _readProfile(self,filename,cache=True,cols=[]):
+    def _readProfile(self,filename,cache=True,cols=[],use_pickle=True,reload_pickle=False):
         """
         Reads a MESA profile file.
         
@@ -485,7 +485,7 @@ class MESA(object):
             self.prof=self._cache_prof[self._cache_prof_name.index(filename)]
         else:
             x=data()
-            x.loadFile(filename,cols=cols)
+            x.loadFile(filename,cols=cols,use_pickle=use_pickle,reload_pickle=reload_pickle)
             if cache:
                 if len(self._cache_prof_name)==self.cache_limit:
                     self._cache_prof.pop(0)
