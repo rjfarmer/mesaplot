@@ -26,9 +26,13 @@ from io import BytesIO
 
 from distutils.version import StrictVersion
 
+_FAKE_HASH="_1"
 
 def _hash(fname):
     hash_md5 = hashlib.md5()
+    if not os.path.exists(fname):
+        return _FAKE_HASH 
+    
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_md5.update(chunk)
@@ -113,12 +117,12 @@ class data(object):
             with open(pickname,'rb') as f:
                 # Get checksum
                 filehash = _hash(filename)
-                pickhash = "-1"
+                pickhash = _FAKE_HASH
                 try:
                     pickhash = pickle.load(f)
                 except EOFError:
                     pass
-                if pickhash == filehash:
+                if pickhash == filehash: # If the file didn't exists we get _FAKE_HASH back
                     # Data has not changed
                     print("Using saved data")
                     # Get Data
