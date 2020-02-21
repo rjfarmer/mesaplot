@@ -125,6 +125,7 @@ class data(object):
                         # Get Data
                         x = pickle.load(f)
                         self.data = x.data
+                        self.head = x.head
                         self.head_names = x.head.dtype.names
                         self.data_names = x.data.dtype.names
                         self._loaded = x._loaded
