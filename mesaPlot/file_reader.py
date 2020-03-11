@@ -26,12 +26,10 @@ from io import BytesIO
 
 from distutils.version import StrictVersion
 
-_FAKE_HASH="_1"
-
 def _hash(fname):
     hash_md5 = hashlib.md5()
     if not os.path.exists(fname):
-        return _FAKE_HASH 
+        return None
     
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
@@ -112,17 +110,16 @@ class data(object):
         
         
     def loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1,_dbg=False,use_pickle=True,reload_pickle=False):
-        pickname = filename+'.pickle' 
+        pickname = filename+'.pickle'    
         if use_pickle and os.path.exists(pickname):
             with open(pickname,'rb') as f:
                 # Get checksum
                 filehash = _hash(filename)
-                pickhash = _FAKE_HASH
                 try:
                     pickhash = pickle.load(f)
-                except EOFError:
-                    pass
-                if pickhash == filehash: # If the file didn't exists we get _FAKE_HASH back
+                except:
+                    raise ValueError("Pickle file corrupted please delete it and try again")
+                if (os.path.exists(filename) and pickhash == filehash) or not os.path.exists(filename):
                     # Data has not changed
                     print("Using saved data")
                     # Get Data
