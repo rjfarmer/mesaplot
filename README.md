@@ -97,8 +97,6 @@ Here we'll show the basics of plotting, there are more complex examples for each
 
 ### History data
 
-[More on history plots](docs/history.md)
-
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -108,8 +106,6 @@ p.plotHistory(m,xaxis='star_age',y1='log_center_T',y2='he_core_mass')
 ````
 
 ### Profile data
-
-[More on profile plots](docs/profile.md)
 
 ````python
 import mesaPlot as mp
@@ -121,8 +117,6 @@ p.plotProfile(m,xaxis='mass',y1='logT',y2='ye')
 
 ### HR
 
-[More on HR plots](docs/hr.md)
-
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -132,8 +126,6 @@ p.plotHR(m)
 ````
 
 ### Kippenhan's
-
-[More on Kippenhan plots](docs/kipp.md)
 
 Kippenhan plot with model number vs mass. Note all Kippenhan plots
 require your history file to have both mixing_regions X and burning_regions Y
@@ -194,8 +186,6 @@ p.plotKip3(m,plot_type='profile',xaxis='model_number',yaxis='mass',zaxis='logRho
 
 
 ### Abundances
-
-[More on abundance plots](docs/abun.md)
 
 ````python
 import mesaPlot as mp
@@ -300,8 +290,6 @@ p.plotAbunHist(m)
 
 ### Burn data
 
-[More on burn plots](docs/burn.md)
-
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -319,8 +307,6 @@ p.plotBurnHist(m)
 ````
 
 ### Dynamos
-
-[More on dynamo plots](docs/dynamo.md)
 
 ````python
 import mesaPlot as mp
@@ -344,8 +330,6 @@ p.plotDyanmo2(m)
 
 ### Angular momentum mixing
 
-[More on angular momentum plots](docs/angmom.md)
-
 ````python
 import mesaPlot as mp
 m=mp.MESA()
@@ -365,23 +349,17 @@ p=mp.plot()
 p.plotSliderProf(m,'plotAbun')
 ````
 
-Passing in a string, the name of a plotting function, (only ones based on profile data),
-will show that plot with a slider that can be used to iterate over the profile files
-available. plotSliderProf will take any extra arguments parsed to it and
+Passing in a string for the name of a plotting function, (only ones based on profile data).
+This will show that plot with a slider that can be used to iterate over the available profile files
+plotSliderProf will take any extra arguments passed to it and
 pass them to the plotting function.
 
 
 ### Stacked plots
 
-[More on stacked plots](docs/stacked.md)
-
 ### Multi profile plots
 
-[More on multi profile plots](docs/multi.md)
-
 ### Grid plotting
-
-[More on grid plots](docs/grid.md)
 
 
 
