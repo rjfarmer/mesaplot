@@ -2081,10 +2081,13 @@ class plot(object):
                 
             if radius:
                 center=self._getSafeCenter(m,radius)
-                data_y=np.linspace(np.min(center),np.max(m.hist.data["radius"]),num_zones)
+                if  'radius' in m.hist.data.dtype.names:
+                    data_y=np.linspace(np.min(center[modInd]),np.max(m.hist.data["radius"][modInd]),num_zones)
+                else:
+                    data_y=np.linspace(np.min(center[modInd]),10**np.max(m.hist.data["log_R"][modInd]),num_zones)
             else:
                 center=self._getSafeCenter(m,radius)    
-                data_y=np.linspace(np.min(center),np.max(m.hist.data["star_mass"]),num_zones)    
+                data_y=np.linspace(np.min(center[modInd]),np.max(m.hist.data["star_mass"][modInd]),num_zones)    
                 
             #May need to interpolate data:
             lin_x=np.linspace(data_x[modInd][0],data_x[modInd][-1],np.count_nonzero(data_x[modInd]))
@@ -2210,7 +2213,10 @@ class plot(object):
             #f = interp1d(data_x[modInd], m.hist.data['star_mass'][modInd])
             #ax.plot(lin_x,f(lin_x),c='k')
             if radius:
-                ax.plot(data_x[modInd],m.hist.data['radius'][modInd],c='k')
+                if 'radius' in m.hist.data.dtype.names:
+                    ax.plot(data_x[modInd],m.hist.data['radius'][modInd],c='k')
+                else:
+                    ax.plot(data_x[modInd],10**m.hist.data['log_R'][modInd],c='k')
             else:
                 ax.plot(data_x[modInd],m.hist.data['star_mass'][modInd],c='k')
         
@@ -2324,7 +2330,10 @@ class plot(object):
         numBurnZones=int([xx.split('_')[-1] for xx in m.hist.data.dtype.names if qtop in xx][-1])
 
         if radius:
-            scaler = m.hist.data['radius']
+            if 'radius' in m.hist.data.dtype.names:
+                scaler = m.hist.data['radius']
+            else:
+                scaler = 10**m.hist.data['log_R']
         else:
             scaler = m.hist.data['star_mass']
 
@@ -2355,7 +2364,10 @@ class plot(object):
         numBurnZones=int([xx.split('_')[-1] for xx in m.hist.data.dtype.names if qtop in xx][-1])
 
         if radius:
-            scaler = m.hist.data['radius'][modInd]
+            if 'radius' in m.hist.data.dtype.names:
+                scaler = m.hist.data['radius'][modInd]
+            else:
+                scaler = 10**m.hist.data['log_R'][modInd]
         else:
             scaler = m.hist.data['star_mass'][modInd]
 
