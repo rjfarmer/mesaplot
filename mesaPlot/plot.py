@@ -1996,7 +1996,7 @@ class plot(object):
                 show=True,reloadHistory=False,ax=None,fig=None,
                 show_mix=True,mix=None,show_burn=True,show_outer_mass=True,
                 cmin=None,cmax=None,cmap=[mpl.cm.Purples_r,mpl.cm.hot_r],colorbar=True,cbar_label=None,
-                show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,
+                show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,cmap_merge=True,
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
                 y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
                 mix_hatch=False,hatch_color='black',zaxis_norm=False,yaxis_norm=False,
@@ -2155,9 +2155,11 @@ class plot(object):
         else:
             vmax=cmax
             
-        if vmin < 0:
+        if vmin < 0 and vmax > 0:
             vmax=np.maximum(np.abs(vmax),np.abs(vmin))
             vmin=-vmax
+            
+        if cmap_merge:
             newCm=self.mergeCmaps(cmap,[[0.0,0.5],[0.5,1.0]])
         else:
             if not isinstance(cmap, str):
@@ -2171,8 +2173,9 @@ class plot(object):
             ind=(data_z>0)
             data_z[ind]=np.log10(data_z[ind])
             data_z[~ind]=np.nan
-            vmin=np.nanmin(data_z)
-            vmax=np.nanmax(data_z)
+            if cmin is None or cmax is None:
+                vmin=np.nanmin(data_z)
+                vmax=np.nanmax(data_z)
                         
         if not zaxis_contour:
             im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)        
