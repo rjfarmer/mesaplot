@@ -109,7 +109,10 @@ class data(object):
             pickle.dump(self, f)
         
         
-    def loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1,_dbg=False,use_pickle=True,reload_pickle=False):
+    def loadFile(self, filename, max_num_lines=-1, 
+                    cols=[],final_lines=-1,_dbg=False,
+                    use_pickle=True,reload_pickle=False,silent=False):
+                        
         pickname = filename+'.pickle'    
         if use_pickle and os.path.exists(pickname):
             with open(pickname,'rb') as f:
@@ -121,7 +124,7 @@ class data(object):
                     raise ValueError("Pickle file corrupted please delete it and try again")
                 if (os.path.exists(filename) and pickhash == filehash) or not os.path.exists(filename):
                     # Data has not changed
-                    print("Using saved data")
+
                     # Get Data
                     x = pickle.load(f)
                     self.data = x.data
@@ -383,7 +386,7 @@ class MESA(object):
         if not silent:
             print(filename)
         self._readProfile(filename,cache=cache,cols=cols,
-                            use_pickle=use_pickle,reload_pickle=reload_pickle)
+                            use_pickle=use_pickle,reload_pickle=reload_pickle,silent=silent)
         return
             
     def loadMod(self,filename=None):
@@ -425,7 +428,7 @@ class MESA(object):
                         names=self.mod_dat_names,skip_footer=5,dtype=None,converters=d)
         
         
-    def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1,cache=True):
+    def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1,cache=True,silent=False):
         if len(f)==0:
             if len(self.log_fold)==0:
                 self.log_fold='LOGS/'
@@ -438,27 +441,27 @@ class MESA(object):
             if priority != None:
                 if type(priority) is not list: priority = [ priority ]
                 if x["priority"] in priority or 0 in priority:
-                    self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
+                    self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache,silent=silent)
                     yield
             if len(rng)==2 and rng[0]>0:
                 if x["model"] >=rng[0] and x["model"] <= rng[1] and np.remainder(x["model"]-rng[0],step)==0:
-                    self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
+                    self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache,silent=silent)
                     yield
                 elif x["model"]>rng[1]:
                     return
             elif len(rng)>2 and rng[0]>0:
                 if x["model"] in rng:
-                    self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
+                    self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache,silent=silent)
                     yield
             else:
-                self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache)
+                self.loadProfile(f=f+"/profile"+str(int(x["profile"]))+".data",cache=cache,silent=silent)
                 yield 
         return
                 
     def _loadProfileIndex(self,f):
         self.prof_ind=np.genfromtxt(f+"/profiles.index",skip_header=1,names=["model","priority","profile"])
 
-    def _readProfile(self,filename,cache=True,cols=[],use_pickle=True,reload_pickle=False):
+    def _readProfile(self,filename,cache=True,cols=[],use_pickle=True,reload_pickle=False,silent=False):
         """
         Reads a MESA profile file.
         
@@ -486,7 +489,7 @@ class MESA(object):
             self.prof=self._cache_prof[self._cache_prof_name.index(filename)]
         else:
             x=data()
-            x.loadFile(filename,cols=cols,use_pickle=use_pickle,reload_pickle=reload_pickle)
+            x.loadFile(filename,cols=cols,use_pickle=use_pickle,reload_pickle=reload_pickle,silent=silent)
             if cache:
                 if len(self._cache_prof_name)==self.cache_limit:
                     self._cache_prof.pop(0)

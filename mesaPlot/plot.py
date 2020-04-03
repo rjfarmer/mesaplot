@@ -2110,7 +2110,7 @@ class plot(object):
             if mod_min is None:
                 mod_min=-1
                 mod_max=-1            
-            ip=m.iterateProfiles(rng=[mod_min,mod_max])
+            ip=m.iterateProfiles(rng=[mod_min,mod_max],silent=True)
             count=0
             zones=[]
             for i in ip: 
