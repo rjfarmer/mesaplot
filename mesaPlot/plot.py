@@ -546,6 +546,8 @@ class plot(object):
             ax.yaxis.set_major_locator(MaxNLocator(5))
             ax.yaxis.set_minor_locator(AutoMinorLocator(10))
         ax.xaxis.set_minor_locator(AutoMinorLocator(10))
+        ax.tick_params(axis='x', pad=10)
+        ax.tick_params(axis='y', pad=10)
     
     def _plotBurnRegions(self,m,ax,x,y,show_x,show_line,yrng=None,ind=None):
         # non 0.0, yellow 1, orange 10**4, red 10**7
