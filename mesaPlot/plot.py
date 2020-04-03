@@ -2002,7 +2002,7 @@ class plot(object):
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
                 y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
                 mix_hatch=False,hatch_color='black',zaxis_norm=False,yaxis_norm=False,
-                zaxis_contour=False,zaxis_levels=None,y1log=False,dbg=False):
+                zaxis_contour=False,zaxis_levels=None,y1log=False,dbg=False,cbar_ax=None, func_z=None):
                     
         if fig==None:
             fig=plt.figure(figsize=(12,12))
@@ -2118,7 +2118,13 @@ class plot(object):
             for i in ip: 
                 data_x.append(m.prof.head[xaxis])
                 data_y.append(m.prof.data[yaxis])
-                data_z.append(m.prof.data[zaxis])
+                
+                if func_z is not None:
+                    zz = func_z(m)
+                else:
+                    zz = m.prof.data[zaxis]
+                
+                data_z.append(zz)
                 
                 if zaxis_norm:
                     data_z[-1] = data_z[-1]/np.max(data_z[-1])
@@ -2185,7 +2191,6 @@ class plot(object):
             colorbar=False
             if zaxis_levels is None:
                 zaxis_levels = np.linspace(np.nanmin(data_z),np.nanmax(data_z),20)
-            print(zaxis_levels)
             ax.contour(lin_x, data_y, data_z.T,colors='black',levels=zaxis_levels)
             
                 
@@ -2238,13 +2243,16 @@ class plot(object):
                 ax2.set_ylim(y2rng)
                 
         if colorbar:
-            cb=fig.colorbar(im1,ax=ax)
+            if cbar_ax is not None:
+                cb = fig.colorbar(im1,cax=cbar_ax)
+            else:
+                cb=fig.colorbar(im1,ax=ax)
             cb.solids.set_edgecolor("face")
 
             if cbar_label is None:
-                cb.set_label(self._kip_cbar_label)
+                cb.set_label(self._kip_cbar_label,labelpad=-0.05)
             else:
-                cb.set_label(self.safeLabel(cbar_label,zaxis))
+                cb.set_label(self.safeLabel(cbar_label,zaxis),labelpad=-0.05)
             
         
         if xlabel is None:
@@ -2267,6 +2275,7 @@ class plot(object):
 
         if show:
             plt.show()
+            
             
     def _setAgeLabel(self,ax,age_log,age_lookback,age_units):
         
