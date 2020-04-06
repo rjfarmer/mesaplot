@@ -2001,8 +2001,9 @@ class plot(object):
                 show_mass_loc=False,show_mix_labels=True,mix_alpha=1.0,cmap_merge=True,
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
                 y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
-                mix_hatch=False,hatch_color='black',zaxis_norm=False,yaxis_norm=False,
-                zaxis_contour=False,zaxis_levels=None,y1log=False,dbg=False,cbar_ax=None):
+                mix_hatch=False,hatch_color='black',hatch_func=None,
+                zaxis_norm=False,yaxis_norm=False,
+                zaxis_contour=False,zaxis_levels=None,y1log=False,dbg=False,cbar_ax=None,cpad=0.0):
                     
         if fig==None:
             fig=plt.figure(figsize=(12,12))
@@ -2062,6 +2063,7 @@ class plot(object):
         data_x=[]
         data_y=[]
         data_z=[]
+        data_hatch=[]
         burn=[]
         mix_data=[]
         
@@ -2123,6 +2125,9 @@ class plot(object):
                     zz = zaxis(m)
                 else:
                     zz = m.prof.data[zaxis]
+                    
+                if callable(hatch_func):
+                    data_hatch.append(hatch_func(m))
                 
                 data_z.append(zz)
                 
@@ -2141,7 +2146,11 @@ class plot(object):
             
             if num_zones is None:
                 num_zones=np.max(zones) * 1.0/zone_frac
-            data_z,lin_x,data_y=self._rebinKipDataXY(data_z,data_x,data_y,count,num_zones)
+                
+            if callable(hatch_func):
+                data_hatch, _, _ = self._rebinKipDataXY(data_hatch, data_x, data_y, count, num_zones)            
+            
+            data_z, lin_x, data_y = self._rebinKipDataXY(data_z, data_x, data_y, count, num_zones)
 
 
         xmin=lin_x[0]
@@ -2202,7 +2211,12 @@ class plot(object):
                 ax.contour(lin_x, data_y, mix_data.T,colors=hatch_color,norm=mixNorm)
             else:
                 ax.imshow(mix_data.T,cmap=mixCmap,norm=mixNorm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',alpha=mix_alpha)
-                
+        
+        if callable(hatch_func):
+            plt.rcParams['hatch.color'] = hatch_color
+            ax.contourf(lin_x, data_y, data_hatch.T,colors='none',alpha=0.0,hatches=['//','-','x','+','\\','/'],antialiased=True)
+            ax.contour(lin_x, data_y, data_hatch.T,colors=hatch_color)
+            
 
         if plot_type=='history':
             if ylabel is None:
@@ -2250,9 +2264,9 @@ class plot(object):
             cb.solids.set_edgecolor("face")
 
             if cbar_label is None:
-                cb.set_label(self._kip_cbar_label,labelpad=-0.05)
+                cb.set_label(self._kip_cbar_label,labelpad=cpad)
             else:
-                cb.set_label(self.safeLabel(cbar_label,zaxis),labelpad=-0.05)
+                cb.set_label(self.safeLabel(cbar_label,zaxis),labelpad=cpad)
             
         
         if xlabel is None:
