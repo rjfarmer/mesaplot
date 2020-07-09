@@ -2086,12 +2086,12 @@ class plot(object):
             if radius:
                 center=self._getSafeCenter(m,radius)
                 if  'radius' in m.hist.data.dtype.names:
-                    data_y=np.linspace(np.min(center[modInd]),np.max(m.hist.data["radius"][modInd]),num_zones)
+                    data_y=np.linspace(np.min(center[modInd]),np.max(m.hist.data["radius"][modInd]),int(num_zones))
                 else:
-                    data_y=np.linspace(np.min(center[modInd]),10**np.max(m.hist.data["log_R"][modInd]),num_zones)
+                    data_y=np.linspace(np.min(center[modInd]),10**np.max(m.hist.data["log_R"][modInd]),int(num_zones))
             else:
                 center=self._getSafeCenter(m,radius)    
-                data_y=np.linspace(np.min(center[modInd]),np.max(m.hist.data["star_mass"][modInd]),num_zones)    
+                data_y=np.linspace(np.min(center[modInd]),np.max(m.hist.data["star_mass"][modInd]),int(num_zones))    
                 
             #May need to interpolate data:
             lin_x=np.linspace(data_x[modInd][0],data_x[modInd][-1],np.count_nonzero(data_x[modInd]))
@@ -2521,13 +2521,13 @@ class plot(object):
     def _rebinKipDataXY(self,data_z,data_x,data_y,num_x_zones,num_y_zones):
         ymin=np.nanmin([np.nanmin(y) for y in data_y])
         ymax=np.nanmax([np.nanmax(y) for y in data_y])
-        data_y2=np.linspace(ymin,ymax,num_y_zones)
+        data_y2=np.linspace(ymin,ymax,int(num_y_zones))
         data_z2=np.zeros((np.size(data_x),int(num_y_zones)))
         for i in range(len(data_x)):
             f=interp1d(data_y[i], data_z[i],bounds_error=False,fill_value=np.nan)
             data_z2[i,:]=f(data_y2)
 
-        lin_x=np.linspace(np.nanmin(data_x),np.nanmax(data_x),num_x_zones)
+        lin_x=np.linspace(np.nanmin(data_x),np.nanmax(data_x),int(num_x_zones))
         data_z=self._rebinKipDataX(data_z2,data_x,lin_x)
         return data_z,lin_x,data_y2
         
