@@ -622,7 +622,8 @@ class plot(object):
     
         ax.set_ylim(ylim)
     
-    def _annotateLine(self,ax,x,y,num_labels,xmin,xmax,text,xlog=False,line=None,color=None,fontsize=None):
+    def _annotateLine(self,ax,x,y,num_labels,xmin,xmax,text,xlog=False,line=None,color=None,fontsize=None,
+                        offset=None):
         
         if fontsize is None:
             fontsize=int(mpl.rcParams['font.size']//2)
@@ -639,7 +640,7 @@ class plot(object):
         ind=np.argsort(x)
         x=x[ind]
         y=y[ind]
-                        
+         
         #Dont add points at the edge of the plot 
         xx=np.linspace(xmin,xmax,num_labels+2)[1:-1]
         
@@ -656,8 +657,15 @@ class plot(object):
                 col=color
             else:
                 col=line.get_color()
+
+            x = xp1
+            y = yp1
+            if offset is not None:
+                x = x + offset[0]
+                y = y + offset[1]
+
             #print(text,type(text))
-            ax.annotate(text, xy=(xp1,yp1), xytext=(xp1,yp1),color=col,fontsize=fontsize,clip_on=True)
+            ax.annotate(text, xy=(xp1,yp1), xytext=(x,y),color=col,fontsize=fontsize,clip_on=True)
     
     def _setYLim(self,ax,yrngIn,yrngOut,rev=False,log=False):
         yrng=[]
@@ -1047,7 +1055,7 @@ class plot(object):
 
     def _plotAnnotatedLine(self,ax,x,y,xmin,xmax,fy=None,ymin=None,ymax=None,annotate_line=False,label=None,
                             points=False,xlog=False,ylog=False,xrev=False,yrev=False,linecol=None,
-                            linewidth=2,num_labels=5,linestyle='-',ind=None):
+                            linewidth=2,num_labels=5,linestyle='-',ind=None,fontsize=None,offset=None):
             if ind is not None:
                 x=x[ind]
                 y=y[ind]
@@ -1092,7 +1100,7 @@ class plot(object):
                 ax.scatter(x,y)
                 
             if annotate_line:
-                self._annotateLine(ax,x,y,num_labels,xmin,xmax,xlog=xlog,text=label,line=line)
+                self._annotateLine(ax,x,y,num_labels,xmin,xmax,xlog=xlog,text=label,line=line,fontsize=fontsize,offset=offset)
             
             ax.set_xlim(xmin,xmax)
             if xrev:
@@ -1360,7 +1368,8 @@ class plot(object):
     def _plotAbunByA(self,data=None,data2=None,prefix='',show=True,ax=None,xmin=None,xmax=None,abun=None,
                     fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
                     cmap=plt.cm.gist_ncar,colors=None,abun_random=False,min_abun=10**-16,
-                    line_labels=True,y1rng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,stable=False,prof=True):
+                    line_labels=True,y1rng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,
+                    stable=False,prof=True,fontsize=None,offset=None,silent=False):
     
         fig,ax=self._setupPlot(fig,ax)    
         
@@ -1379,14 +1388,16 @@ class plot(object):
         # Filter out low level iso's:
         remove={}
         for i in abun_names:
-            if np.all(data.data[prefix+i][ind] < min_abun):
+            if np.all(data.data[i][ind] < min_abun):
                 remove[i]=True
-                print("Removing ",str(i))
+                if not silent: 
+                    print("Removing ",str(i))
                 continue
             if data2 is not None:
-                if np.all(data2.data[prefix+i][ind2] < min_abun):
+                if np.all(data2.data[i][ind2] < min_abun):
                     remove[i]=True
-                    print("Removing ",str(i))        
+                    if not silent: 
+                        print("Removing ",str(i))        
         abun_names=[i for i in abun_names if i not in remove]
         
             
@@ -1491,7 +1502,7 @@ class plot(object):
             #print(i,x,y)
             self._plotAnnotatedLine(ax=ax,x=x,y=y,ylog=True,ymin=ymin,ymax=ymax,
                                     points=True,annotate_line=line_labels,label=i,
-                                    num_labels=1,xmin=xmin,xmax=xmax)
+                                    num_labels=1,xmin=xmin,xmax=xmax,fontsize=fontsize,offset=offset)
     
         ax.set_xlabel("A")
         if data2 is None:
@@ -1516,7 +1527,8 @@ class plot(object):
                     mass_range=None,abun=None,min_abun=10**-16,
                     fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
                     cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
-                    line_labels=True,y1rng=[None,None],ind=None,ind2=None,mass_range2=None,stable=False,y2rng=None):
+                    line_labels=True,y1rng=[None,None],ind=None,ind2=None,mass_range2=None,
+                    stable=False,y2rng=None,fontsize=None,offset=None,silent=False):
         
         data,data2,ind,ind2,age,model,prof=self._abunPlotSetup(m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2)
 
@@ -1526,7 +1538,8 @@ class plot(object):
                     show_title_age=show_title_age,title=title,min_abun=min_abun,
                     cmap=cmap,colors=colors,abun_random=abun_random,
                     line_labels=line_labels,y1rng=y1rng,stable=stable,ind=ind,ind2=ind2,
-                    age=age,model_number=model,prof=prof)
+                    age=age,model_number=model,prof=prof,fontsize=fontsize,offset=offset,
+                    silent=silent)
 
     def _abunPlotSetup(self,m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2):
         data=None
@@ -1537,8 +1550,8 @@ class plot(object):
                 data=m.hist[np.where(m.hist.model_number==model)[0][0]]
             else:
                 raise ValueError("Must set model")
-            if model2 > 0:
-                data2=m.hist[np.where(m.hist.model_number==model2)[0][0]]
+            if m2 is not None and model2 > 0:
+                data2=m2.hist[np.where(m2.hist.model_number==model2)[0][0]]
             else:
                 data2=None
                 
@@ -2002,8 +2015,8 @@ class plot(object):
                 age_lookback=False,age_log=True,age_reverse=False,age_units='years',end_time=None,age_zero=None,
                 y2=None,y2rng=None,mod_index=None,zlog=False,zone_frac=1.0,num_zones=None,
                 mix_hatch=False,hatch_color='black',hatch_func=None,
-                zaxis_norm=False,yaxis_norm=False,
-                zaxis_contour=False,zaxis_levels=None,y1log=False,dbg=False,cbar_ax=None,cpad=0.0):
+                zaxis_norm=False,yaxis_norm=False,y2label=None,y2log=False,
+                zaxis_contour=False,zaxis_levels=None,y1log=False,dbg=False,cbar_ax=None,cpad=0.0,cbar_extend='neither'):
                     
         if fig==None:
             fig=plt.figure(figsize=(12,12))
@@ -2020,10 +2033,13 @@ class plot(object):
             
         if y2 is not None:
             ax2=ax.twinx()
+            if y2log:
+                ax2.set_yscale("log",nonposy='clip')
             
         if y1log:
             ax.set_yscale("log", nonposy='clip')
-        
+            
+            
         if plot_type=='history':            
             try:
                 model_num=m.hist.data['model_number']
@@ -2091,6 +2107,7 @@ class plot(object):
                     data_y=np.linspace(np.min(center[modInd]),10**np.max(m.hist.data["log_R"][modInd]),int(num_zones))
             else:
                 center=self._getSafeCenter(m,radius)    
+                print(num_zones)
                 data_y=np.linspace(np.min(center[modInd]),np.max(m.hist.data["star_mass"][modInd]),int(num_zones))    
                 
             #May need to interpolate data:
@@ -2244,23 +2261,32 @@ class plot(object):
             else:
                 ax.plot(data_x[modInd],m.hist.data['star_mass'][modInd],c='k')
         
-        if y2 is not None and plot_type=='history':
+        if y2 is not None:
             # Update axes 2 locations after ax1 is moved by the colorbar
             
             if not type(y2) is np.ndarray:
                 y2 = m.hist.data[y2]
             
-            ax2.set_position(ax.get_position())
-            f = interp1d(data_x[modInd], y2[modInd])
+            #ax2.set_position(ax.get_position())
+            if plot_type=='history':
+                f = interp1d(data_x[modInd], y2[modInd])
+            else:
+                ind=m.hist.model_number>mod_min
+                f = interp1d(data_x[modInd], y2[modInd])
+                
             ax2.plot(lin_x,f(lin_x),c='k')
             if y2rng is not None:
                 ax2.set_ylim(y2rng)
                 
+            if y2label:
+                ax2.set_ylabel(y2label)
+                
+                
         if colorbar:
             if cbar_ax is not None:
-                cb = fig.colorbar(im1,cax=cbar_ax)
+                cb = fig.colorbar(im1,cax=cbar_ax,ax=ax,extend=cbar_extend)
             else:
-                cb=fig.colorbar(im1,ax=ax)
+                cb=fig.colorbar(im1,ax=ax,extend=cbar_extend)
             cb.solids.set_edgecolor("face")
 
             if cbar_label is None:
@@ -2268,6 +2294,7 @@ class plot(object):
             else:
                 cb.set_label(self.safeLabel(cbar_label,zaxis),labelpad=cpad)
             
+            cb.ax.minorticks_off()
         
         if xlabel is None:
             if xaxis=='model_number':
