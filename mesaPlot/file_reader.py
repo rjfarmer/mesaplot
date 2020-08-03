@@ -112,8 +112,14 @@ class data(object):
     def loadFile(self, filename, max_num_lines=-1, 
                     cols=[],final_lines=-1,_dbg=False,
                     use_pickle=True,reload_pickle=False,silent=False,
+                    is_mod=False):
+                    
+        if is_mod:
+            self._loadMod(filename)
+            return
+
         pickname = filename+'.pickle'    
-        if use_pickle and os.path.exists(pickname):
+        if use_pickle and os.path.exists(pickname) and not reload_pickle:
             with open(pickname,'rb') as f:
                 # Get checksum
                 filehash = _hash(filename)
@@ -142,8 +148,6 @@ class data(object):
         f(filename, max_num_lines, cols, final_lines)
         self._saveFile(filename)
             
-        if reload_pickle:
-            self._saveFile(filename)
         
     def _loadFile1(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
         numLines = self._filelines(filename)
@@ -240,6 +244,68 @@ class data(object):
         self._loaded = True
 
 
+    def _loadMod(self,filename):
+        from io import BytesIO, StringIO
+        
+        count=0
+        with open(filename,'r') as f:
+            for l in f:
+                count=count+1
+                if '!' not in l:
+                    break
+            head = []
+            head_names = []
+            head.append(str(l.split()[0]))
+            head_names.append('mod_version')
+            #Blank line
+            f.readline()
+            count=count+1
+            #Gap between header and main data
+            for l in f:
+                count=count+1
+                if l=='\n':
+                    break
+                head.append(str(l.split()[1]))
+                head_names.append(l.split()[0])
+            data_names=[]
+            l=f.readline()
+            count=count+1
+            data_names.append('zone')
+            data_names.extend(l.split())
+            #Make a dictionary of converters 
+
+        # Reaplce MMsun with star_mass
+        head_names[head_names.index('M/Msun')] = 'star_mass'
+
+        d = {k:self._fds2f for k in range(len(head_names))} 
+        self.head = np.genfromtxt(StringIO(' '.join(head)),
+                    names=head_names,dtype=None,encoding='ascii',converters=d)
+            
+        d = {k:self._fds2f for k in range(len(data_names))}    
+
+        data = np.genfromtxt(filename,skip_header=count,
+                        names=data_names,skip_footer=5,dtype=None,converters=d,encoding='ascii')
+
+        # Add mass co-ord
+
+        mass = np.cumsum(data['dq'][::-1])[::-1] * self.head['star_mass']
+
+        olddt = data.dtype
+        newdt = np.dtype(olddt.descr + [('mass',('<f8'))])
+
+        newarr = np.zeros(np.shape(data),dtype=newdt)
+        for i in olddt.names:
+            newarr[i] = data[i]
+        
+        newarr['mass'] = mass
+        self.data = newarr
+
+
+        self.head_names = self.head.dtype.names
+        self.data_names = self.data.dtype.names
+        self._loaded = True
+
+
     def _filelines(self,filename):
         """Get the number of lines in a file."""
         f = open(filename, "r+")
@@ -251,6 +317,17 @@ class data(object):
         f.close()
         return lines
 
+    def _fds2f(self,x):
+        if isinstance(x, str):
+            f = x.replace("'","").replace('D','E')
+        else:
+            f = x.decode().replace("'","").replace('D','E')
+        try:
+            f = np.float(f)
+        except ValueError:
+            pass
+
+        return f
 
 class MESA(object):
     def __init__(self):
@@ -391,41 +468,11 @@ class MESA(object):
             
     def loadMod(self,filename=None):
         """
-        Fails to read a MESA .mod file.
+        Read a MESA .mod file.
         """
-        from io import BytesIO
-        
-        count=0
-        with open(filename,'r') as f:
-            for l in f:
-                count=count+1
-                if '!' not in l:
-                    break
-            self.mod_head=[]
-            self.mod_head_names=[]
-            self.mod_head.append(int(l.split()[0]))
-            self.mod_head_names.append('mod_version')
-            #Blank line
-            f.readline()
-            count=count+1
-            #Gap between header and main data
-            for l in f:
-                count=count+1
-                if l=='\n':
-                    break
-                self.mod_head.append(l.split()[1])
-                self.mod_head_names.append(l.split()[0])
-            self.mod_dat_names=[]
-            l=f.readline()
-            count=count+1
-            self.mod_dat_names.append('zone')
-            self.mod_dat_names.extend(l.split())
-            #Make a dictionary of converters 
-            
-        d = {k:self._fds2f for k in range(len(self.mod_dat_names))}    
-            
-        self.mod_dat=np.genfromtxt(filename,skip_header=count,
-                        names=self.mod_dat_names,skip_footer=5,dtype=None,converters=d)
+        self.mod = data()
+
+        self.mod.loadFile(filename,is_mod=True)
         
         
     def iterateProfiles(self,f="",priority=None,rng=[-1.0,-1.0],step=1,cache=True,silent=False):
@@ -501,13 +548,6 @@ class MESA(object):
     def clearProfCache(self):
         self._cache_prof=[]
         self._cache_prof_name=[]
-    
-    def _fds2f(self,x):
-        if isinstance(x, str):
-            f=np.float(x.replace('D','E'))
-        else:
-            f=np.float(x.decode().replace('D','E'))
-        return f
         
     def abun(self,element):
         xx=0
