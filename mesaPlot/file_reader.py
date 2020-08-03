@@ -111,8 +111,7 @@ class data(object):
         
     def loadFile(self, filename, max_num_lines=-1, 
                     cols=[],final_lines=-1,_dbg=False,
-                    use_pickle=True,reload_pickle=False,silent=False):
-                        
+                    use_pickle=True,reload_pickle=False,silent=False,
         pickname = filename+'.pickle'    
         if use_pickle and os.path.exists(pickname):
             with open(pickname,'rb') as f:
@@ -132,15 +131,16 @@ class data(object):
                     self.head_names = x.head.dtype.names
                     self.data_names = x.data.dtype.names
                     self._loaded = x._loaded
+                    return
+
+        if StrictVersion(np.__version__) < StrictVersion('1.10.0') or _dbg:
+            f = self._loadFile1
+        elif StrictVersion(np.__version__) < StrictVersion('1.14.0'):
+            f = self._loadFile2
         else:
-            if StrictVersion(np.__version__) < StrictVersion('1.10.0') or _dbg:
-                f = self._loadFile1
-            elif StrictVersion(np.__version__) < StrictVersion('1.14.0'):
-                f = self._loadFile2
-            else:
-                f = self._loadFile3
-            f(filename, max_num_lines, cols, final_lines)
-            self._saveFile(filename)
+            f = self._loadFile3
+        f(filename, max_num_lines, cols, final_lines)
+        self._saveFile(filename)
             
         if reload_pickle:
             self._saveFile(filename)
