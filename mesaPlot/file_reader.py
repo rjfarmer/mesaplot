@@ -450,6 +450,7 @@ class data(object):
         
         return x
 
+    @property
     def star_mass(self):
         if 'star_mass' in self.data_names:
             return self.data['star_mass']
@@ -475,6 +476,24 @@ class data(object):
             return self.data['log_total_mass_'+iso]
         else:
             return None
+
+
+    def core_mass(self,element,prev_element=None,core_boundary_fraction=0.01,min_boundary_fraction=0.1):
+        if prev_element is None:
+            if element == 'he4':
+                prev_element = 'h1'
+            elif element == 'c12':
+                prev_element = 'he4'
+            elif element == 'o16':
+                prev_element = 'c12'
+            elif element == 'si28':
+                prev_element = 'o16'
+            elif element == 'fe56':
+                prev_element = 'si28'
+
+        ind = self.data[element] >=core_boundary_fraction
+        ind = ind & (self.data[prev_element] <= min_boundary_fraction)
+        return np.max(self.data['mass'][ind]) 
 
 
 class MESA(object):
