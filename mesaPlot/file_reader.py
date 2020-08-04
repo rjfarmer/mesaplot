@@ -26,6 +26,27 @@ from io import BytesIO
 
 from distutils.version import StrictVersion
 
+
+
+#Conviently the index of this list is the proton number
+_elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N', 
+                    'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 
+                    'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 
+                    'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 
+                    'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 
+                    'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 
+                    'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 
+                    'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu',
+                    'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 
+                    'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 
+                    'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 
+                    'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 
+                    'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 
+                    'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 
+                    'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
+_elements=[x.lower() for x in _elementsPretty]
+
+
 def _hash(fname):
     hash_md5 = hashlib.md5()
     if not os.path.exists(fname):
@@ -328,6 +349,133 @@ class data(object):
             pass
 
         return f
+
+
+
+    def listAbun(self,prefix=''):
+        abun_list=[]
+        names=self.data_names
+        for j in names:
+            if prefix in j:
+                i=j[len(prefix):]
+                if len(i)<=5 and len(i)>=2 and 'burn_' not in j:
+                    if i[0].isalpha() and (i[1].isalpha() or i[1].isdigit()) and any(char.isdigit() for char in i) and i[-1].isdigit():
+                        if (len(i)==5 and i[-1].isdigit() and i[-2].isdigit()) or len(i)<5:
+                            abun_list.append(j)
+                if i=='neut' or i=='prot':
+                    abun_list.append(j)
+        
+        for idx,i in enumerate(abun_list):
+            if type(i) is bytes:
+                abun_list[idx]=i.decode()    
+                    
+        return abun_list
+    
+    def splitIso(self,iso,prefix=''):
+        name=''
+        mass=''
+        iso=iso[len(prefix):]
+        for i in iso:
+            if i.isdigit():
+                mass+=i
+            else:
+                name+=i
+        if 'neut' in name or 'prot' in name:
+            mass=1
+        return name,int(mass)
+    
+    def getIso(self,iso,prefix=''):
+        name,mass=self.splitIso(iso,prefix)
+        if 'prot' in name:
+            p=1
+            n=0
+        else:
+            p=_elements.index(name)
+            n=mass-p
+        return name,p,n
+
+
+    def listBurn(self):
+        burnList=[]
+        ignore=['qtop','type']
+        extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
+        for i in self.data_names:
+            if ("burn_" in i or i in extraBurn) and not any(j in i for j in ignore):
+                burnList.append(str(i))
+        return burnList
+        
+    def listMix(self):
+        mixList=["log_D_conv","log_D_semi","log_D_ovr","log_D_th","log_D_thrm","log_D_minimum","log_D_anon","log_D_rayleigh_taylor","log_D_soft"]
+        mixListOut=[]        
+        for i in self.data_names:
+            if i in mixList:
+                mixListOut.append(str(i))
+        return mixListOut
+    
+    def abunSum(self,iso,mass_min=0.0,mass_max=9999.0):
+        if 'mass' in self.data_names:
+            ind=(self.data['mass']>=mass_min)&(self.data['mass']<=mass_max)
+            mdiff = self._getMdiff()
+            return np.sum(self.data[iso][ind]*mdiff[ind])*(self.head['star_mass']/
+                np.minimum(self.head['star_mass'],mass_max-mass_min))
+        else:
+            return self._getMassHist(iso)
+
+    def eleSum(self,element,mass_min=0.0,mass_max=9999.0,prefix=''):
+        la=self.listAbun(prefix)
+        x=0.0
+        for i in la:
+            if element == self.splitIso(i)[0]:
+                x = x + self.abunSum(i,mass_min,mass_max)
+        return x
+
+
+    def getMassFrac(self,iso,ind=None,log=False,prof=True):
+        if prof:
+            if 'logdq' in data.data_names:
+                scale=10**(data.data['logdq'][ind])
+            elif 'dq' in data.data_names:
+                scale=data.data['dq'][ind]
+            elif 'dm' in data.data_names:
+                scale=data.data['dm'][ind]/(msun*self.star_mass())
+            else:
+                raise AttributeError("No suitable mass co-ordinate available for getMassFrac, need either logdq, dq or dm in profile")
+        else:
+            scale=1.0
+            
+        if log:
+            x=np.sum(10**data.data[i][ind]*scale)
+        else:
+            x=np.sum(data.data[i][ind]*scale)
+        
+        return x
+
+    def star_mass(self):
+        if 'star_mass' in self.data_names:
+            return self.data['star_mass']
+        elif 'star_mass' in self.head_names:
+            return self.head['star_mass']
+        else:
+            raise ValueError("No star_mass available")
+
+    def _getMdiff(self):
+        if 'logdq' in self.data_names:
+            return 10**(self.data['logdq'])*self.star_mass()
+        elif 'dq' in self.data_names:
+            return self.data['dq']*self.star_mass()
+        elif 'dm' in elf.data_names:
+            return self.data['dm']
+        else:
+            raise AttributeError("No suitable mass co-ordinate available for _getMdiff, need either logdq, dq or dm in data")
+
+    def _getMassHist(self,iso):
+        if 'log_total_mass_'+iso in self.data_names:
+            return 10**self.data['log_total_mass_'+iso]
+        elif 'total_mass_'+iso in self.data_names:
+            return self.data['log_total_mass_'+iso]
+        else:
+            return None
+
 
 class MESA(object):
     def __init__(self):
