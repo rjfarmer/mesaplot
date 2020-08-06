@@ -437,7 +437,7 @@ class data(object):
             elif 'dq' in data.data_names:
                 scale=data.data['dq'][ind]
             elif 'dm' in data.data_names:
-                scale=data.data['dm'][ind]/(msun*self.star_mass())
+                scale=data.data['dm'][ind]/(msun*self.mass_star())
             else:
                 raise AttributeError("No suitable mass co-ordinate available for getMassFrac, need either logdq, dq or dm in profile")
         else:
@@ -451,7 +451,7 @@ class data(object):
         return x
 
     @property
-    def star_mass(self):
+    def mass_star(self):
         if 'star_mass' in self.data_names:
             return self.data['star_mass']
         elif 'star_mass' in self.head_names:
@@ -461,9 +461,9 @@ class data(object):
 
     def _getMdiff(self):
         if 'logdq' in self.data_names:
-            return 10**(self.data['logdq'])*self.star_mass()
+            return 10**(self.data['logdq'])*self.mass_star()
         elif 'dq' in self.data_names:
-            return self.data['dq']*self.star_mass()
+            return self.data['dq']*self.mass_star()
         elif 'dm' in elf.data_names:
             return self.data['dm']
         else:
