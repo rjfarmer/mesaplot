@@ -1703,7 +1703,7 @@ class plot(object):
         outArr=np.zeros((10,10))
         outArr[:]=np.nan
         im=ax.imshow(outArr, aspect='auto',cmap=cmap, norm=norm)
-        cb = fig.colorbar(im,ax=ax,cmap=cmap,norm=norm)
+        cb = fig.colorbar(im,ax=ax)
         cb.solids.set_edgecolor("face")
         cb.set_label(r'$\log_{10}\,$ \rm{Mass Frac}')
 
