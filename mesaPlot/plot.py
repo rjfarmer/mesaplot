@@ -479,12 +479,14 @@ class plot(object):
     def _splitIso(self,iso,prefix=''):
         name=''
         mass=''
-        iso=iso[len(prefix):]
+        if prefix in iso:
+            iso=iso[len(prefix):]
         for i in iso:
             if i.isdigit():
                 mass+=i
             else:
                 name+=i
+
         if 'neut' in name or 'prot' in name:
             mass=1
         return name,int(mass)
@@ -1061,9 +1063,9 @@ class plot(object):
                 y=y[ind]
             
             if xlog:
-                ax.set_xscale("log", nonposx='clip')
+                ax.set_xscale("log", nonpositive='clip')
             if ylog:
-                ax.set_yscale("log", nonposy='clip')
+                ax.set_yscale("log", nonpositive='clip')
                 if np.all(y<=0):
                     return
                 
@@ -2034,10 +2036,10 @@ class plot(object):
         if y2 is not None:
             ax2=ax.twinx()
             if y2log:
-                ax2.set_yscale("log",nonposy='clip')
+                ax2.set_yscale("log",nonpositive='clip')
             
         if y1log:
-            ax.set_yscale("log", nonposy='clip')
+            ax.set_yscale("log", nonpositive='clip')
             
             
         if plot_type=='history':            
