@@ -26,7 +26,7 @@ from io import BytesIO
 
 from distutils.version import StrictVersion
 
-
+msun = 1.9892*10**33
 
 #Conviently the index of this list is the proton number
 _elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N', 
@@ -416,8 +416,7 @@ class data(object):
         if 'mass' in self.data_names:
             ind=(self.data['mass']>=mass_min)&(self.data['mass']<=mass_max)
             mdiff = self._getMdiff()
-            return np.sum(self.data[iso][ind]*mdiff[ind])*(self.head['star_mass']/
-                np.minimum(self.head['star_mass'],mass_max-mass_min))
+            return np.sum(self.data[iso][ind]*mdiff[ind])
         else:
             return self._getMassHist(iso)
 
@@ -460,10 +459,14 @@ class data(object):
             raise ValueError("No star_mass available")
 
     def _getMdiff(self):
+        sm = self.head['star_mass']
+        if 'M_center' in self.head_names:
+            sm = sm - self.head['M_center']/msun
+
         if 'logdq' in self.data_names:
-            return 10**(self.data['logdq'])*self.mass_star()
+            return 10**(self.data['logdq'])*sm
         elif 'dq' in self.data_names:
-            return self.data['dq']*self.mass_star()
+            return self.data['dq']*sm
         elif 'dm' in elf.data_names:
             return self.data['dm']
         else:
