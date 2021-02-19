@@ -14,7 +14,7 @@ install:
   - python setup.py install
 # command to run tests
 script:
-  - python setup.py test
+  - pytest
 cache:
     directories:
         # Cache for pip, mostly to speed up matplotlib install

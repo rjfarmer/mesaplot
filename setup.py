@@ -12,7 +12,7 @@ setup(name='mesaPlot',
       author_email='r.j.farmer@uva.nl',
       url='https://github.com/rjfarmer/mesaPlot',
       packages=["mesaPlot"],
-      tests_require=["unittest2"],
+      tests_require=["pytest","unittest2"],
       test_suite='tests',
       python_requires='>=3.6',
       classifiers=[
