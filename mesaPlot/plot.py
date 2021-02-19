@@ -31,7 +31,7 @@ from distutils.spawn import find_executable
 
     
 class plot(object):
-    def __init__(self):
+    def __init__(self, rcparams_fixed=True):
         self.colors={'clr_Black':[ 0.0, 0.0, 0.0],
                     'clr_Blue':[  0.0, 0.0, 1.0],
                     'clr_BrightBlue':[  0.0, 0.4, 1.0],
@@ -284,25 +284,28 @@ class plot(object):
          0,   0,   2,   2,   0,   2,   1,   1,   1,   0,   0,   2,   2, 
          0,   0,   1,   1,   0,   0,   2,   2,   0,   1,   1,   0,   0, 
          0,   0,   2,   0,   0,   1,   0,   0,   0,   0,   0,   0,   0]        
-        
-        if find_executable('latex'):
-           mpl.rc('text', usetex=True)
-        else:
-           mpl.rc('text', usetex=False)
 
-        mpl.rc('font',size=30)
-        mpl.rc('xtick', labelsize=28) 
-        mpl.rc('ytick', labelsize=28) 
-        mpl.rcParams['axes.linewidth'] = 2.0
-        mpl.rcParams['xtick.major.size']=18      # major tick size in points
-        mpl.rcParams['xtick.minor.size']=9      # minor tick size in points
-        mpl.rcParams['ytick.major.size']=18      # major tick size in points
-        mpl.rcParams['ytick.minor.size']=9      # minor tick size in points
-        
-        mpl.rcParams['xtick.major.width']=0.8      # major tick size in points
-        mpl.rcParams['xtick.minor.width']=0.6      # minor tick size in points
-        mpl.rcParams['ytick.major.width']=0.8      # major tick size in points
-        mpl.rcParams['ytick.minor.width']=0.6      # minor tick size in points
+
+        if rcparams_fixed:
+            # Set default matplotlib rcParameters (True by default)
+            if find_executable('latex'):
+               mpl.rc('text', usetex=True)
+            else:
+               mpl.rc('text', usetex=False)
+
+            mpl.rc('font',size=30)
+            mpl.rc('xtick', labelsize=28)
+            mpl.rc('ytick', labelsize=28)
+            mpl.rcParams['axes.linewidth'] = 2.0
+            mpl.rcParams['xtick.major.size']=18      # major tick size in points
+            mpl.rcParams['xtick.minor.size']=9      # minor tick size in points
+            mpl.rcParams['ytick.major.size']=18      # major tick size in points
+            mpl.rcParams['ytick.minor.size']=9      # minor tick size in points
+
+            mpl.rcParams['xtick.major.width']=0.8      # major tick size in points
+            mpl.rcParams['xtick.minor.width']=0.6      # minor tick size in points
+            mpl.rcParams['ytick.major.width']=0.8      # major tick size in points
+            mpl.rcParams['ytick.minor.width']=0.6      # minor tick size in points
         
             
     
