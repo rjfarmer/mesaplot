@@ -7,9 +7,8 @@
 Library of python routines to read MESA ouput files and plot MESA quantites
 
 ## Installation instructions:
-git clone the repo then either call
+git clone the repo then call
 ````bash
-python setup.py install 
 python3 setup.py install 
 ````
 

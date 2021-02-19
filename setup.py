@@ -14,6 +14,7 @@ setup(name='mesaPlot',
       packages=["mesaPlot"],
       tests_require=["unittest2"],
       test_suite='tests',
+      python_requires='>=3.6',
       classifiers=[
 			"Development Status :: 5 - Production/Stable",
 			"Intended Audience :: Science/Research",
