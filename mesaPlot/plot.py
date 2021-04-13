@@ -2087,6 +2087,7 @@ class plot(object):
         data_hatch=[]
         burn=[]
         mix_data=[]
+        hasdataz=False
         
         #Number of zones to plot
         
@@ -2097,7 +2098,7 @@ class plot(object):
             if xaxis=='model_number':
                 data_x=m.hist.model_number
             else:
-                data_x=self._getSafeAge(m,age_lookback,age_zero,age_units,age_log,age_reverse,end_time)
+                data_x=self._getSafeAgeHist(m,age_lookback,age_zero,age_units,age_log,age_reverse,end_time)
                 
             if dbg:
                 print(data_x)
@@ -2124,6 +2125,7 @@ class plot(object):
                 data_z=self._rebinKipDataX(data_z,data_x[modInd],lin_x)
                 if dbg:
                     print(np.nanmin(data_z),np.nanmax(data_z))
+                hasdataz=True
             
             #Get mix data
             if show_mix:
@@ -2163,6 +2165,10 @@ class plot(object):
                 count=count+1
                 
             data_x=np.array(data_x)
+            hasdataz=True
+
+            if xaxis=='star_age':
+                data_x=self._getSafeAge(data_x,age_lookback,age_zero,age_units,age_log,age_reverse,end_time)
             
             
             
@@ -2184,19 +2190,6 @@ class plot(object):
         extent=(xmin,xmax,ymin,ymax)
         extent=np.double(np.array(extent))
 
-        if cmin is None:
-            vmin=np.nanmin(data_z)
-        else:
-            vmin=cmin
-            
-        if cmax is None:
-            vmax=np.nanmax(data_z)
-        else:
-            vmax=cmax
-            
-        if vmin < 0 and vmax > 0:
-            vmax=np.maximum(np.abs(vmax),np.abs(vmin))
-            vmin=-vmax
             
         if cmap_merge:
             newCm=self.mergeCmaps(cmap,[[0.0,0.5],[0.5,1.0]])
@@ -2206,23 +2199,35 @@ class plot(object):
             else:
                 newCm=cmap
             
-        if zlog:
-            #Get rid of warnigns about > nan's
-            data_z[np.isnan(data_z)]=-1
-            ind=(data_z>0)
-            data_z[ind]=np.log10(data_z[ind])
-            data_z[~ind]=np.nan
-            if cmin is None or cmax is None:
-                vmin=np.nanmin(data_z)
-                vmax=np.nanmax(data_z)
-                        
-        if not zaxis_contour:
-            im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)        
-        else:
-            colorbar=False
-            if zaxis_levels is None:
-                zaxis_levels = np.linspace(np.nanmin(data_z),np.nanmax(data_z),20)
-            ax.contour(lin_x, data_y, data_z.T,colors='black',levels=zaxis_levels)
+        if hasdataz:
+            if zlog:
+                #Get rid of warnigns about > nan's
+                data_z[np.isnan(data_z)]=-1
+                ind=(data_z>0)
+                data_z[ind]=np.log10(data_z[ind])
+                data_z[~ind]=np.nan
+
+            vmin=np.nanmin(data_z)
+            vmax=np.nanmax(data_z)
+
+            if vmin < 0 and vmax > 0:
+                vmax=np.maximum(np.abs(vmax),np.abs(vmin))
+                vmin=-vmax
+
+            if cmin is not None:
+                vmin=cmin
+                
+            if cmax is not None:
+                vmax=cmax
+
+                            
+            if not zaxis_contour:
+                im1=ax.imshow(data_z.T,cmap=newCm,extent=extent,interpolation='nearest',origin='lower',aspect='auto',vmin=vmin,vmax=vmax)        
+            else:
+                colorbar=False
+                if zaxis_levels is None:
+                    zaxis_levels = np.linspace(np.nanmin(data_z),np.nanmax(data_z),20)
+                ax.contour(lin_x, data_y, data_z.T,colors='black',levels=zaxis_levels)
             
                 
         if show_mix:
@@ -2439,9 +2444,8 @@ class plot(object):
                 
         return z
         
-        
-    def _getSafeAge(self,m,age_lookback=False,age_zero=None,age_units='sec',age_log=False,age_reverse=False,end_time=None):
-    
+
+    def _getSafeAgeHist(self,m,age_lookback=False,age_zero=None,age_units='sec',age_log=False,age_reverse=False,end_time=None):
         if 'log_dt' in m.hist.data.dtype.names:
             #Age in years does not have enough digits to be able to distinguish the final models in pre-sn progenitors
             age=np.cumsum(10**np.longdouble(m.hist.log_dt))*self.secyear
@@ -2449,16 +2453,7 @@ class plot(object):
             age=m.hist.star_age_sec
         elif 'star_age' in m.hist.data.dtype.names:
             age=m.hist.star_age*self.secyear
-        
-        if age_lookback:
-            xx=age[-1]
-            if end_time is not None:
-                xx=end_time
-            age=xx-age
-            
-        if age_zero is not None:
-            age=age-age_zero
-        
+
         if 'sec' in age_units:
             pass
         elif 'hour' in age_units:
@@ -2469,6 +2464,20 @@ class plot(object):
             age=age/(self.secyear)
         else:
             raise ValueError("Bad age unit: "+str(age_units))
+
+        return self._getSafeAge(age,age_lookback,age_zero,age_units,age_log,age_reverse,end_time) 
+
+        
+    def _getSafeAge(self,age,age_lookback=False,age_zero=None,age_units='sec',age_log=False,age_reverse=False,end_time=None):
+    
+        if age_lookback:
+            xx=age[-1]
+            if end_time is not None:
+                xx=end_time
+            age=xx-age
+            
+        if age_zero is not None:
+            age=age-age_zero
         
         if age_log:
             if age_lookback:
