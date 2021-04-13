@@ -140,7 +140,7 @@ class data(object):
             return
 
         pickname = filename+'.pickle'    
-        if use_pickle and os.path.exists(pickname) and not reload_pickle:
+        if use_pickle and os.path.exists(pickname) and not reload_pickle and final_lines < 0:
             with open(pickname,'rb') as f:
                 # Get checksum
                 filehash = _hash(filename)
