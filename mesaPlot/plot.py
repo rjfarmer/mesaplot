@@ -1872,7 +1872,7 @@ class plot(object):
                             y2=y2,y2rng=y2rng,fy2=fy2,y2Textcol=y2Textcol,y2label=y2label,y2rev=y2rev,y2log=y2log,y2col=y2col,xlog=xlog,xrev=xrev)    
             
             
-    def plotBurn(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[1.0,10**10],
+    def plotBurn(self,m,show=True,ax=None,xaxis='mass',xmin=None,xmax=None,y1rng=[],
                 cmap=plt.cm.gist_ncar,num_labels=3,xlabel=None,points=False,rand_col=False,
                 show_burn=False,show_mix=False,fig=None,fx=None,fy=None,show_core_loc=False,
                 show_title_name=False,show_title_model=False,show_title_age=False,annotate_line=True,linestyle='-',
@@ -1880,6 +1880,13 @@ class plot(object):
                 y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
         
         list_y=self._listBurn(m.prof)
+
+        if not len(y1rng):
+            maxy=1.0
+            for i in list_y:
+                maxy=np.maximum(maxy,np.max(m.prof.data[i]))
+            maxy = 10**(np.ceil(np.log10(maxy)))
+            y1rng=[1.0,maxy]
             
         self._plotMultiProf(m,list_y=list_y,y1log=True,_axlabel='burn',
                             show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,y1rng=y1rng,
