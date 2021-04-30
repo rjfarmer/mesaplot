@@ -95,7 +95,7 @@ class plot(object):
         self._getMESAPath()
         
         self.msun=1.9892*10**33
-        self.secyear=60.0*60.0*24.0*365.0
+        self.secyear=60.0*60.0*24.0*365.25
         
         self._kip_cbar_label = r'$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$'
         
@@ -2120,7 +2120,6 @@ class plot(object):
                     data_y=np.linspace(np.min(center[modInd]),10**np.max(m.hist.data["log_R"][modInd]),int(num_zones))
             else:
                 center=self._getSafeCenter(m,radius)    
-                print(num_zones)
                 data_y=np.linspace(np.min(center[modInd]),np.max(m.hist.data["star_mass"][modInd]),int(num_zones))    
                 
             #May need to interpolate data:
@@ -2137,8 +2136,8 @@ class plot(object):
             #Get mix data
             if show_mix:
                 mix_data=self._getHistMixData(m,data_x,data_y,modInd,mix,mix_prefix,radius)    
-                mix_data=self._rebinKipDataX(mix_data,data_x[modInd],lin_x,nan=True,nan_value=1)
-                                
+                mix_data=self._rebinKipDataX(mix_data,data_x[modInd],lin_x,nan=True,nan_value=1)                   
+                              
         else:
             show_mix=False
             show_burn=False
@@ -2236,7 +2235,6 @@ class plot(object):
                     zaxis_levels = np.linspace(np.nanmin(data_z),np.nanmax(data_z),20)
                 ax.contour(lin_x, data_y, data_z.T,colors='black',levels=zaxis_levels)
             
-                
         if show_mix:
             mixCmap,mixNorm=self._setMixRegionsCol(kip=True)
             if mix_hatch:
@@ -2453,22 +2451,29 @@ class plot(object):
         
 
     def _getSafeAgeHist(self,m,age_lookback=False,age_zero=None,age_units='sec',age_log=False,age_reverse=False,end_time=None):
+        if 'star_age' in m.hist.data.dtype.names:
+            age=m.hist.star_age
+        else:
+            age=m.hist.star_age_sec/self.secyear
+
         if 'log_dt' in m.hist.data.dtype.names:
             #Age in years does not have enough digits to be able to distinguish the final models in pre-sn progenitors
-            age=np.cumsum(10**np.longdouble(m.hist.log_dt))*self.secyear
-        elif 'star_age_sec' in m.hist.data.dtype.names:
-            age=m.hist.star_age_sec
-        elif 'star_age' in m.hist.data.dtype.names:
-            age=m.hist.star_age*self.secyear
+            age_yr = age[0]
+
+            age = np.zeros(np.shape(m.hist.model_number))
+            age[0] = age_yr
+            dt = 10**np.longdouble(m.hist.log_dt)
+            age[1:] = dt[1:]
+            age =  np.cumsum(age)
 
         if 'sec' in age_units:
-            pass
+            age = age * self.secyear
         elif 'hour' in age_units:
-            age=age/(3600.0)    
+            age= (age * self.secyear) / (3600.0)    
         elif 'mega' in age_units:
-            age=age/(self.secyear*10**6)
+            age=age/(10**6)
         elif 'year' in age_units:
-            age=age/(self.secyear)
+            pass
         else:
             raise ValueError("Bad age unit: "+str(age_units))
 
