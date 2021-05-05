@@ -160,79 +160,10 @@ class data(object):
                     self._loaded = x._loaded
                     return
 
-        if StrictVersion(np.__version__) < StrictVersion('1.10.0') or _dbg:
-            f = self._loadFile1
-        elif StrictVersion(np.__version__) < StrictVersion('1.14.0'):
-            f = self._loadFile2
-        else:
-            f = self._loadFile3
+        f = self._loadFile3
         f(filename, max_num_lines, cols, final_lines)
         self._saveFile(filename)
             
-        
-    def _loadFile1(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
-        numLines = self._filelines(filename)
-        self.head = np.genfromtxt(filename, skip_header=1, skip_footer=numLines-4, names=True,dtype=None)
-        skip_lines = 0
-        if max_num_lines > 0 and max_num_lines < numLines:
-            skip_lines = numLines - max_num_lines
-        
-        #Just the names
-        names = np.genfromtxt(filename, skip_header=5, names=True, skip_footer=numLines-5,dtype=None)
-        names = names.dtype.names
-        
-        usecols = None
-        cols = list(cols)
-        if len(cols):
-            if ('model_number' not in cols and 'model_number' in names):
-                cols = cols + ('model_number',)
-            if ('zone' not in cols and 'zone' in names):
-                cols = cols + ('zone',)
-        
-            colsSet = set(cols)
-            usecols = [i for i, e in enumerate(names) if e in colsSet]
-        
-        if final_lines > 0:    
-            line = subprocess.check_output(['tail', '-'+str(final_lines), filename])
-            self.data = np.genfromtxt(BytesIO(line), names=names, usecols=usecols,dtype=None)
-        else:
-            self.data = np.genfromtxt(filename, skip_header=5, names=True, skip_footer=skip_lines, usecols=usecols,dtype=None)
-        self.head_names = self.head.dtype.names
-        self.data_names = self.data.dtype.names
-        self._loaded = True
-        
-        
-    def _loadFile2(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
-        # numLines = self._filelines(filename)
-        self.head = np.genfromtxt(filename, skip_header=1, max_rows=1, names=True,dtype=None)
-            
-        #Just the names
-        names = np.genfromtxt(filename, skip_header=5, names=True, max_rows=1,dtype=None)
-        names = names.dtype.names
-            
-        usecols = None
-        cols = list(cols)
-        if len(cols):
-            if ('model_number' not in cols and 'model_number' in names):
-                cols = cols + ['model_number']
-            if ('zone' not in cols and 'zone' in names):
-                cols = cols + ['zone']
-            
-            colsSet = set(cols)
-            usecols = [i for i, e in enumerate(names) if e in colsSet]
-            
-        if final_lines > 0:    
-            line = subprocess.check_output(['tail', '-'+str(final_lines), filename])
-            self.data = np.genfromtxt(BytesIO(line), names=names, usecols=usecols,dtype=None)
-        else:
-            if max_num_lines > 0:
-                self.data = np.genfromtxt(filename, skip_header=5, names=True, max_rows = max_num_lines, usecols=usecols,dtype=None)
-            else:
-                self.data = np.genfromtxt(filename, skip_header=5, names=True, usecols=usecols,dtype=None)
-        self.head_names = self.head.dtype.names
-        self.data_names = self.data.dtype.names
-        self._loaded = True
-
     def _loadFile3(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
         # numLines = self._filelines(filename)
         self.head = np.genfromtxt(filename, skip_header=1, max_rows=1, names=True,dtype=None,encoding='ascii')
@@ -564,6 +495,10 @@ class MESA(object):
         # Reverse model numbers, we want the unique elements
         # but keeping the last not the first.
         
+        if np.unique(np.diff(self.hist.model_number)).size == 1:
+            # Return early if all step sizes are constant
+            return 
+
         #Fix case where we have at end of file numbers:
         # 1 2 3 4 5 3, without this we get the extra 4 and 5
         if np.size(self.hist.model_number) > 1:
