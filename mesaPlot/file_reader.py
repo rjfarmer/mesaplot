@@ -160,9 +160,10 @@ class data(object):
                 pickhash = pickle.load(f)
             except:
                 raise ValueError("Pickle file corrupted please delete it and try again")
-            if pickhash == _PICKLE_VERSION:
-                # Not a hash but a version number/ or wrong version number:
-                return False
+            if len(str(pickhash)) == len(str(_PICKLE_VERSION)):
+                if int(pickhash) == int(_PICKLE_VERSION):
+                    # Not a hash but a version number/ or wrong version number:
+                    return False
             else:
                 pickhash = pickle.load(f)
 
