@@ -23,6 +23,7 @@ import bisect
 import subprocess
 import hashlib
 from io import BytesIO
+import pandas
 
 from distutils.version import StrictVersion
 
@@ -46,6 +47,8 @@ _elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N',
                     'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
 _elements=[x.lower() for x in _elementsPretty]
 
+_PICKLE_VERSION=1
+
 
 def _hash(fname):
     hash_md5 = hashlib.md5()
@@ -57,6 +60,7 @@ def _hash(fname):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
+
 class data(object):
     def __init__(self):
         self.data={}
@@ -66,16 +70,15 @@ class data(object):
         self._type=''
         
     def __getattr__(self, name):
-        x=None
-        
+        x=None     
         if '_loaded' in self.__dict__:
             if self._loaded:
                 try:
-                    x=self.data[name]
+                    x=self.data[name].values
                 except:
                     pass
                 try:
-                    x=np.atleast_1d(self.head[name])[0]
+                    x=np.atleast_1d(self.head[name].values)[0]
                 except:
                     pass
                 
@@ -85,6 +88,15 @@ class data(object):
                     raise AttributeError("No value "+name+" available")
                         
         raise AttributeError("Must load data first")
+
+    def __contains__(self, key):
+        if key in self.data:
+            return True
+
+        if key in self.head:
+            return True
+
+        return False
     
     def __dir__(self):
         x=[]
@@ -121,15 +133,7 @@ class data(object):
         tmp.head_names=self.head_names
         return tmp
         
-        
-    def _saveFile(self,filename):
-        filehash = _hash(filename)
-        pickname = filename+'.pickle' 
-        with open(filename+'.pickle','wb') as f:
-            pickle.dump(filehash, f)
-            pickle.dump(self, f)
-        
-        
+    
     def loadFile(self, filename, max_num_lines=-1, 
                     cols=[],final_lines=-1,_dbg=False,
                     use_pickle=True,reload_pickle=False,silent=False,
@@ -141,59 +145,65 @@ class data(object):
 
         pickname = filename+'.pickle'    
         if use_pickle and os.path.exists(pickname) and not reload_pickle and final_lines < 0:
-            with open(pickname,'rb') as f:
-                # Get checksum
-                filehash = _hash(filename)
-                try:
-                    pickhash = pickle.load(f)
-                except:
-                    raise ValueError("Pickle file corrupted please delete it and try again")
-                if (os.path.exists(filename) and pickhash == filehash) or not os.path.exists(filename):
-                    # Data has not changed
+            if self._loadPickle(pickname, filename):
+                return 
 
-                    # Get Data
-                    x = pickle.load(f)
-                    self.data = x.data
-                    self.head = x.head
-                    self.head_names = x.head.dtype.names
-                    self.data_names = x.data.dtype.names
-                    self._loaded = x._loaded
-                    return
+        # Not using pickle
+        self._loadFile3(filename, max_num_lines, cols, final_lines)
 
-        f = self._loadFile3
-        f(filename, max_num_lines, cols, final_lines)
-        self._saveFile(filename)
+
+    def _loadPickle(self, pickname, filename):
+        with open(pickname,'rb') as f:
+            # Get checksum
+            filehash = _hash(filename)
+            try:
+                pickhash = pickle.load(f)
+            except:
+                raise ValueError("Pickle file corrupted please delete it and try again")
+            if pickhash == _PICKLE_VERSION:
+                # Not a hash but a version number/ or wrong version number:
+                return False
+            else:
+                pickhash = pickle.load(f)
+
+            if (os.path.exists(filename) and pickhash == filehash) or not os.path.exists(filename):
+                # Data has not changed
+
+                # Get Data
+                x = pickle.load(f)
+                self.data = x.data
+                self.head = x.head
+                self.head_names = x.head.dtype.names
+                self.data_names = x.data.dtype.names
+                self._loaded = x._loaded
+                return True
+        return False
+
             
     def _loadFile3(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
-        # numLines = self._filelines(filename)
-        self.head = np.genfromtxt(filename, skip_header=1, max_rows=1, names=True,dtype=None,encoding='ascii')
-            
-        #Just the names
-        names = np.genfromtxt(filename, skip_header=5, names=True, max_rows=1,dtype=None,encoding='ascii')
-        names = names.dtype.names
-            
-        usecols = None
-        cols = list(cols)
-        if len(cols):
-            if ('model_number' not in cols and 'model_number' in names):
-                cols = cols + ['model_number']
-            if ('zone' not in cols and 'zone' in names):
-                cols = cols + ['zone']
-            
-            colsSet = set(cols)
-            usecols = [i for i, e in enumerate(names) if e in colsSet]
+        self.head = pandas.read_csv(filename,delim_whitespace=True,header=1,nrows=1)
             
         if final_lines > 0:    
             line = subprocess.check_output(['tail', '-'+str(final_lines), filename])
-            self.data = np.genfromtxt(BytesIO(line), names=names, usecols=usecols,dtype=None,encoding='ascii')
+            self.data = np.genfromtxt(BytesIO(line), names=names, dtype=None,encoding='ascii')
         else:
             if max_num_lines > 0:
-                self.data = np.genfromtxt(filename, skip_header=5, names=True, max_rows = max_num_lines, usecols=usecols,dtype=None,encoding='ascii')
+                self.data = pandas.read_csv(filename,delim_whitespace=True,header=4,nrows=max_model_lines)
             else:
-                self.data = np.genfromtxt(filename, skip_header=5, names=True, usecols=usecols,dtype=None,encoding='ascii')
-        self.head_names = self.head.dtype.names
-        self.data_names = self.data.dtype.names
+                self.data = pandas.read_csv(filename,delim_whitespace=True,header=4)
+        self.head_names = list(self.head.columns)
+        self.data_names = list(self.data.columns)
         self._loaded = True
+        self._saveFile(filename)
+
+        
+    def _saveFile(self,filename):
+        filehash = _hash(filename)
+        pickname = filename+'.pickle' 
+        with open(filename+'.pickle','wb') as f:
+            pickle.dump(_PICKLE_VERSION, f)
+            pickle.dump(filehash, f)
+            pickle.dump(self, f)
 
 
     def _loadMod(self,filename):

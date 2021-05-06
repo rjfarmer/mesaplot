@@ -5,7 +5,7 @@ from setuptools import setup
 import unittest
 
 setup(name='mesaPlot',
-      version='1.1.0',
+      version='2.0.0',
       description='Library for reading and plotting MESA data',
       license="GPLv2+",
       author='Robert Farmer',
