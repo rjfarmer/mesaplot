@@ -54,6 +54,12 @@ def _hash(fname):
     hash_md5 = hashlib.md5()
     if not os.path.exists(fname):
         return None
+
+    try:
+        x=subprocess.check_output(['md5sum',fname])
+        return x.split()[0].decode()
+    except FileNotFoundError:
+        pass
     
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
@@ -161,7 +167,7 @@ class data(object):
             except:
                 raise ValueError("Pickle file corrupted please delete it and try again")
             if len(str(pickhash)) == len(str(_PICKLE_VERSION)):
-                if int(pickhash) == int(_PICKLE_VERSION):
+                if int(pickhash) != int(_PICKLE_VERSION):
                     # Not a hash but a version number/ or wrong version number:
                     return False
             else:
@@ -516,7 +522,7 @@ class MESA(object):
             self.hist.data=self.hist.data[self.hist.model_number<=self.hist.model_number[-1]]
             mod_rev=self.hist.model_number[::-1]
             _, mod_ind=np.unique(mod_rev,return_index=True)
-            self.hist.data=self.hist.data[np.size(self.hist.model_number)-mod_ind-1]
+            self.hist.data=self.hist.data.iloc[np.size(self.hist.model_number)-mod_ind-1]
         
     def scrubHistory(self,f="",fileOut="LOGS/history.data.scrubbed"):
         self.loadHistory(f)
