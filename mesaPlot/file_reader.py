@@ -153,10 +153,9 @@ class data(object):
         if use_pickle and os.path.exists(pickname) and not reload_pickle and final_lines < 0:
             if self._loadPickle(pickname, filename):
                 return 
-
+        
         # Not using pickle
         self._loadFile3(filename, max_num_lines, cols, final_lines)
-
 
     def _loadPickle(self, pickname, filename):
         with open(pickname,'rb') as f:
@@ -170,18 +169,22 @@ class data(object):
                 if int(pickhash) != int(_PICKLE_VERSION):
                     # Not a hash but a version number/ or wrong version number:
                     return False
-            else:
-                pickhash = pickle.load(f)
+
+            pickhash = pickle.load(f)
 
             if (os.path.exists(filename) and pickhash == filehash) or not os.path.exists(filename):
                 # Data has not changed
-
                 # Get Data
                 x = pickle.load(f)
                 self.data = x.data
                 self.head = x.head
-                self.head_names = x.head.dtype.names
-                self.data_names = x.data.dtype.names
+                if hasattr(x.head,'dtype'): 
+                    self.head_names = x.head.dtype.names
+                    self.data_names = x.data.dtype.names
+                else:
+                    self.head_names = list(self.head.columns)
+                    self.data_names = list(self.data.columns)
+
                 self._loaded = x._loaded
                 return True
         return False
@@ -505,7 +508,6 @@ class MESA(object):
 
         self.hist.loadFile(filename,max_num_lines,cols,final_lines=final_lines,_dbg=_dbg,
                             use_pickle=use_pickle,reload_pickle=reload_pickle)
-        
         if max_model>0:
             self.hist.data=self.hist.data[self.hist.model_number<=max_model]
 
@@ -523,7 +525,7 @@ class MESA(object):
             mod_rev=self.hist.model_number[::-1]
             _, mod_ind=np.unique(mod_rev,return_index=True)
             self.hist.data=self.hist.data.iloc[np.size(self.hist.model_number)-mod_ind-1]
-        
+
     def scrubHistory(self,f="",fileOut="LOGS/history.data.scrubbed"):
         self.loadHistory(f)
         with open(fileOut,'w') as f:

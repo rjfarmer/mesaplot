@@ -645,7 +645,10 @@ class plot(object):
         
         ind=np.argsort(x)
         x=x[ind]
-        y=y[ind]
+        if hasattr(y,'iloc'):
+            y=y.iloc[ind]
+        else:
+            y=y[ind]
          
         #Dont add points at the edge of the plot 
         xx=np.linspace(xmin,xmax,num_labels+2)[1:-1]
@@ -653,7 +656,10 @@ class plot(object):
         if xlog:
             xx=10**xx
 
-        yy=y[np.searchsorted(x,xx)]
+        if hasattr(y,'iloc'):
+            yy=y.iloc[np.searchsorted(x,xx)]
+        else:
+            yy=y[np.searchsorted(x,xx)]
         
         if type(text) is bytes:
             text=text.decode()
