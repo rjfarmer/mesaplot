@@ -16,7 +16,6 @@
 
 from __future__ import print_function
 import numpy as np
-import mmap
 import os
 import pickle
 import bisect
@@ -47,7 +46,7 @@ _elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N',
                     'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
 _elements=[x.lower() for x in _elementsPretty]
 
-_PICKLE_VERSION=1
+_PICKLE_VERSION=2
 
 
 def _hash(fname):
@@ -58,7 +57,7 @@ def _hash(fname):
     try:
         x=subprocess.check_output(['md5sum',fname])
         return x.split()[0].decode()
-    except FileNotFoundError:
+    except (FileNotFoundError,subprocess.CalledProcessError): # (no md5sum, no file)
         pass
     
     with open(fname, "rb") as f:
@@ -76,24 +75,11 @@ class data(object):
         self._type=''
         
     def __getattr__(self, name):
-        x=None     
-        if '_loaded' in self.__dict__:
-            if self._loaded:
-                try:
-                    x=self.data[name].values
-                except:
-                    pass
-                try:
-                    x=np.atleast_1d(self.head[name].values)[0]
-                except:
-                    pass
-                
-                if x is not None:
-                    return x
-                else:
-                    raise AttributeError("No value "+name+" available")
-                        
-        raise AttributeError("Must load data first")
+        if 'data' in self.__dict__:
+            if len(self.data) == 0:
+                raise AttributeError("Must load data first")
+
+        return self.__getitem__(name)
 
     def __contains__(self, key):
         if key in self.data:
@@ -105,41 +91,19 @@ class data(object):
         return False
     
     def __dir__(self):
-        x=[]
-        try:
-            if len(self.head_names)>0:
-                x=x+list(self.head_names)
-        except:
-            pass
-        try:
-            if len(self.data_names)>0:
-                x=x+list(self.data_names)
-        except:
-            pass
-
-        if len(x)>0:
-            return x
-        else:
-            raise AttributeError
+        return list(self.data.columns) + list(self.head.columns) + list(self.__dict__.keys())
             
     def __getitem__(self,key):
-        tmp=data()
-        if key > np.size(self.data[self.data_names[0]]):
-            raise IndexError
-        elif key <0:
-            x=self.data[key-1:key]
-        else:
-            x=self.data[key:key+1]
-        
-        tmp.data=np.array(x,dtype=self.data.dtype)
-        tmp.head=self.head
-        tmp._loaded=True
-        tmp._mph=self._mph
-        tmp.data_names=self.data_names
-        tmp.head_names=self.head_names
-        return tmp
-        
-    
+        if 'data' in self.__dict__:
+            if key in self.data:
+                return self.data[key]
+            if key in self.head:
+                return np.atleast_1d(self.head[key])
+
+    def __iter__(self):
+        if len(self.data):
+            yield list(self.data.columns)
+
     def loadFile(self, filename, max_num_lines=-1, 
                     cols=[],final_lines=-1,_dbg=False,
                     use_pickle=True,reload_pickle=False,silent=False,
@@ -155,7 +119,7 @@ class data(object):
                 return 
         
         # Not using pickle
-        self._loadFile3(filename, max_num_lines, cols, final_lines)
+        self._loadFile(filename, max_num_lines, cols, final_lines)
 
     def _loadPickle(self, pickname, filename):
         with open(pickname,'rb') as f:
@@ -175,34 +139,25 @@ class data(object):
             if (os.path.exists(filename) and pickhash == filehash) or not os.path.exists(filename):
                 # Data has not changed
                 # Get Data
-                x = pickle.load(f)
-                self.data = x.data
-                self.head = x.head
-                if hasattr(x.head,'dtype'): 
-                    self.head_names = x.head.dtype.names
-                    self.data_names = x.data.dtype.names
-                else:
-                    self.head_names = list(self.head.columns)
-                    self.data_names = list(self.data.columns)
-
-                self._loaded = x._loaded
+                self.data = pickle.load(f)
+                self.head = pickle.load(f)
+                self._loaded = True
                 return True
         return False
 
             
-    def _loadFile3(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
+    def _loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
         self.head = pandas.read_csv(filename,delim_whitespace=True,header=1,nrows=1)
             
-        if final_lines > 0:    
-            line = subprocess.check_output(['tail', '-'+str(final_lines), filename])
-            self.data = np.genfromtxt(BytesIO(line), names=names, dtype=None,encoding='ascii')
+
+        if max_num_lines > 0:
+            self.data = pandas.read_csv(filename,delim_whitespace=True,header=4,nrows=max_num_lines)
         else:
-            if max_num_lines > 0:
-                self.data = pandas.read_csv(filename,delim_whitespace=True,header=4,nrows=max_model_lines)
-            else:
-                self.data = pandas.read_csv(filename,delim_whitespace=True,header=4)
-        self.head_names = list(self.head.columns)
-        self.data_names = list(self.data.columns)
+            self.data = pandas.read_csv(filename,delim_whitespace=True,header=4)
+
+        if final_lines > 0:
+            self.data = self.data[-final_lines:]
+
         self._loaded = True
         self._saveFile(filename)
 
@@ -213,7 +168,8 @@ class data(object):
         with open(filename+'.pickle','wb') as f:
             pickle.dump(_PICKLE_VERSION, f)
             pickle.dump(filehash, f)
-            pickle.dump(self, f)
+            pickle.dump(self.data, f)
+            pickle.dump(self.head, f)
 
 
     def _loadMod(self,filename):
@@ -278,17 +234,6 @@ class data(object):
         self._loaded = True
 
 
-    def _filelines(self,filename):
-        """Get the number of lines in a file."""
-        f = open(filename, "r+")
-        buf = mmap.mmap(f.fileno(), 0)
-        lines = 0
-        readline = buf.readline
-        while readline():
-            lines += 1
-        f.close()
-        return lines
-
     def _fds2f(self,x):
         if isinstance(x, str):
             f = x.replace("'","").replace('D','E')
@@ -305,8 +250,7 @@ class data(object):
 
     def listAbun(self,prefix=''):
         abun_list=[]
-        names=self.data_names
-        for j in names:
+        for j in self.data:
             if prefix in j:
                 i=j[len(prefix):]
                 if len(i)<=5 and len(i)>=2 and 'burn_' not in j:
@@ -350,7 +294,7 @@ class data(object):
         burnList=[]
         ignore=['qtop','type']
         extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
-        for i in self.data_names:
+        for i in self.data:
             if ("burn_" in i or i in extraBurn) and not any(j in i for j in ignore):
                 burnList.append(str(i))
         return burnList
@@ -358,13 +302,13 @@ class data(object):
     def listMix(self):
         mixList=["log_D_conv","log_D_semi","log_D_ovr","log_D_th","log_D_thrm","log_D_minimum","log_D_anon","log_D_rayleigh_taylor","log_D_soft"]
         mixListOut=[]        
-        for i in self.data_names:
+        for i in self.data:
             if i in mixList:
                 mixListOut.append(str(i))
         return mixListOut
     
     def abunSum(self,iso,mass_min=0.0,mass_max=9999.0):
-        if 'mass' in self.data_names:
+        if 'mass' in self.data:
             ind=(self.data['mass']>=mass_min)&(self.data['mass']<=mass_max)
             mdiff = self._getMdiff()
             return np.sum(self.data[iso][ind]*mdiff[ind])

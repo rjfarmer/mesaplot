@@ -463,8 +463,7 @@ class plot(object):
         
     def _listAbun(self,data,prefix=''):
         abun_list=[]
-        names=data.data_names
-        for j in names:
+        for j in data.data:
             if prefix in j:
                 i=j[len(prefix):]
                 if len(i)<=5 and len(i)>=2 and 'burn_' not in j:
@@ -510,7 +509,7 @@ class plot(object):
         burnList=[]
         ignore=['qtop','type']
         extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
-        for i in data.data_names:
+        for i in data:
             if ("burn_" in i or i in extraBurn) and not any(j in i for j in ignore):
                 burnList.append(str(i))
         return burnList
@@ -518,7 +517,7 @@ class plot(object):
     def _listMix(self,data):
         mixList=["log_D_conv","log_D_semi","log_D_ovr","log_D_th","log_D_thrm","log_D_minimum","log_D_anon","log_D_rayleigh_taylor","log_D_soft"]
         mixListOut=[]        
-        for i in data.data_names:
+        for i in data:
             if i in mixList:
                 mixListOut.append(str(i))
         return mixListOut
@@ -530,7 +529,7 @@ class plot(object):
     def _eleSum(self,m,ele,mass_min=0.0,mass_max=9999.0):
         ind=(m.prof.mass>=mass_min)&(m.prof.mass<=mass_max)
         
-        la=self._listAbun(m.prof)
+        la=m.prof.listAbun()
         x=0.0
         for i in la:
             if ele == i[0:len(ele)]:
@@ -914,8 +913,8 @@ class plot(object):
         for i,j,l in zip(coreMasses,col,labels):
             ind=m.hist.data[i][modInd]>0.0
             if np.count_nonzero(ind):
-                ax.plot([x[ind][0],x[ind][0]],ax.get_ylim(),'--',color=self.colors[j],linewidth=2)
-                out.append(x[ind][0])
+                ax.plot([x[ind].iloc[0],x[ind].iloc[0]],ax.get_ylim(),'--',color=self.colors[j],linewidth=2)
+                out.append(x[ind].iloc[0])
                 outc.append(l)
         
         ax2=ax.twiny()
@@ -955,11 +954,11 @@ class plot(object):
             
     def _getMassFrac(self,data,i,ind,log=False,prof=True):
         if prof:
-            if 'logdq' in data.data_names:
-                scale=10**(data.logdq[ind])
-            elif 'dq' in data.data_names:
-                scale=data.dq[ind]
-            elif 'dm' in data.data_names:
+            if 'logdq' in data:
+                scale=10**(data.logdq[ind]) 
+            elif 'dq' in data:
+                scale=data.dq[ind] 
+            elif 'dm' in data:
                 scale=data.dm[ind]/(self.msun*data.star_mass)
             else:
                 raise AttributeError("No suitable mass co-ordinate available for _getMassFrac, need either logdq, dq or dm in profile")
@@ -1141,7 +1140,7 @@ class plot(object):
         fig,ax=self._setupPlot(fig,ax)
         
         if maxMod<0:
-            maxMod=m.hist.model_number[-1]
+            maxMod=m.hist.model_number.iloc[-1]
         modelIndex=(m.hist.model_number>=minMod)&(m.hist.model_number<=maxMod)        
         
         return fig,ax,modelIndex
@@ -1252,7 +1251,7 @@ class plot(object):
             linecol=y1col
         
         for i in list_y:
-            if not type(i) is np.ndarray:
+            if type(i) is str:
                 y = m.prof.data[i]
             else:
                 y = i
@@ -1282,8 +1281,10 @@ class plot(object):
 
             
         self._setXLabel(fig,ax,xlabel,xaxis)
-        self._setYLabel(fig,ax,y1label,i)
-            
+
+        if len(list_y):
+            if type(list_y[0]) is str:
+                self._setYLabel(fig,ax,y1label,list_y[0])
         
         if title is not None:
             ax.set_title(title)
@@ -1319,7 +1320,7 @@ class plot(object):
         self._cycleColors(ax,colors,cmap,len(list_y))
             
         for i in list_y:
-            if not type(i) is np.ndarray:
+            if type(i) is str:
                 y = m.hist.data[i]
             else:
                 y = i
@@ -1335,7 +1336,10 @@ class plot(object):
             self._showMassLocHist(m,fig,ax,x,list_y[0],mInd)
         
         self._setXLabel(fig,ax,xlabel,xaxis)
-        self._setYLabel(fig,ax,y1label,i)
+
+        if len(list_y)>0:
+            if type(list_y[0]) is str:
+                self._setYLabel(fig,ax,y1label,i)
         
         if title is not None:
             ax.set_title(title)
@@ -1355,7 +1359,7 @@ class plot(object):
                 show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,):
         
         if abun is None:
-            abun_list=self._listAbun(m.prof)
+            abun_list=m.prof.listAbun()
             log=''
         else:
             abun_list=abun
@@ -1396,6 +1400,9 @@ class plot(object):
         log_abun=False
         if 'log' in prefix:
             log_abun=True
+
+        if y1rng[0] is not None:
+            min_abun = np.minimum(min_abun,np.min(y1rng))
             
         # Filter out low level iso's:
         remove={}
@@ -1553,17 +1560,189 @@ class plot(object):
                     age=age,model_number=model,prof=prof,fontsize=fontsize,offset=offset,
                     silent=silent)
 
+
+    def _plotAbunByZ(self,data=None,data2=None,prefix='',show=True,ax=None,xmin=None,xmax=None,abun=None,
+                    fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
+                    cmap=plt.cm.gist_ncar,colors=None,abun_random=False,min_abun=10**-16,
+                    line_labels=True,y1rng=[None,None],ind=None,ind2=None,model_number=-1,age=-1,
+                    stable=False,prof=True,fontsize=None,offset=None,silent=False):
+    
+        fig,ax=self._setupPlot(fig,ax)    
+        
+        if abun is None:
+            abun_names=self._listAbun(data,prefix=prefix)
+        else:
+            abun_names=abun
+            
+        if len(abun_names)==0:
+            raise ValueError("Found no isotopes in the data")
+            
+        log_abun=False
+        if 'log' in prefix:
+            log_abun=True
+
+        if y1rng[0] is not None:
+            min_abun = np.minimum(min_abun,np.min(y1rng))
+            
+        # Filter out low level iso's:
+        remove={}
+        for i in abun_names:
+            if np.all(data.data[i][ind] < min_abun):
+                remove[i]=True
+                if not silent: 
+                    print("Removing ",str(i))
+                continue
+            if data2 is not None:
+                if np.all(data2.data[i][ind2] < min_abun):
+                    remove[i]=True
+                    if not silent: 
+                        print("Removing ",str(i))        
+        abun_names=[i for i in abun_names if i not in remove]
+        
+            
+        if stable:
+            abun_solar=self.get_solar()
+            abun_data_stable=self._decay2Stable(data,abun_names,ind,log_abun,prefix=prefix,prof=prof)
+            
+            for idx,i in enumerate(abun_data_stable):
+                if abun_solar[idx]['mass'] >0:
+                    abun_data_stable[idx]['mass']=abun_data_stable[idx]['mass']/abun_solar[idx]['mass']
+                else:
+                    abun_data_stable[idx]['mass']=-1
+            
+            if data2 is not None:
+                abun_data_stable2=self._decay2Stable(data2,abun_names,ind,log_abun,prefix=prefix,prof=prof)
+                for idx,i in enumerate(abun_data_stable):
+                    if abun_solar[idx]['mass']>0:
+                        abun_data_stable2[idx]['mass']=abun_data_stable2[idx]['mass']/abun_solar[idx]['mass']
+                    else:
+                        abun_data_stable2[idx]['mass']=-1
+            
+            #_decay2Stable gives you a new abun list to work with so don't use the old one
+            abun_names=[i['name'] for i in abun_data_stable]
+            prefix=''
+
+        ele_names=[]
+        iso_mass=[]
+        abun_mass=[]
+        for idx,i in enumerate(abun_names):
+            name,mass=self._splitIso(i,prefix=prefix)
+            if 'neut' in name or 'prot' in name:
+                continue    
+            ele_names.append(name)
+            iso_mass.append(mass)
+            if stable:
+                if abun_data_stable[idx]==0:
+                    abun_mass.append(-1)
+                else:
+                    abun_mass.append(abun_data_stable[idx]['mass'])
+            else:
+                abun_mass.append(self._getMassFrac(data,i,ind,log_abun,prof=prof))
+                
+            if data2 is not None:
+                if stable:
+                    if abun_data_stable2[idx]['mass']<=0:
+                        abun_mass[-1]=-1
+                    else:
+                        abun_mass[-1]=abun_mass[-1]/abun_data_stable2[idx]['mass']
+                else:
+                    xx=self._getMassFrac(data2,i,ind2,log_abun,prof=prof)
+                    if xx==0:
+                        abun_mass[-1]=-1
+                    else:
+                        abun_mass[-1]=abun_mass[-1]/self._getMassFrac(data2,i,ind2,log_abun,prof=prof)
+
+        uniq_names=set(i for i in ele_names)
+        sorted_names=sorted(uniq_names,key=self.elements.index)                    
+
+        self._cycleColors(ax,colors,cmap,len(uniq_names),abun_random)        
+        
+        abun_mass=np.array(abun_mass)
+        iso_mass=np.array(iso_mass)
+        
+        if xmin is None:
+            xmin=self.elements.index(ele_names[0])
+        if xmax is None:
+            xmax=self.elements.index(ele_names[-1])
+        
+        if y1rng[0] is None:
+            ymin=np.nanmin(abun_mass[abun_mass>0])
+        else:
+            ymin=y1rng[0]
+
+        if y1rng[1] is None:
+            ymax=np.nanmax(abun_mass[abun_mass>0])    
+        else:
+            ymax=y1rng[1]
+        
+
+        for i in sorted_names:
+            x=[]
+            y=[]
+            for idx,j in enumerate(ele_names):
+                if i==j:
+                    x.append(iso_mass[idx])
+                    y.append(abun_mass[idx])
+
+            print(i,self.elements.index(i),y)     
+            x = self.elements.index(i)
+            y = np.sum(y)
+            
+            ax.scatter(x,y,s=50,color='black')
+    
+        ax.set_xlabel("Z")
+        if data2 is None:
+            if stable:
+                ax.set_ylabel('[X]')
+            else:
+                ax.set_ylabel('X')
+        else:
+            ax.set_ylabel(r'$\log_{10}\left(\frac{\rm{Abun}_1}{\rm{Abun}_2}\right)$')
+
+        if title is not None:
+            ax.set_title(title)        
+        elif show_title_name or show_title_model or show_title_age:
+            self.setTitle(ax,show_title_name,show_title_model,show_title_age,'Production',model_number,age)
+        
+        ax.set_xlim(xmin-5,xmax+5)
+        
+        ax.set_yscale('log')
+        #diff=(np.log10(ymax)-np.log10(ymin))/10.0
+        #ax.set_ylim(ymin-diff,ymax+diff)
+        
+        if show:
+            plt.show()        
+            
+    def plotAbunByZ(self,m,m2=None,plot_type='profile',prefix='',model=-1,model2=-1,show=True,ax=None,xmin=None,xmax=None,
+                    mass_range=None,abun=None,min_abun=10**-16,
+                    fig=None,show_title_name=False,show_title_model=False,show_title_age=False,title=None,
+                    cmap=plt.cm.gist_ncar,colors=None,abun_random=False,
+                    line_labels=True,y1rng=[None,None],ind=None,ind2=None,mass_range2=None,
+                    stable=False,y2rng=None,fontsize=None,offset=None,silent=False):
+        
+        data,data2,ind,ind2,age,model,prof=self._abunPlotSetup(m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2)
+
+        self._plotAbunByZ(data=data,data2=data2,
+                    prefix=prefix,show=show,ax=ax,xmin=xmin,xmax=xmax,abun=abun,fig=fig,
+                    show_title_name=show_title_name,show_title_model=show_title_model,
+                    show_title_age=show_title_age,title=title,min_abun=min_abun,
+                    cmap=cmap,colors=colors,abun_random=abun_random,
+                    line_labels=line_labels,y1rng=y1rng,stable=stable,ind=ind,ind2=ind2,
+                    age=age,model_number=model,prof=prof,fontsize=fontsize,offset=offset,
+                    silent=silent)
+
+
     def _abunPlotSetup(self,m,m2,plot_type,model,model2,ind,ind2,mass_range,mass_range2):
         data=None
         data2=None
         
         if plot_type=='history':
             if model > 0:
-                data=m.hist[np.where(m.hist.model_number==model)[0][0]]
+                data=m.hist.data[np.where(m.hist.model_number==model)].iloc[0]
             else:
                 raise ValueError("Must set model")
             if m2 is not None and model2 > 0:
-                data2=m2.hist[np.where(m2.hist.model_number==model2)[0][0]]
+                data2=m2.hist.data[np.where(m2.hist.model_number==model2)].iloc[0]
             else:
                 data2=None
                 
@@ -1580,7 +1759,8 @@ class plot(object):
                 data2=m2.prof
                 
             if mass_range is None:
-                mass_range=[0.0,m.prof.star_mass]        
+                mass_range=[0.0,m.prof.star_mass[0]]    
+  
             massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
 
             if mass_range2 is None:
@@ -1870,7 +2050,7 @@ class plot(object):
                 show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,):
         
         list_y=[]
-        for i in m.prof.data_names:         
+        for i in m.prof:         
             if "am_log_D" in i:
                 list_y.append(i)
             
@@ -1890,7 +2070,7 @@ class plot(object):
                 colors=None,y1label=r'$\epsilon$',title=None,show_shock=False,show_burn_labels=False,show_mix_labels=False,
                 y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
         
-        list_y=self._listBurn(m.prof)
+        list_y=m.prof.listBurn()
 
         if not len(y1rng):
             maxy=1.0
@@ -1915,7 +2095,7 @@ class plot(object):
                 y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False,
                 show_burn_line=False,show_burn_x=True,show_mix_line=False,show_mix_x=True,):
         
-        list_y=self._listMix(m.prof)
+        list_y=m.prof.listMix()
             
         self._plotMultiProf(m,list_y=list_y,_axlabel='mix',
                             show=show,ax=ax,xaxis=xaxis,xmin=xmin,xmax=xmax,y1rng=y1rng,
@@ -1931,7 +2111,7 @@ class plot(object):
                     show_title_name=False,annotate_line=True,linestyle='-',colors=None,show_core=False,
                     y2=None,y2rng=[None,None],fy2=None,y2Textcol=None,y2label=None,y2rev=False,y2log=False,y2col='k',xlog=False,xrev=False):
         
-        burn_list=self._listBurn(m.hist)
+        burn_list=m.hist.listBurn()
 
         self._plotMultiHist(m,list_y=burn_list,show=show,ax=ax,xaxis=xaxis,
                             xmin=xmin,xmax=xmax,y1rng=y1rng,y1log=y1log,
@@ -2114,7 +2294,7 @@ class plot(object):
                 num_zones=np.max(m.hist.num_zones) * 1.0/zone_frac
                 
             if xaxis=='model_number':
-                data_x=m.hist.model_number
+                data_x=m.hist.model_number.values
             else:
                 data_x=self._getSafeAgeHist(m,age_lookback,age_zero,age_units,age_log,age_reverse,end_time)
                 
@@ -2420,7 +2600,7 @@ class plot(object):
             mass=np.abs(m.hist.data[qtop+str(i)]*scaler)
             ind=np.searchsorted(y,mass,side='left')
             for j in range(np.size(ind)):
-                z[j,0:ind[j]]=m.hist.data[qtyp+str(i)][j]
+                z[j,0:ind[j]]=m.hist.data[qtyp+str(i)].iloc[j]
                 
         return z
         
@@ -2454,7 +2634,7 @@ class plot(object):
             mass=np.abs(m.hist.data[qtop+str(i)][modInd]*scaler)
             ind=np.searchsorted(y,mass,side='left')
             for j in range(np.size(ind)):
-                z[j,0:ind[j]]=m.hist.data[qtyp+str(i)][modInd][j]
+                z[j,0:ind[j]]=m.hist.data[qtyp+str(i)].iloc[modInd][j]
                 
         return z
         
@@ -2550,10 +2730,10 @@ class plot(object):
             modInd=modInd&mod_index
         
         if mod_min is None:
-            mod_min=m.hist.model_number[modInd][0]
+            mod_min=m.hist.model_number[modInd].iloc[0]
             
         if mod_max is None:
-            mod_max=m.hist.model_number[modInd][-1]
+            mod_max=m.hist.model_number[modInd].iloc[-1]
             
         modInd=modInd&(m.hist.model_number>=mod_min)&(m.hist.model_number<=mod_max)
         
