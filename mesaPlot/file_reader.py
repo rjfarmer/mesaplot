@@ -46,7 +46,7 @@ _elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N',
                     'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
 _elements=[x.lower() for x in _elementsPretty]
 
-_PICKLE_VERSION=3
+_PICKLE_VERSION=4
 
 
 def _hash(fname):
@@ -98,7 +98,7 @@ class data(object):
             if key in self.data:
                 return self.data[key]
             if key in self.head:
-                return np.atleast_1d(self.head[key])
+                return self.head[key]
 
     def __iter__(self):
         if len(self.data):
@@ -122,6 +122,9 @@ class data(object):
         self._loadFile(filename, max_num_lines, cols, final_lines)
 
     def _loadPickle(self, pickname, filename):
+        if not os.path.exists(pickname):
+            return False
+
         with open(pickname,'rb') as f:
             # Get checksum
             filehash = _hash(filename)
@@ -147,9 +150,11 @@ class data(object):
 
             
     def _loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
+        if not os.path.exists(filename):
+            raise FileNotFoundError('No file '+str(filename)+'found')
+
         head = pandas.read_csv(filename,delim_whitespace=True,header=1,nrows=1)
             
-
         if max_num_lines > 0:
             data = pandas.read_csv(filename,delim_whitespace=True,header=4,nrows=max_num_lines)
         else:
