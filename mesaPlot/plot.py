@@ -1753,7 +1753,7 @@ class plot(object):
                 data2=m2.prof
                 
             if mass_range is None:
-                mass_range=[0.0,m.prof.star_mass[0]]    
+                mass_range=[0.0,m.prof.star_mass]    
   
             massInd=(m.prof.mass>=mass_range[0])&(m.prof.mass<=mass_range[1])
 
@@ -2355,7 +2355,7 @@ class plot(object):
                 zones.append(m.prof.head['num_zones'])
                 count=count+1
                 
-            data_x=np.array(data_x)
+            data_x=np.hstack(data_x)
             hasdataz=True
 
             if xaxis=='star_age':
