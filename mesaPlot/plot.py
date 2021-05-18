@@ -1384,7 +1384,7 @@ class plot(object):
         fig,ax=self._setupPlot(fig,ax)    
         
         if abun is None:
-            abun_names=self._listAbun(data,prefix=prefix)
+            abun_names=data.listAbun(prefix=prefix)
         else:
             abun_names=abun
             
@@ -1564,7 +1564,7 @@ class plot(object):
         fig,ax=self._setupPlot(fig,ax)    
         
         if abun is None:
-            abun_names=self._listAbun(data,prefix=prefix)
+            abun_names=data.listAbun(prefix=prefix)
         else:
             abun_names=abun
             
@@ -1806,7 +1806,7 @@ class plot(object):
         fig,ax=self._setupPlot(fig,ax)    
         
         if abun is None:
-            abun_names=self._listAbun(data,prefix=prefix)
+            abun_names=data.listAbun(prefix=prefix)
         else:
             abun_names=abun
             
@@ -2299,7 +2299,7 @@ class plot(object):
                 
             if radius:
                 center=self._getSafeCenter(m,radius)
-                if  'radius' in m.hist.data:
+                if  'radius' in m.hist:
                     data_y=np.linspace(np.min(center[modInd]),np.max(m.hist.data["radius"][modInd]),int(num_zones))
                 else:
                     data_y=np.linspace(np.min(center[modInd]),10**np.max(m.hist.data["log_R"][modInd]),int(num_zones))
@@ -2452,7 +2452,7 @@ class plot(object):
             #f = interp1d(data_x[modInd], m.hist.data['star_mass'][modInd])
             #ax.plot(lin_x,f(lin_x),c='k')
             if radius:
-                if 'radius' in m.hist.data:
+                if 'radius' in m.hist:
                     ax.plot(data_x[modInd],m.hist.data['radius'][modInd],c='k')
                 else:
                     ax.plot(data_x[modInd],10**m.hist.data['log_R'][modInd],c='k')
@@ -2580,10 +2580,10 @@ class plot(object):
             raise KeyError("No field",qtop+"* found,",add,"to your history_columns.list")
             
         
-        numBurnZones=int([xx.split('_')[-1] for xx in m.hist.data if qtop in xx][-1])
+        numBurnZones=int([xx.split('_')[-1] for xx in m.hist if qtop in xx][-1])
 
         if radius:
-            if 'radius' in m.hist.data:
+            if 'radius' in m.hist:
                 scaler = m.hist.data['radius']
             else:
                 scaler = 10**m.hist.data['log_R']
@@ -2614,10 +2614,10 @@ class plot(object):
             raise KeyError("No field",qtop+"* found,",add,"to your history_columns.list")
             
         
-        numBurnZones=int([xx.split('_')[-1] for xx in m.hist.data if qtop in xx][-1])
+        numBurnZones=int([xx.split('_')[-1] for xx in m.hist if qtop in xx][-1])
 
         if radius:
-            if 'radius' in m.hist.data:
+            if 'radius' in m.hist:
                 scaler = m.hist.data['radius'][modInd]
             else:
                 scaler = 10**m.hist.data['log_R'][modInd]
@@ -2634,12 +2634,12 @@ class plot(object):
         
 
     def _getSafeAgeHist(self,m,age_lookback=False,age_zero=None,age_units='sec',age_log=False,age_reverse=False,end_time=None):
-        if 'star_age' in m.hist.data:
+        if 'star_age' in m.hist:
             age=m.hist.star_age
         else:
             age=m.hist.star_age_sec/self.secyear
 
-        if 'log_dt' in m.hist.data:
+        if 'log_dt' in m.hist:
             #Age in years does not have enough digits to be able to distinguish the final models in pre-sn progenitors
             age_yr = age[0]
 
@@ -2689,7 +2689,7 @@ class plot(object):
     def _getSafeCenter(self,m,radius):
         center = None
         if radius:
-            if 'r_center' in m.hist.data:
+            if 'r_center' in m.hist:
                 if np.any(m.hist.data['r_center'] > m.hist.star_radius):
                     #r_center in cm
                     center=m.hist.data['r_center']/self.rsun
@@ -2697,7 +2697,7 @@ class plot(object):
                     #Solar units
                     center=m.hist.data['r_center']          
         else:
-            if 'm_center' in m.hist.data:
+            if 'm_center' in m.hist:
                 if np.any(m.hist.data['m_center'] > m.hist.star_mass):
                     #m_center in grams
                     center=m.hist.data['m_center']/self.msun
@@ -2921,8 +2921,8 @@ class plot(object):
                             show_mix_line=True,show_burn_line=True)
         elif index is not None:
             cm=[cmap(i) for i in np.linspace(0.0,0.9,np.count_nonzero(index))]
-            for i in m.hist.data["model_number"][index]:
-                model=m.hist.data["model_number"][index][i]
+            for i in m.hist.model_number[index]:
+                model=m.hist.model_number[index][i]
                 self.plotProfile(m,model=model,xaxis=xaxis,show=False,ax=ax,xmin=xmin,
                                 xmax=xmax,xlog=xlog,xlabel=xlabel,
                             xrev=xrev,y1rev=y1rev,points=points,

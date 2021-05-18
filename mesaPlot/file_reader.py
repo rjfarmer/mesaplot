@@ -46,7 +46,7 @@ _elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N',
                     'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
 _elements=[x.lower() for x in _elementsPretty]
 
-_PICKLE_VERSION=4
+_PICKLE_VERSION=5
 
 
 def _hash(fname):
@@ -82,10 +82,10 @@ class data(object):
         return self.__getitem__(name)
 
     def __contains__(self, key):
-        if key in self.data:
+        if key in self.data.dtype.names:
             return True
 
-        if key in self.head:
+        if key in self.head.dtype.names:
             return True
 
         return False
@@ -95,14 +95,18 @@ class data(object):
             
     def __getitem__(self,key):
         if 'data' in self.__dict__:
-            if key in self.data:
+            if key in self.data.dtype.names:
                 return self.data[key]
-            if key in self.head:
+            if key in self.head.dtype.names:
                 return self.head[key]
 
     def __iter__(self):
         if len(self.data):
-            yield list(self.data.keys())
+            x = list(self.data.dtype.names)
+            for i in x:
+                yield i
+
+
 
     def loadFile(self, filename, max_num_lines=-1, 
                     cols=[],final_lines=-1,_dbg=False,
@@ -164,9 +168,13 @@ class data(object):
             data = self.data[-final_lines:]
 
         # Convert from pandas to numpy
+        dtype = np.dtype([(data.dtypes.index[idx],data.dtypes[idx].name) for idx,i in enumerate(data.dtypes)])
+        self.data = np.zeros(np.size(data[dtype.names[0]]),dtype=dtype)
         for i in data:
             self.data[i] = data[i].values
 
+        dtype = np.dtype([(head.dtypes.index[idx],head.dtypes[idx].name) for idx,i in enumerate(head.dtypes)])
+        self.head = np.zeros(1,dtype=dtype)
         for i in head:
             self.head[i] = head[i].values
 
@@ -241,9 +249,6 @@ class data(object):
         newarr['mass'] = mass
         self.data = newarr
 
-
-        self.head_names = self.head.dtype.names
-        self.data_names = self.data.dtype.names
         self._loaded = True
 
 
@@ -263,7 +268,7 @@ class data(object):
 
     def listAbun(self,prefix=''):
         abun_list=[]
-        for j in self.data:
+        for j in self.data.dtype.names:
             if prefix in j:
                 i=j[len(prefix):]
                 if len(i)<=5 and len(i)>=2 and 'burn_' not in j:
@@ -307,7 +312,7 @@ class data(object):
         burnList=[]
         ignore=['qtop','type']
         extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
-        for i in self.data:
+        for i in self.data.dtype.names:
             if ("burn_" in i or i in extraBurn) and not any(j in i for j in ignore):
                 burnList.append(str(i))
         return burnList
@@ -315,13 +320,13 @@ class data(object):
     def listMix(self):
         mixList=["log_D_conv","log_D_semi","log_D_ovr","log_D_th","log_D_thrm","log_D_minimum","log_D_anon","log_D_rayleigh_taylor","log_D_soft"]
         mixListOut=[]        
-        for i in self.data:
+        for i in self.data.dtype.names:
             if i in mixList:
                 mixListOut.append(str(i))
         return mixListOut
     
     def abunSum(self,iso,mass_min=0.0,mass_max=9999.0):
-        if 'mass' in self.data:
+        if 'mass' in self.data.dtype.names:
             ind=(self.data['mass']>=mass_min)&(self.data['mass']<=mass_max)
             mdiff = self._getMdiff()
             return np.sum(self.data[iso][ind]*mdiff[ind])
@@ -339,27 +344,27 @@ class data(object):
 
     def getMassFrac(self,iso,ind=None,log=False,prof=True):
         if prof:
-            if 'logdq' in data.data_names:
-                scale=10**(data.data['logdq'][ind])
-            elif 'dq' in data.data_names:
-                scale=data.data['dq'][ind]
-            elif 'dm' in data.data_names:
-                scale=data.data['dm'][ind]/(msun*self.mass_star())
+            if 'logdq' in self.data.dtype.names:
+                scale=10**(self.data['logdq'][ind])
+            elif 'dq' in self.data.dtype.names:
+                scale=self.data['dq'][ind]
+            elif 'dm' in self.data.dtype.names:
+                scale=self.data['dm'][ind]/(msun*self.mass_star())
             else:
                 raise AttributeError("No suitable mass co-ordinate available for getMassFrac, need either logdq, dq or dm in profile")
         else:
             scale=1.0
             
         if log:
-            x=np.sum(10**data.data[i][ind]*scale)
+            x=np.sum(10**self.data[i][ind]*scale)
         else:
-            x=np.sum(data.data[i][ind]*scale)
+            x=np.sum(self.data[i][ind]*scale)
         
         return x
 
     @property
     def mass_star(self):
-        if 'star_mass' in self.data_names:
+        if 'star_mass' in self.data.dtype.names:
             return self.data['star_mass']
         elif 'star_mass' in self.head_names:
             return self.head['star_mass']
@@ -371,19 +376,19 @@ class data(object):
         if 'M_center' in self.head_names:
             sm = sm - self.head['M_center']/msun
 
-        if 'logdq' in self.data_names:
+        if 'logdq' in self.data.dtype.names:
             return 10**(self.data['logdq'])*sm
-        elif 'dq' in self.data_names:
+        elif 'dq' in self.data.dtype.names:
             return self.data['dq']*sm
-        elif 'dm' in elf.data_names:
+        elif 'dm' in self.data.dtype.names:
             return self.data['dm']
         else:
             raise AttributeError("No suitable mass co-ordinate available for _getMdiff, need either logdq, dq or dm in data")
 
     def _getMassHist(self,iso):
-        if 'log_total_mass_'+iso in self.data_names:
+        if 'log_total_mass_'+iso in self.data.dtype.names:
             return 10**self.data['log_total_mass_'+iso]
-        elif 'total_mass_'+iso in self.data_names:
+        elif 'total_mass_'+iso in self.data.dtype.names:
             return self.data['log_total_mass_'+iso]
         else:
             return None
@@ -470,7 +475,6 @@ class MESA(object):
 
         # Reverse model numbers, we want the unique elements
         # but keeping the last not the first.
-        
         if np.unique(np.diff(self.hist.model_number)).size == 1:
             # Return early if all step sizes are constant
             return 
