@@ -644,10 +644,7 @@ class plot(object):
         
         ind=np.argsort(x)
         x=x[ind]
-        if hasattr(y,'iloc'):
-            y=y.iloc[ind]
-        else:
-            y=y[ind]
+        y=y[ind]
          
         #Dont add points at the edge of the plot 
         xx=np.linspace(xmin,xmax,num_labels+2)[1:-1]
@@ -655,10 +652,7 @@ class plot(object):
         if xlog:
             xx=10**xx
 
-        if hasattr(y,'iloc'):
-            yy=y.iloc[np.searchsorted(x,xx)]
-        else:
-            yy=y[np.searchsorted(x,xx)]
+        yy=y[np.searchsorted(x,xx)]
         
         if type(text) is bytes:
             text=text.decode()
@@ -913,8 +907,8 @@ class plot(object):
         for i,j,l in zip(coreMasses,col,labels):
             ind=m.hist.data[i][modInd]>0.0
             if np.count_nonzero(ind):
-                ax.plot([x[ind].iloc[0],x[ind].iloc[0]],ax.get_ylim(),'--',color=self.colors[j],linewidth=2)
-                out.append(x[ind].iloc[0])
+                ax.plot([x[ind][0],x[ind][0]],ax.get_ylim(),'--',color=self.colors[j],linewidth=2)
+                out.append(x[ind][0])
                 outc.append(l)
         
         ax2=ax.twiny()
@@ -1140,7 +1134,7 @@ class plot(object):
         fig,ax=self._setupPlot(fig,ax)
         
         if maxMod<0:
-            maxMod=m.hist.model_number.iloc[-1]
+            maxMod=m.hist.model_number[-1]
         modelIndex=(m.hist.model_number>=minMod)&(m.hist.model_number<=maxMod)        
         
         return fig,ax,modelIndex
@@ -1738,11 +1732,11 @@ class plot(object):
         
         if plot_type=='history':
             if model > 0:
-                data=m.hist.data[np.where(m.hist.model_number==model)].iloc[0]
+                data=m.hist.data[np.where(m.hist.model_number==model)][0]
             else:
                 raise ValueError("Must set model")
             if m2 is not None and model2 > 0:
-                data2=m2.hist.data[np.where(m2.hist.model_number==model2)].iloc[0]
+                data2=m2.hist.data[np.where(m2.hist.model_number==model2)][0]
             else:
                 data2=None
                 
@@ -2245,12 +2239,12 @@ class plot(object):
             
         if plot_type=='history':            
             try:
-                model_num=m.hist.data['model_number']
+                model_num=m.hist.model_number
             except (KeyError,AttributeError):
                 raise ValueError("Must call loadHistory first")
         elif plot_type=='profile':
             try:
-                model_num=m.prof.head['model_number']
+                model_num=m.prof.model_number
             except (KeyError,AttributeError):
                 raise ValueError("Must load a profile file first")
                 
@@ -2294,7 +2288,7 @@ class plot(object):
                 num_zones=np.max(m.hist.num_zones) * 1.0/zone_frac
                 
             if xaxis=='model_number':
-                data_x=m.hist.model_number.values
+                data_x=m.hist.model_number
             else:
                 data_x=self._getSafeAgeHist(m,age_lookback,age_zero,age_units,age_log,age_reverse,end_time)
                 
@@ -2600,7 +2594,7 @@ class plot(object):
             mass=np.abs(m.hist.data[qtop+str(i)]*scaler)
             ind=np.searchsorted(y,mass,side='left')
             for j in range(np.size(ind)):
-                z[j,0:ind[j]]=m.hist.data[qtyp+str(i)].iloc[j]
+                z[j,0:ind[j]]=m.hist.data[qtyp+str(i)][j]
                 
         return z
         
@@ -2634,7 +2628,7 @@ class plot(object):
             mass=np.abs(m.hist.data[qtop+str(i)][modInd]*scaler)
             ind=np.searchsorted(y,mass,side='left')
             for j in range(np.size(ind)):
-                z[j,0:ind[j]]=m.hist.data[qtyp+str(i)].iloc[modInd][j]
+                z[j,0:ind[j]]=m.hist.data[qtyp+str(i)][modInd][j]
                 
         return z
         
@@ -2730,10 +2724,10 @@ class plot(object):
             modInd=modInd&mod_index
         
         if mod_min is None:
-            mod_min=m.hist.model_number[modInd].iloc[0]
+            mod_min=m.hist.model_number[modInd][0]
             
         if mod_max is None:
-            mod_max=m.hist.model_number[modInd].iloc[-1]
+            mod_max=m.hist.model_number[modInd][-1]
             
         modInd=modInd&(m.hist.model_number>=mod_min)&(m.hist.model_number<=mod_max)
         

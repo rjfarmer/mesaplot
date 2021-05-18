@@ -46,7 +46,7 @@ _elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N',
                     'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
 _elements=[x.lower() for x in _elementsPretty]
 
-_PICKLE_VERSION=2
+_PICKLE_VERSION=3
 
 
 def _hash(fname):
@@ -91,7 +91,7 @@ class data(object):
         return False
     
     def __dir__(self):
-        return list(self.data.columns) + list(self.head.columns) + list(self.__dict__.keys())
+        return list(self.data.keys()) + list(self.head.keys()) + list(self.__dict__.keys())
             
     def __getitem__(self,key):
         if 'data' in self.__dict__:
@@ -102,7 +102,7 @@ class data(object):
 
     def __iter__(self):
         if len(self.data):
-            yield list(self.data.columns)
+            yield list(self.data.keys())
 
     def loadFile(self, filename, max_num_lines=-1, 
                     cols=[],final_lines=-1,_dbg=False,
@@ -147,16 +147,24 @@ class data(object):
 
             
     def _loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
-        self.head = pandas.read_csv(filename,delim_whitespace=True,header=1,nrows=1)
+        head = pandas.read_csv(filename,delim_whitespace=True,header=1,nrows=1)
             
 
         if max_num_lines > 0:
-            self.data = pandas.read_csv(filename,delim_whitespace=True,header=4,nrows=max_num_lines)
+            data = pandas.read_csv(filename,delim_whitespace=True,header=4,nrows=max_num_lines)
         else:
-            self.data = pandas.read_csv(filename,delim_whitespace=True,header=4)
+            data = pandas.read_csv(filename,delim_whitespace=True,header=4)
 
         if final_lines > 0:
-            self.data = self.data[-final_lines:]
+            data = self.data[-final_lines:]
+
+        # Convert from pandas to numpy
+        for i in data:
+            self.data[i] = data[i].values
+
+        for i in head:
+            self.head[i] = head[i].values
+
 
         self._loaded = True
         self._saveFile(filename)
