@@ -2395,7 +2395,7 @@ class plot(object):
                 data_z[np.isnan(data_z)]=-1
                 ind=(data_z>0)
                 data_z[ind]=np.log10(data_z[ind])
-                data_z[~ind]=ma.masked
+                data_z[~ind]=np.nan
 
             vmin=np.nanmin(data_z)
             vmax=np.nanmax(data_z)
