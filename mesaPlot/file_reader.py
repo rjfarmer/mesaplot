@@ -485,7 +485,7 @@ class MESA(object):
             self.hist.data=self.hist.data[self.hist.model_number<=self.hist.model_number[-1]]
             mod_rev=self.hist.model_number[::-1]
             _, mod_ind=np.unique(mod_rev,return_index=True)
-            self.hist.data=self.hist.data.iloc[np.size(self.hist.model_number)-mod_ind-1]
+            self.hist.data=self.hist.data.[np.size(self.hist.model_number)-mod_ind-1]
 
     def scrubHistory(self,f="",fileOut="LOGS/history.data.scrubbed"):
         self.loadHistory(f)
