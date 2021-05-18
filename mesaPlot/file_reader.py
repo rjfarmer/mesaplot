@@ -141,7 +141,10 @@ class data(object):
                     # Not a hash but a version number/ or wrong version number:
                     return False
 
-            pickhash = pickle.load(f)
+            try:
+                pickhash = pickle.load(f)
+            except TypeError:
+                return False
 
             if (os.path.exists(filename) and pickhash == filehash) or not os.path.exists(filename):
                 # Data has not changed
