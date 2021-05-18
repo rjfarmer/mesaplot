@@ -46,7 +46,7 @@ _elementsPretty=['neut','H', 'He', 'Li', 'Be', 'B', 'C', 'N',
                     'Uub', 'Uut', 'Uuq', 'Uup', 'Uuh', 'Uus', 'Uuo']
 _elements=[x.lower() for x in _elementsPretty]
 
-_PICKLE_VERSION=5
+_PICKLE_VERSION=6
 
 
 def _hash(fname):
@@ -98,7 +98,7 @@ class data(object):
             if key in self.data.dtype.names:
                 return self.data[key]
             if key in self.head.dtype.names:
-                return self.head[key]
+                return self.head[key][0]
 
     def __iter__(self):
         if len(self.data):
