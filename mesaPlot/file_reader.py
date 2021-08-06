@@ -91,7 +91,7 @@ class data(object):
         return False
     
     def __dir__(self):
-        return list(self.data.keys()) + list(self.head.keys()) + list(self.__dict__.keys())
+        return list(self.data.dtype.names) + list(self.head.dtype.names) + list(self.__dict__.keys())
             
     def __getitem__(self,key):
         if 'data' in self.__dict__:
@@ -226,7 +226,7 @@ class data(object):
             data_names.extend(l.split())
             #Make a dictionary of converters 
 
-        # Reaplce MMsun with star_mass
+        # Replace MMsun with star_mass
         head_names[head_names.index('M/Msun')] = 'star_mass'
 
         d = {k:self._fds2f for k in range(len(head_names))} 
