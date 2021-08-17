@@ -68,8 +68,8 @@ def _hash(fname):
 
 class data(object):
     def __init__(self):
-        self.data={}
-        self.head={}
+        self.data = {}
+        self.head = {}
         self._loaded=False
         self._mph=''
         self._type=''
@@ -82,16 +82,16 @@ class data(object):
         return self.__getitem__(name)
 
     def __contains__(self, key):
-        if key in self.data.dtype.names:
-            return True
+        return key in self.keys()
 
-        if key in self.head.dtype.names:
-            return True
+    def keys(self):
+        try:
+            return list(self.data.keys()) + list(self.head.keys()) 
+        except AttributeError:
+            return list(self.data.dtype.names) + list(self.head.dtype.names) 
 
-        return False
-    
     def __dir__(self):
-        return list(self.data.dtype.names) + list(self.head.dtype.names) + list(self.__dict__.keys())
+        return self.keys() + list(self.__dict__.keys())
             
     def __getitem__(self,key):
         if 'data' in self.__dict__:
@@ -100,13 +100,15 @@ class data(object):
             if key in self.head.dtype.names:
                 return self.head[key][0]
 
+        try:
+            return self.__dict__[key]
+        except KeyError:
+            raise AttributeError('No attribute '+ str(key))
+
     def __iter__(self):
         if len(self.data):
-            x = list(self.data.dtype.names)
-            for i in x:
+            for i in self.keys():
                 yield i
-
-
 
     def loadFile(self, filename, max_num_lines=-1, 
                     cols=[],final_lines=-1,_dbg=False,
@@ -158,7 +160,7 @@ class data(object):
             
     def _loadFile(self, filename, max_num_lines=-1, cols=[],final_lines=-1):
         if not os.path.exists(filename):
-            raise FileNotFoundError('No file '+str(filename)+'found')
+            raise FileNotFoundError('No file '+str(filename)+' found')
 
         head = pandas.read_csv(filename,delim_whitespace=True,header=1,nrows=1)
             
@@ -271,7 +273,7 @@ class data(object):
 
     def listAbun(self,prefix=''):
         abun_list=[]
-        for j in self.data.dtype.names:
+        for j in self.keys():
             if prefix in j:
                 i=j[len(prefix):]
                 if len(i)<=5 and len(i)>=2 and 'burn_' not in j:
@@ -313,9 +315,9 @@ class data(object):
 
     def listBurn(self):
         burnList=[]
-        ignore=['qtop','type']
+        ignore=['qtop','type','min']
         extraBurn=["pp","cno","tri_alfa","c12_c12","c12_O16","o16_o16","pnhe4","photo","other"]
-        for i in self.data.dtype.names:
+        for i in self.keys():
             if ("burn_" in i or i in extraBurn) and not any(j in i for j in ignore):
                 burnList.append(str(i))
         return burnList
@@ -323,13 +325,13 @@ class data(object):
     def listMix(self):
         mixList=["log_D_conv","log_D_semi","log_D_ovr","log_D_th","log_D_thrm","log_D_minimum","log_D_anon","log_D_rayleigh_taylor","log_D_soft"]
         mixListOut=[]        
-        for i in self.data.dtype.names:
+        for i in self.keys():
             if i in mixList:
                 mixListOut.append(str(i))
         return mixListOut
     
     def abunSum(self,iso,mass_min=0.0,mass_max=9999.0):
-        if 'mass' in self.data.dtype.names:
+        if 'mass' in self.keys():
             ind=(self.data['mass']>=mass_min)&(self.data['mass']<=mass_max)
             mdiff = self._getMdiff()
             return np.sum(self.data[iso][ind]*mdiff[ind])
@@ -347,11 +349,11 @@ class data(object):
 
     def getMassFrac(self,iso,ind=None,log=False,prof=True):
         if prof:
-            if 'logdq' in self.data.dtype.names:
+            if 'logdq' in self.keys():
                 scale=10**(self.data['logdq'][ind])
-            elif 'dq' in self.data.dtype.names:
+            elif 'dq' in self.keys():
                 scale=self.data['dq'][ind]
-            elif 'dm' in self.data.dtype.names:
+            elif 'dm' in self.keys():
                 scale=self.data['dm'][ind]/(msun*self.mass_star())
             else:
                 raise AttributeError("No suitable mass co-ordinate available for getMassFrac, need either logdq, dq or dm in profile")
@@ -379,19 +381,19 @@ class data(object):
         if 'M_center' in self.head_names:
             sm = sm - self.head['M_center']/msun
 
-        if 'logdq' in self.data.dtype.names:
+        if 'logdq' in self.keys():
             return 10**(self.data['logdq'])*sm
-        elif 'dq' in self.data.dtype.names:
+        elif 'dq' in self.keys():
             return self.data['dq']*sm
-        elif 'dm' in self.data.dtype.names:
+        elif 'dm' in self.keys():
             return self.data['dm']
         else:
             raise AttributeError("No suitable mass co-ordinate available for _getMdiff, need either logdq, dq or dm in data")
 
     def _getMassHist(self,iso):
-        if 'log_total_mass_'+iso in self.data.dtype.names:
+        if 'log_total_mass_'+iso in self.keys():
             return 10**self.data['log_total_mass_'+iso]
-        elif 'total_mass_'+iso in self.data.dtype.names:
+        elif 'total_mass_'+iso in self.keys():
             return self.data['log_total_mass_'+iso]
         else:
             return None
