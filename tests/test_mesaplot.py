@@ -1,8 +1,6 @@
 
-try:
-	import unittest as unittest
-except ImportError:
-	import unittest2 as unittest
+import unittest as unittest
+
 	
 import mesaPlot as mp
 import os
