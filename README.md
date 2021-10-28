@@ -18,7 +18,21 @@ Depending on choice of python version, --user can also be passed to install loca
 make
 ````
 
-Can be called as well, which just wraps installing both the python and python3 versions
+Can be called as well
+
+## Testing
+
+````bash
+pytest
+````
+
+To run tests for current python version
+
+````tox
+tox
+````
+
+will run tests for several python versions
 
 ## Contributing
 
