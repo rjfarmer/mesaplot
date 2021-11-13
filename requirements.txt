@@ -3,4 +3,3 @@ matplotlib
 scipy
 pandas
 pytest
-unittest
