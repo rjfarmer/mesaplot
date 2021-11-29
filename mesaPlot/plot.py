@@ -5328,6 +5328,7 @@ class plot(object):
         cbar_ax=None,
         cpad=0.0,
         cbar_extend="neither",
+        zrng=None,
     ):
 
         if fig == None:
@@ -5562,6 +5563,9 @@ class plot(object):
 
             if cmax is not None:
                 vmax = cmax
+
+            if zrng is not None:
+                vmin = vmax - zrng
 
             if not zaxis_contour:
                 im1 = ax.imshow(
