@@ -5565,7 +5565,7 @@ class plot(object):
                 vmax = cmax
 
             if zrng is not None:
-                vmin = vmax - zrng
+                vmin = max([vmax - zrng, vmin])
 
             if not zaxis_contour:
                 im1 = ax.imshow(
