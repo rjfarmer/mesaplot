@@ -214,7 +214,7 @@ class plot(object):
 
         self._getMESAPath()
 
-        self.msun = 1.9892 * 10 ** 33
+        self.msun = 1.9892 * 10**33
         self.secyear = 60.0 * 60.0 * 24.0 * 365.25
 
         self._kip_cbar_label = r"$\rm{sign}\left(\epsilon_{\rm{nuc}}-\epsilon_{\nu}\right)\log_{10}\left(\rm{max}\left(1.0,|\epsilon_{\rm{nuc}}-\epsilon_{\nu}|\right)\right)$"
@@ -2096,7 +2096,7 @@ class plot(object):
         xx = np.linspace(xmin, xmax, num_labels + 2)[1:-1]
 
         if xlog:
-            xx = 10 ** xx
+            xx = 10**xx
 
         yy = y[np.searchsorted(x, xx)]
 
@@ -2219,8 +2219,8 @@ class plot(object):
     def _showPgas(self, ax):
         lr1 = -8
         lr2 = 5
-        lt1 = np.log10(3.2 * 10 ** 7) + (lr1 - np.log10(0.7)) / 3.0
-        lt2 = np.log10(3.2 * 10 ** 7) + (lr2 - np.log10(0.7)) / 3.0
+        lt1 = np.log10(3.2 * 10**7) + (lr1 - np.log10(0.7)) / 3.0
+        lt2 = np.log10(3.2 * 10**7) + (lr2 - np.log10(0.7)) / 3.0
         ax.plot([lr1, lr2], [lt1, lt2], color=self.colors["clr_Gray"])
         ax.annotate(
             r"$P_{rad}\approx P_{gas}$",
@@ -3247,7 +3247,7 @@ class plot(object):
         xaxis="mass",
         xmin=None,
         xmax=None,
-        y1rng=[10 ** -3, 1.0],
+        y1rng=[10**-3, 1.0],
         cmap=plt.cm.gist_ncar,
         num_labels=3,
         xlabel=None,
@@ -3361,7 +3361,7 @@ class plot(object):
         cmap=plt.cm.gist_ncar,
         colors=None,
         abun_random=False,
-        min_abun=10 ** -16,
+        min_abun=10**-16,
         line_labels=True,
         y1rng=[None, None],
         ind=None,
@@ -3572,7 +3572,7 @@ class plot(object):
         xmax=None,
         mass_range=None,
         abun=None,
-        min_abun=10 ** -16,
+        min_abun=10**-16,
         fig=None,
         show_title_name=False,
         show_title_model=False,
@@ -3646,7 +3646,7 @@ class plot(object):
         cmap=plt.cm.gist_ncar,
         colors=None,
         abun_random=False,
-        min_abun=10 ** -16,
+        min_abun=10**-16,
         line_labels=True,
         y1rng=[None, None],
         ind=None,
@@ -3836,7 +3836,7 @@ class plot(object):
         xmax=None,
         mass_range=None,
         abun=None,
-        min_abun=10 ** -16,
+        min_abun=10**-16,
         fig=None,
         show_title_name=False,
         show_title_model=False,
@@ -3969,7 +3969,7 @@ class plot(object):
         show_title_age=False,
         title=None,
         cmap=plt.cm.gist_ncar,
-        mass_frac_rng=[10 ** -10, 1.0],
+        mass_frac_rng=[10**-10, 1.0],
         prefix="",
         bounds=0,
         n_minus_p=False,
@@ -4026,7 +4026,7 @@ class plot(object):
         show_title_age=False,
         title=None,
         cmap=plt.cm.gist_ncar,
-        mass_frac_rng=[10 ** -10, 1.0],
+        mass_frac_rng=[10**-10, 1.0],
         model_number=-1,
         age=-1,
         prefix="",
@@ -4192,7 +4192,7 @@ class plot(object):
         xaxis="model_number",
         xmin=None,
         xmax=None,
-        y1rng=[10 ** -5, 1.0],
+        y1rng=[10**-5, 1.0],
         y1log=True,
         cmap=plt.cm.gist_ncar,
         num_labels=3,
@@ -4270,7 +4270,7 @@ class plot(object):
         xaxis="mass",
         xmin=None,
         xmax=None,
-        y1rng=[10 ** -3, 10 ** 10.0],
+        y1rng=[10**-3, 10**10.0],
         cmap=plt.cm.gist_ncar,
         num_labels=3,
         xlabel=None,
@@ -4815,7 +4815,7 @@ class plot(object):
         xaxis="model_number",
         xmin=None,
         xmax=None,
-        y1rng=[1, 10 ** 10],
+        y1rng=[1, 10**10],
         y1log=True,
         cmap=plt.cm.gist_ncar,
         num_labels=3,
@@ -5854,7 +5854,7 @@ class plot(object):
         elif "hour" in age_units:
             age = (age * self.secyear) / (3600.0)
         elif "mega" in age_units:
-            age = age / (10 ** 6)
+            age = age / (10**6)
         elif "year" in age_units:
             pass
         else:
@@ -5917,7 +5917,7 @@ class plot(object):
 
         if center is None:
             center = np.zeros(np.size(m.hist.data["model_number"]))
-            center = center + 10 ** -4
+            center = center + 10**-4
 
         return center
 
