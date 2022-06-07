@@ -588,6 +588,11 @@ class data(object):
         ind = ind & (self.data[prev_element] <= min_boundary_fraction)
         return np.max(self.data["mass"][ind])
 
+    def mergeHist(self,*new):
+        self.hist.data = np.concatenate((self.hist.data,
+                                        [i.hist.data for i in new]),
+                                        dtype=self.hist.data.dtype)
+
 
 class MESA(object):
     def __init__(self):
