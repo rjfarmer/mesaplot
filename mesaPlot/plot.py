@@ -1862,9 +1862,16 @@ class plot(object):
 
         return outLabel
 
+    def _listRates(self, data, prefix=" "):
+        res = []
+        for i in data.data.dtype.names:
+            if i.startswith(prefix):
+                res.append(i)
+        return res
+
     def _listAbun(self, data, prefix=""):
         abun_list = []
-        for j in data.data:
+        for j in data.data.dtype.names:
             if prefix in j:
                 i = j[len(prefix) :]
                 if len(i) <= 5 and len(i) >= 2 and "burn_" not in j:
@@ -1919,6 +1926,7 @@ class plot(object):
             "pp",
             "cno",
             "tri_alfa",
+            "tri_alpha",
             "c12_c12",
             "c12_O16",
             "o16_o16",
@@ -2951,6 +2959,7 @@ class plot(object):
         xmin=None,
         xmax=None,
         y1rng=[None, None],
+        y1scale=None,
         model=None,
         cmap=plt.cm.gist_ncar,
         num_labels=3,
@@ -3013,11 +3022,18 @@ class plot(object):
         else:
             linecol = y1col
 
+        if y1scale is not None:
+            if y1rng[0] is not None:
+                y1rng = np.array(y1rng) / y1scale
+
         for i in list_y:
             if type(i) is str:
                 y = m.prof.data[i]
             else:
                 y = i
+
+            if y1scale is not None:
+                y = y / y1scale
 
             self._plotAnnotatedLine(
                 ax=ax,
@@ -3126,6 +3142,7 @@ class plot(object):
         xmax=None,
         y1rng=[None, None],
         y1log=False,
+        y1scale=None,
         cmap=plt.cm.gist_ncar,
         num_labels=3,
         xlabel=None,
@@ -3174,11 +3191,19 @@ class plot(object):
 
         self._cycleColors(ax, colors, cmap, len(list_y))
 
+        if y1scale is not None:
+            if y1rng[0] is not None:
+                y1rng = np.array(y1rng) / y1scale
+
         for i in list_y:
             if type(i) is str:
                 y = m.hist.data[i]
             else:
                 y = i
+
+            if y1scale is not None:
+                y = y / y1scale
+
             self._plotAnnotatedLine(
                 ax=ax,
                 x=x,
@@ -6466,3 +6491,183 @@ class plot(object):
                 "accretion_species_xa(" + str(idx) + ") = " + str(self._abunSum(m, i))
             )
         print("num_accretion_species =" + str(idx))
+
+    def plotRates(
+        self,
+        m,
+        prefix="raw_rates_",
+        show=True,
+        ax=None,
+        xaxis="mass",
+        xmin=None,
+        xmax=None,
+        y1rng=[None, None],
+        y1log=False,
+        y1scale=None,
+        cmap=plt.cm.gist_ncar,
+        num_labels=3,
+        xlabel=None,
+        points=False,
+        abun=None,
+        rand_col=False,
+        show_burn=False,
+        show_mix=False,
+        fig=None,
+        fx=None,
+        fy=None,
+        show_core_loc=False,
+        show_title_name=False,
+        show_title_model=False,
+        show_title_age=False,
+        annotate_line=True,
+        linestyle="-",
+        colors=None,
+        y1label=r"Rates",
+        title=None,
+        show_shock=False,
+        show_burn_labels=False,
+        show_mix_labels=False,
+        y2=None,
+        y2rng=[None, None],
+        fy2=None,
+        y2Textcol=None,
+        y2label=None,
+        y2rev=False,
+        y2log=False,
+        y2col="k",
+        xlog=False,
+        xrev=False,
+        show_burn_line=False,
+        show_burn_x=True,
+        show_mix_line=False,
+        show_mix_x=True,
+    ):
+
+        rate_list = self._listRates(m.prof, prefix)
+
+        if len(rate_list) == 0:
+            raise ValueError("Found no rates in the data")
+
+        self._plotMultiProf(
+            m,
+            list_y=rate_list,
+            y1log=y1log,
+            y1scale=y1scale,
+            _axlabel="rates",
+            show=show,
+            ax=ax,
+            xaxis=xaxis,
+            xmin=xmin,
+            xmax=xmax,
+            y1rng=y1rng,
+            cmap=cmap,
+            num_labels=num_labels,
+            xlabel=xlabel,
+            points=points,
+            rand_col=rand_col,
+            show_burn=show_burn,
+            show_mix=show_mix,
+            fig=fig,
+            fx=fx,
+            fy=fy,
+            show_title_name=show_title_name,
+            show_title_model=show_title_model,
+            show_title_age=show_title_age,
+            annotate_line=annotate_line,
+            linestyle=linestyle,
+            colors=colors,
+            y1label=y1label,
+            title=title,
+            show_shock=show_shock,
+            y2=y2,
+            y2rng=y2rng,
+            fy2=fy2,
+            y2Textcol=y2Textcol,
+            y2label=y2label,
+            y2rev=y2rev,
+            y2log=y2log,
+            y2col=y2col,
+            xlog=xlog,
+            xrev=xrev,
+        )
+
+    def plotRatesHist(
+        self,
+        m,
+        prefix="raw_rates_",
+        show=True,
+        ax=None,
+        xaxis="model_number",
+        xmin=None,
+        xmax=None,
+        y1rng=[None, None],
+        y1log=False,
+        y1scale=None,
+        cmap=plt.cm.gist_ncar,
+        num_labels=3,
+        xlabel=None,
+        points=False,
+        rand_col=False,
+        fig=None,
+        fx=None,
+        fy=None,
+        minMod=-1,
+        maxMod=-1,
+        y1label="Rates",
+        show_title_name=False,
+        annotate_line=True,
+        linestyle="-",
+        colors=None,
+        show_core=False,
+        y2=None,
+        y2rng=[None, None],
+        fy2=None,
+        y2Textcol=None,
+        y2label=None,
+        y2rev=False,
+        y2log=False,
+        y2col="k",
+        xlog=False,
+        xrev=False,
+    ):
+
+        rates_list = self._listRates(m.hist, prefix=prefix)
+
+        self._plotMultiHist(
+            m,
+            list_y=rates_list,
+            show=show,
+            ax=ax,
+            xaxis=xaxis,
+            xmin=xmin,
+            xmax=xmax,
+            y1rng=y1rng,
+            y1log=y1log,
+            y1scale=y1scale,
+            y1label=y1label,
+            cmap=cmap,
+            num_labels=num_labels,
+            xlabel=xlabel,
+            points=points,
+            rand_col=rand_col,
+            fig=fig,
+            fx=fx,
+            fy=fy,
+            minMod=minMod,
+            maxMod=maxMod,
+            show_title_name=show_title_name,
+            annotate_line=annotate_line,
+            linestyle=linestyle,
+            colors=colors,
+            show_core=show_core,
+            y2=y2,
+            y2rng=y2rng,
+            fy2=fy2,
+            y2Textcol=y2Textcol,
+            y2label=y2label,
+            y2rev=y2rev,
+            y2log=y2log,
+            y2col=y2col,
+            xlog=xlog,
+            xrev=xrev,
+        )
