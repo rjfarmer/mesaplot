@@ -5925,7 +5925,7 @@ class plot(object):
         center = None
         if radius:
             if "r_center" in m.hist:
-                if np.any(m.hist.data["r_center"] > m.hist.star_radius):
+                if np.any(m.hist.data["r_center"] > 10**m.hist.log_R):
                     # r_center in cm
                     center = m.hist.data["r_center"] / self.rsun
                 else:
