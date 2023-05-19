@@ -1699,6 +1699,14 @@ class plot(object):
             mpl.rcParams["ytick.major.width"] = 0.8  # major tick size in points
             mpl.rcParams["ytick.minor.width"] = 0.6  # minor tick size in points
 
+    _core_masses = {
+        "He": {"names": ["he_core_mass"], "color": "clr_Teal"},
+        "C": {"names": ["c_core_mass", "co_core_mass"], "color": "clr_LightOliveGreen"},
+        "O": {"names": ["o_core_mass", "one_core_mass"], "color": "clr_SeaGreen"},
+        "Si": {"names": ["si_core_mass"], "color": "clr_Lilac"},
+        "Fe": {"names": ["fe_core_mass"], "color": "clr_Crimson"},
+    }
+
     def set_solar(self, solar="ag89"):
         if str(solar) == "ag89":
             self.sol_comp = self._sol_comp_ag89
@@ -2443,20 +2451,15 @@ class plot(object):
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
 
-    def _plotCoreLoc(
-        self, prof, ax, xaxis, x, ymin, ymax, linecol="k", coreMasses=None
-    ):
-        if coreMasses is None:
-            coreMasses = [
-                "he_core_mass",
-                "c_core_mass",
-                "o_core_mass",
-                "si_core_mass",
-                "fe_core_mass",
-            ]
+    def _plotCoreLoc(self, prof, ax, xaxis, x, ymin, ymax, linecol="k"):
 
-        for cm in coreMasses:
+        for name, value in self._core_masses.items():
+            cn = None
             # Find cell where we have core mass and use that to index the actual x axis
+            for n in value.names:
+                if n in prof.head.dtype.names:
+                    cm = n
+
             pos = bisect.bisect_right(prof.data["mass"][::-1], prof.head[cm])
             if pos < np.size(prof.data[xaxis]) and pos > 0 and prof.head[cm] > 0.0:
                 pos = np.size(prof.data["mass"]) - pos
@@ -2469,7 +2472,7 @@ class plot(object):
                 xp1 = prof.data[xaxis][pos]
                 yp1 = 0.95 * (ymax - ymin) + ymin
                 ax.annotate(
-                    cm.split("_")[0],
+                    name,
                     xy=(xp1, yp1),
                     xytext=(xp1, yp1),
                     color=linecol,
@@ -2477,63 +2480,49 @@ class plot(object):
                 )
 
     def _showMassLoc(self, m, fig, ax, x, modInd):
-        coreMasses = [
-            "he_core_mass",
-            "c_core_mass",
-            "o_core_mass",
-            "si_core_mass",
-            "fe_core_mass",
-        ]
-        labels = ["He", "C", "O", "Si", "Fe"]
-        col = [
-            "clr_Teal",
-            "clr_LightOliveGreen",
-            "clr_SeaGreen",
-            "clr_Lilac",
-            "clr_Crimson",
-        ]
 
-        for i, j in zip(coreMasses, col):
-            y = m.hist.data[i][modInd]
+        l = []
+        c = []
+        for name, val in self._core_masses.items():
+            y = None
+            for n in val["names"]:
+                if n in m.hist.data.dtype.names:
+                    y = m.hist.data[n][modInd]
+            if y is None:
+                continue
+
             if np.any(y):
-                ax.plot(x, y, color=self.colors[j], linewidth=5)
+                ax.plot(x, y, color=self.colors[val["color"]], linewidth=5)
+                l.append(name)
+                c.append(self.colors[val["color"]])
 
         self._addExtraLabelsToAxis(
             fig,
-            labels,
-            [self.colors[i] for i in col],
+            l,
+            c,
             num_left=0,
-            num_right=len(labels),
+            num_right=len(l),
             right_pad=50,
         )
 
     def _showMassLocHist(self, m, fig, ax, x, y, modInd):
-        coreMasses = [
-            "he_core_mass",
-            "c_core_mass",
-            "o_core_mass",
-            "si_core_mass",
-            "fe_core_mass",
-        ]
-        labels = ["He", "C", "O", "Si", "Fe"]
-        col = [
-            "clr_Teal",
-            "clr_LightOliveGreen",
-            "clr_SeaGreen",
-            "clr_Lilac",
-            "clr_Crimson",
-        ]
-
         out = []
         outc = []
-        for i, j, l in zip(coreMasses, col, labels):
-            ind = m.hist.data[i][modInd] > 0.0
+
+        for name, val in self._core_masses.items():
+            ind = None
+            for n in val["names"]:
+                if n in m.hist.data:
+                    ind = m.hist.data[n][modInd] > 0.0
+            if ind is None:
+                continue
+
             if np.count_nonzero(ind):
                 ax.plot(
                     [x[ind][0], x[ind][0]],
                     ax.get_ylim(),
                     "--",
-                    color=self.colors[j],
+                    color=self.colors[val["color"]],
                     linewidth=2,
                 )
                 out.append(x[ind][0])
