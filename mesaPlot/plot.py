@@ -5984,7 +5984,13 @@ class plot(object):
         sorter = np.argsort(x)
         ind = np.searchsorted(x, lin_x, sorter=sorter, side="left")
 
-        data = data[sorter[ind], :]
+        s_ind = sorter[ind]
+
+        # When flipping the ages we may end up with points at the edge
+        # so just make sure we dont go out of bound (searcgsoretd returns N if no suitable match found)
+        s_ind[s_ind == len(data)] = len(data) - 1
+
+        data = data[s_ind, :]
         if nan:
             data[data < nan_value] = np.nan
         data = np.array(data)
