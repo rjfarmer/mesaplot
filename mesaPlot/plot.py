@@ -5549,14 +5549,6 @@ class plot(object):
         extent = (xmin, xmax, ymin, ymax)
         extent = np.double(np.array(extent))
 
-        if cmap_merge:
-            newCm = self.mergeCmaps(cmap, [[0.0, 0.5], [0.5, 1.0]])
-        else:
-            if not isinstance(cmap, str):
-                newCm = cmap[-1]
-            else:
-                newCm = cmap
-
         if hasdataz:
             if zlog:
                 # Get rid of warnigns about > nan's
@@ -5571,6 +5563,19 @@ class plot(object):
             if vmin < 0 and vmax > 0:
                 vmax = np.maximum(np.abs(vmax), np.abs(vmin))
                 vmin = -vmax
+
+                if cmap_merge:
+                    newCm = self.mergeCmaps(cmap, [[0.0, 0.5], [0.5, 1.0]])
+                else:
+                    if not isinstance(cmap, str):
+                        newCm = cmap[-1]
+                    else:
+                        newCm = cmap
+            else:
+                if not isinstance(cmap, str):
+                    newCm = cmap[-1]
+                else:
+                    newCm = cmap
 
             if cmin is not None:
                 vmin = cmin
