@@ -274,8 +274,6 @@ class data(object):
                 # Get Data
                 self.data = pickhash.data
                 self.head = pickhash.head
-                self.head_names = pickhash.head.dtype.names
-                self.data_names = pickhash.data.dtype.names
                 self._loaded = pickhash._loaded
                 return True
         return False
