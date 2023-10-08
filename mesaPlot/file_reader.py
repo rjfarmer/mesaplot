@@ -272,9 +272,11 @@ class data(object):
             ) or not os.path.exists(filename):
                 # Data has not changed
                 # Get Data
-                self.data = pickle.load(f)
-                self.head = pickle.load(f)
-                self._loaded = True
+                self.data = pickhash.data
+                self.head = pickhash.head
+                self.head_names = pickhash.head.dtype.names
+                self.data_names = pickhash.data.dtype.names
+                self._loaded = pickhash._loaded
                 return True
         return False
 
