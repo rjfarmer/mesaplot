@@ -552,7 +552,7 @@ class plotRate(object):
         ax.scatter(np.log10(d["t8"] * 10 ** 8), np.log10(d["rate"]))
         ax.set_xlabel(r"$\rm{T}_8$")
         ax.set_ylabel(r"$\rm{Rate}$")
-        ax.set_title(name.replace("_", "\_"))
+        ax.set_title(name.replace("_", "\\_"))
         if trng is not None:
             ax.set_xlim(trng)
         if rrng is not None:
@@ -701,7 +701,7 @@ class debug_mesh(object):
     def plot_gval(self, data, show=True):
         for i in data.dtype.names:
             if i.startswith("gval_"):
-                plt.plot(data["mass"], data[i], label=i.replace("_", "\_"), linewidth=2)
+                plt.plot(data["mass"], data[i], label=i.replace("_", "\\_"), linewidth=2)
 
         plt.legend(loc=0)
         if show:

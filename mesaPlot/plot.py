@@ -29,6 +29,7 @@ from cycler import cycler
 from scipy.interpolate import interp1d
 from distutils.spawn import find_executable
 import numpy.ma as ma
+import warnings
 
 
 class plot(object):
@@ -3567,6 +3568,7 @@ class plot(object):
         ax.set_xlim(xmin - 5, xmax + 5)
 
         diff = (np.log10(ymax) - np.log10(ymin)) / 10.0
+
         ax.set_ylim(ymin - diff, ymax + diff)
 
         if show:
@@ -4450,23 +4452,26 @@ class plot(object):
         )
 
         if show_rotation:
-            ax2.plot(
-                m.prof.data[xaxis],
-                np.log10(m.prof.data["omega"]),
-                "--",
-                label=r"$\log_{10} \omega$",
-                linewidth=2,
-                color="r",
-            )
-            # ind=mInd&(m.prof.data['dynamo_log_B_phi']>-90)
-            ax2.plot(
-                m.prof.data[xaxis],
-                np.log10(m.prof.data["j_rot"]) - 20.0,
-                "--",
-                label=r"$\log_{10} j [10^{20}]$",
-                linewidth=2,
-                color="k",
-            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', r'divide by zero encountered in log10')
+
+                ax2.plot(
+                    m.prof.data[xaxis],
+                    np.log10(m.prof.data["omega"]),
+                    "--",
+                    label=r"$\log_{10} \omega$",
+                    linewidth=2,
+                    color="r",
+                )
+                # ind=mInd&(m.prof.data['dynamo_log_B_phi']>-90)
+                ax2.plot(
+                    m.prof.data[xaxis],
+                    np.log10(m.prof.data["j_rot"]) - 20.0,
+                    "--",
+                    label=r"$\log_{10} j [10^{20}]$",
+                    linewidth=2,
+                    color="k",
+                )
 
         scale = 2.1
         ax1_1.set_ylabel(
