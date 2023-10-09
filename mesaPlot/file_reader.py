@@ -204,7 +204,8 @@ class data(object):
             if key in self.data.dtype.names:
                 return self.data[key]
             if key in self.head.dtype.names:
-                return self.head[key][0]
+                return np.atleast_1d(self.head[key])[0]
+
 
         try:
             return self.__dict__[key]
@@ -254,26 +255,35 @@ class data(object):
             # Get checksum
             filehash = _hash(filename)
             try:
-                pickhash = pickle.load(f)
-            except:
+                version = pickle.load(f)
+            except Exception:
                 raise ValueError("Pickle file corrupted please delete it and try again")
-            if len(str(pickhash)) == len(str(_PICKLE_VERSION)):
-                if int(pickhash) != int(_PICKLE_VERSION):
-                    # Not a hash but a version number/ or wrong version number:
-                    return False
 
-            try:
+            # For mesaplot 1.* this is a hash, while 2.* is a version number
+            if len(str(version)) > 12:
+                # Version 1.0 hash
+                pickhash = version
+            else:
+                if int(version) != int(_PICKLE_VERSION):
+                    raise ValueError("Pickle file not recongised please delete it and try again")
+                
                 pickhash = pickle.load(f)
-            except TypeError:
-                return False
 
             if (
                 os.path.exists(filename) and pickhash == filehash
             ) or not os.path.exists(filename):
                 # Data has not changed
                 # Get Data
-                self.data = pickle.load(f)
-                self.head = pickle.load(f)
+                data = pickle.load(f)
+                
+                try:
+                    head = pickle.load(f)
+                    self.head = head
+                    self.data = data
+                except EOFError: # Handle 1.* verisons of pickle files
+                    self.data = data.data
+                    self.head = data.head
+
                 self._loaded = True
                 return True
         return False
