@@ -204,7 +204,7 @@ class data(object):
             if key in self.data.dtype.names:
                 return self.data[key]
             if key in self.head.dtype.names:
-                return self.head[key][0]
+                return self.head[key]
 
         try:
             return self.__dict__[key]
@@ -272,9 +272,9 @@ class data(object):
             ) or not os.path.exists(filename):
                 # Data has not changed
                 # Get Data
-                self.data = pickle.load(f)
-                self.head = pickle.load(f)
-                self._loaded = True
+                self.data = pickhash.data
+                self.head = pickhash.head
+                self._loaded = pickhash._loaded
                 return True
         return False
 
