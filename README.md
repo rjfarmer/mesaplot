@@ -104,6 +104,14 @@ Data can be accessed as m.prof.data['COLUMN_NAME'] or m.prof.COLUMN_NAME. The se
 also tab completable. The header information is either m.prof.head['COLUMN_NAME'] or m.prof.COLUMN_NAME.
 
 
+> **_NOTE:_** To speed up repeated readings of the LOG data, mesaPlot saves a 
+binary version of the data (taking care to regenerate this file if the history/profile is updated).
+This binary file SHOULD NOT be depended upon for long term storage. The file format may change between
+versions and is not backward compatable. For long term storage allways keep the plain text history/profile file
+(possibly compressed to save space).
+
+
+
 ## Plotting
 
 Here we'll show the basics of plotting, there are more complex examples for each section. Commands will assume you are in a MESA work folder, such that the data is in a LOGS/ folder.
