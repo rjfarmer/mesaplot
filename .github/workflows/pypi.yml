@@ -24,15 +24,10 @@ jobs:
         python -m pip install build wheel pytest
     - name: Build a binary wheel and a source tarball
       run: >-
-        python3 -m
-        build
-        --sdist
-        --wheel
-        --outdir dist/
-        .
+        python3 -m build
     - name: Test
       run: |
-        python -m pip install dist/mesaPlot*.tar.gz
+        python -m pip install dist/mesaplot*.tar.gz
         python -m pytest
 
     - name: Publish package distributions to PyPI
