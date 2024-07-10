@@ -292,14 +292,14 @@ class data(object):
         if not os.path.exists(filename):
             raise FileNotFoundError("No file " + str(filename) + " found")
 
-        head = pandas.read_csv(filename, delim_whitespace=True, header=1, nrows=1)
+        head = pandas.read_csv(filename, sep=r'\s+', header=1, nrows=1)
 
         if max_num_lines > 0:
             data = pandas.read_csv(
-                filename, delim_whitespace=True, header=4, nrows=max_num_lines
+                filename, sep=r'\s+', header=4, nrows=max_num_lines
             )
         else:
-            data = pandas.read_csv(filename, delim_whitespace=True, header=4)
+            data = pandas.read_csv(filename, sep=r'\s+', header=4)
 
         if final_lines > 0:
             data = self.data[-final_lines:]
