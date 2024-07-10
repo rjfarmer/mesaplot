@@ -5118,6 +5118,7 @@ class plot(object):
             xmax=xmax,
             y1rng=y1rng,
             y1log=y1log,
+            y1label=y1label,
             xlabel=xlabel,
             points=points,
             fig=fig,
