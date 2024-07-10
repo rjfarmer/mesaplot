@@ -1,11 +1,50 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
-
-build-backend = "setuptools.build_meta"
+requires = ["setuptools>=64", "wheel", "setuptools_scm[toml]>=7.1.0"]
+# Python 3.7 doesnt go above 7.1.0
 
 [tool.pytest.ini_options]
 testpaths = [
     "tests",
 ]
+addopts = "-s"
 
 [tool.setuptools_scm]
+
+
+[project]
+name = "mesaPlot"
+authors = [
+    {name="Robert Farmer", email="robert.j.farmer37@gmail.com"}
+]
+description = "Library for reading and plotting MESA data"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "GPLv2+"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Intended Audience :: Science/Research",
+]
+
+
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "scipy",
+    "pandas",
+    "importlib_metadata" # Needed for python <3.8
+]
+
+dynamic = ["version"]
+
+
+[project.optional-dependencies]
+test = ['pytest', 'tox']
+dev = ['pre-commit','black']
