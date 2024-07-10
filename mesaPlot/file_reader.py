@@ -24,8 +24,6 @@ import hashlib
 from io import BytesIO
 import pandas
 
-from distutils.version import StrictVersion
-
 msun = 1.9892 * 10 ** 33
 
 # Conviently the index of this list is the proton number

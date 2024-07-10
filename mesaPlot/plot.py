@@ -24,10 +24,10 @@ from matplotlib.ticker import MaxNLocator, AutoMinorLocator
 import matplotlib.patheffects as path_effects
 import os
 import random
-from io import BytesIO
+
 from cycler import cycler
 from scipy.interpolate import interp1d
-from distutils.spawn import find_executable
+from shutil import which
 import numpy.ma as ma
 import warnings
 
@@ -1681,7 +1681,7 @@ class plot(object):
 
         if rcparams_fixed:
             # Set default matplotlib rcParameters (True by default)
-            if find_executable("latex"):
+            if which("latex"):
                 mpl.rc("text", usetex=True)
             else:
                 mpl.rc("text", usetex=False)
