@@ -5695,7 +5695,7 @@ class plot(object):
             if y2label:
                 ax2.set_ylabel(y2label)
 
-        if colorbar:
+        if colorbar and hasdataz:
             if cbar_ax is not None:
                 cb = fig.colorbar(im1, cax=cbar_ax, ax=ax, extend=cbar_extend)
             else:
