@@ -303,25 +303,32 @@ class data(object):
             data = self.data[-final_lines:]
 
         # Convert from pandas to numpy
-        dtype = np.dtype(
-            [
-                (data.dtypes.index[idx].values, data.dtypes[idx].name)
-                for idx, i in enumerate(data.dtypes)
-            ]
-        )
-        self.data = np.zeros(np.size(data[dtype.names[0]]), dtype=dtype)
-        for i in data:
-            self.data[i] = data[i].to_numpy()
+        # dtype = np.dtype(
+        #     [
+        #         (data.dtypes.index[idx].values, data.dtypes[idx].name)
+        #         for idx, i in enumerate(data.dtypes)
+        #     ]
+        # )
+        # self.data = np.zeros(np.size(data[dtype.names[0]]), dtype=dtype)
+        # for i in data:
+        #     self.data[i] = data[i].to_numpy()
 
-        dtype = np.dtype(
-            [
-                (head.dtypes.index[idx], head.dtypes[idx].name)
-                for idx, i in enumerate(head.dtypes)
-            ]
-        )
-        self.head = np.zeros(1, dtype=dtype)
-        for i in head:
-            self.head[i] = head[i].to_numpy()
+        records = data.to_records(index=False)
+        self.data = np.array(records, dtype = records.dtype.descr)
+
+        # dtype = np.dtype(
+        #     [
+        #         (head.dtypes.index[idx], head.dtypes[idx].name)
+        #         for idx, i in enumerate(head.dtypes)
+        #     ]
+        # )
+        # self.head = np.zeros(1, dtype=dtype)
+        # for i in head:
+        #     self.head[i] = head[i].to_numpy()
+
+        records = data.to_records(index=False)
+        self.head = np.array(records, dtype = records.dtype.descr)
+
 
         self._loaded = True
         self._saveFile(filename)
