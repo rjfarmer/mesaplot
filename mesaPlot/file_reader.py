@@ -208,7 +208,7 @@ class data(object):
         try:
             return self.__dict__[key]
         except KeyError:
-            raise AttributeError("No attribute " + str(key))
+            raise AttributeError(f"No attribute {key} found")
 
     def __iter__(self):
         if len(self.data):
@@ -326,7 +326,7 @@ class data(object):
         # for i in head:
         #     self.head[i] = head[i].to_numpy()
 
-        records = data.to_records(index=False)
+        records = head.to_records(index=False)
         self.head = np.array(records, dtype = records.dtype.descr)
 
 
