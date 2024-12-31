@@ -5912,7 +5912,9 @@ class plot(object):
         if age_log:
             if age_lookback:
                 # Fudge the first value not to be exactly 0.0
-                age[-1] = age[-2] / 2.0
+                for i in range(1,len(age)):
+                    if age[i] == 0.0:
+                        age[i] = age[i-1] / 2.0
             age[0] = age[1] / 2.0
             age = np.log10(age)
 
