@@ -305,7 +305,7 @@ class data(object):
         # Convert from pandas to numpy
         dtype = np.dtype(
             [
-                (data.dtypes.index[idx], data.dtypes[idx].name)
+                (data.dtypes.index[idx].values, data.dtypes[idx].name)
                 for idx, i in enumerate(data.dtypes)
             ]
         )
