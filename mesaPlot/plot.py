@@ -2527,7 +2527,7 @@ class plot(object):
                     linewidth=2,
                 )
                 out.append(x[ind][0])
-                outc.append(l)
+                outc.append(name)
 
         ax2 = ax.twiny()
         ax2.plot(ax.get_xlim(), ax.get_ylim())
