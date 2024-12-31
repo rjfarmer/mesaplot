@@ -5719,7 +5719,7 @@ class plot(object):
 
         if show_mass_loc:
             self._showMassLoc(
-                m, fig, ax, np.linspace(xmin, xmax, np.count_nonzero(modInd)), modInd
+                m, fig, ax, data_x, modInd
             )
 
         self._setYLim(ax, ax.get_ylim(), yrng)
@@ -5996,6 +5996,7 @@ class plot(object):
     def _rebinKipDataX(self, data, x, lin_x, nan=False, nan_value=1):
         sorter = np.argsort(x)
         ind = np.searchsorted(x, lin_x, sorter=sorter, side="left")
+
 
         s_ind = sorter[ind]
 
