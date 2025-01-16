@@ -5335,6 +5335,8 @@ class plot(object):
         zone_frac=1.0,
         num_zones=None,
         mix_hatch=False,
+        mix_hatch_patterns = ["//", "...", "\\\\", "||", "x", "*"],
+        mix_hatch_colors = ['chartreuse', 'purple', 'red', 'gold', 'brown', 'gray'],
         hatch_color="black",
         hatch_func=None,
         zaxis_norm=False,
@@ -5612,17 +5614,36 @@ class plot(object):
         if show_mix:
             mixCmap, mixNorm = self._setMixRegionsCol(kip=True)
             if mix_hatch:
-                plt.rcParams["hatch.color"] = hatch_color
-                ax.contourf(
+                from matplotlib.patches import PathPatch
+
+                # Create a filled contour plot (only to extract paths)
+                filled_contours = ax.contourf(
                     lin_x,
                     data_y,
                     mix_data.T,
-                    colors="none",
+                    colors='none',  
                     alpha=0.0,
-                    norm=mixNorm,
-                    hatches=["//", "x", "\\\\", "||", "*", "..."],
+                    hatches=mix_hatch_patterns,
                     antialiased=True,
                 )
+
+                # manage hatches and colors
+                num_collections = len(filled_contours.collections)
+                patterns = (mix_hatch_patterns * (num_collections // len(mix_hatch_patterns) + 1))[:num_collections]
+                colors = (mix_hatch_colors * (num_collections // len(mix_hatch_colors) + 1))[:num_collections]
+
+                # applying hatches and colors dynamically
+                for collection, hatch, color in zip(filled_contours.collections, patterns, colors):
+                    for path in collection.get_paths():
+                        patch = PathPatch(
+                            path,
+                            edgecolor=color,
+                            facecolor='none',
+                            hatch=hatch,
+                            linewidth=0.5,
+                            alpha=1.0,
+                        )
+                        ax.add_patch(patch)        # Add the patch to the axes
                 ax.contour(lin_x, data_y, mix_data.T, colors=hatch_color, norm=mixNorm)
             else:
                 ax.imshow(
