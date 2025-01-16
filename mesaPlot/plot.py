@@ -5620,7 +5620,7 @@ class plot(object):
                     colors="none",
                     alpha=0.0,
                     norm=mixNorm,
-                    hatches=["//", "-", "x", "+", "\\", "/"],
+                    hatches=["//", "x", "\\\\", "||", "*", "..."],
                     antialiased=True,
                 )
                 ax.contour(lin_x, data_y, mix_data.T, colors=hatch_color, norm=mixNorm)
