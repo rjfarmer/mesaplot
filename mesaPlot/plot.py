@@ -2493,7 +2493,7 @@ class plot(object):
                 continue
 
             if np.any(y):
-                ax.plot(x, y, color=self.colors[val["color"]], linewidth=5)
+                ax.plot(x[modInd], y, color=self.colors[val["color"]], linewidth=5)
                 l.append(name)
                 c.append(self.colors[val["color"]])
 
@@ -6018,8 +6018,10 @@ class plot(object):
         sorter = np.argsort(x)
         ind = np.searchsorted(x, lin_x, sorter=sorter, side="left")
 
-
-        s_ind = sorter[ind]
+        try:
+            s_ind = sorter[ind]
+        except IndexError:
+            raise ValueError("Trying to resolved too small a timestep given the age of the star, you must pick a smaller range of models to show.")
 
         # When flipping the ages we may end up with points at the edge
         # so just make sure we dont go out of bound (searcgsoretd returns N if no suitable match found)
