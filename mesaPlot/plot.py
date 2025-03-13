@@ -5489,6 +5489,11 @@ class plot(object):
                 mix_data = self._rebinKipDataX(
                     mix_data, data_x[modInd], lin_x, nan=True, nan_value=1
                 )
+                
+            if yaxis_norm:
+                data_y_min, data_y_max = np.min(data_y), np.max(data_y)
+                if data_y_max > data_y_min:  
+                    data_y = (data_y - data_y_min) / (data_y_max - data_y_min)
 
         else:
             show_mix = False
