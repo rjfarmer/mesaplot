@@ -5649,7 +5649,7 @@ class plot(object):
                             alpha=1.0,
                         )
                         ax.add_patch(patch)        # Add the patch to the axes
-                ax.contour(lin_x, data_y, mix_data.T, colors=hatch_color, norm=mixNorm)
+                ax.contour(lin_x, data_y, mix_data.T, colors=mix_hatch_colors, norm=mixNorm)
             else:
                 ax.imshow(
                     mix_data.T,
