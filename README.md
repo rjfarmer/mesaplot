@@ -2,9 +2,12 @@
 
 [![DOI](https://zenodo.org/badge/30720868.svg)](https://zenodo.org/badge/latestdoi/30720868)
 
+````
+This repository is no longer maintained.
+````
 
 # mesaplot
-Library of python routines to read MESA ouput files and plot MESA quantites
+Library of python routines to read MESA output files and plot MESA quantities
 
 ## Installation instructions:
 git clone the repo then call
@@ -36,7 +39,7 @@ will run tests for several python versions
 
 ## Contributing
 
-Bug reports should go to githubs issue tracker.
+Bug reports should go to github's issue tracker.
 
 Requests for new features should also got to the issue tracker.
 
@@ -107,7 +110,7 @@ also tab completable. The header information is either m.prof.head['COLUMN_NAME'
 > **_NOTE:_** To speed up repeated readings of the LOG data, mesaPlot saves a 
 binary version of the data (taking care to regenerate this file if the history/profile is updated).
 This binary file SHOULD NOT be depended upon for long term storage. The file format may change between
-versions and is not backward compatable. For long term storage allways keep the plain text history/profile file
+versions and is not backward compatable. For long term storage always keep the plain text history/profile file
 (possibly compressed to save space).
 
 
